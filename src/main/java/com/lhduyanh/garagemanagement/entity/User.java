@@ -1,21 +1,24 @@
 package com.lhduyanh.garagemanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @Column(nullable = false)
+    private String name;
 
     @Column(columnDefinition = "VARCHAR(50)", nullable = true, length = 50)
     private String phone;
@@ -30,15 +33,14 @@ public class User {
     @JoinColumn(name = "address_id")
     private Address address;
 
-    @Lob
-    @Column(columnDefinition = "LONGBLOB")
-    private byte[] avatar;
-
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     @JoinTable(
             name = "userrole",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private List<Role> roles;
+
+    @OneToOne(mappedBy = "user")
+    private Account account;
 }

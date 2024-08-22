@@ -1,14 +1,17 @@
 package com.lhduyanh.garagemanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
 @Setter
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,7 +26,8 @@ public class Role {
     @Column(nullable = false)
     private int status = 1;
 
-    @ManyToMany(mappedBy = "roles", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "roles",fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<User> users;
 
 }

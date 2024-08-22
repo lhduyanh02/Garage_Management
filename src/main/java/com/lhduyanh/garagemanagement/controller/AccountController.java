@@ -1,20 +1,14 @@
 package com.lhduyanh.garagemanagement.controller;
 
-import com.lhduyanh.garagemanagement.dto.AccountCreationRequest;
-import com.lhduyanh.garagemanagement.dto.ApiResponse;
-import com.lhduyanh.garagemanagement.dto.IdAccountRequest;
-import com.lhduyanh.garagemanagement.dto.VerifyAccountRequest;
-import com.lhduyanh.garagemanagement.entity.Account;
-import com.lhduyanh.garagemanagement.exception.AppException;
-import com.lhduyanh.garagemanagement.exception.ErrorCode;
-import com.lhduyanh.garagemanagement.repository.AccountRepository;
+import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
+import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
+import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
+import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
 import com.lhduyanh.garagemanagement.service.AccountService;
 import com.lhduyanh.garagemanagement.service.EmailSenderService;
 import com.lhduyanh.garagemanagement.service.OtpService;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +22,22 @@ public class AccountController {   // for design account controller api
     private OtpService otpService;
     @Autowired
     private EmailSenderService emailSenderService;
+
+    @PostMapping("/create_user_account")
+    public ApiResponse<UserAccountResponse> createUserAccount(@RequestBody @Valid UserAccountCreationReq req) {
+        return ApiResponse.<UserAccountResponse>builder()
+                .code(200)
+                .data(accountService.createUserAccount(req))
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<AccountResponse>> getAllAccounts() {
+        return ApiResponse.<List<AccountResponse>>builder()
+                .code(200)
+                .data(accountService.getAllAccounts())
+                .build();
+    }
 /*
     @PostMapping("/create")
     ApiResponse<Account> createAccount(@RequestBody @Valid AccountCreationRequest request) throws MessagingException {
