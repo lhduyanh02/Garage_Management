@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Setter
@@ -28,6 +28,14 @@ public class Role {
 
     @ManyToMany(mappedBy = "roles",fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<User> users;
+    private Set<User> users;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "role_permission",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+        private Set<Permissions> permissions;
 
 }

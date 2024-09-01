@@ -24,10 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -53,7 +50,7 @@ public class AccountService {
         return accountRepository.findAll().stream().map(accountMapper::toAccountResponse).toList();
     }
 
-    // Tạo user và account
+    // Create user-account with default role: CUSTOMER
     public UserAccountResponse createUserAccount(UserAccountCreationReq userAccountCreationReq) {
 
         boolean existed = accountRepository.existsByEmail(userAccountCreationReq.getEmail());
@@ -74,7 +71,13 @@ public class AccountService {
             user.setAddress(address.get());
         }
 
-        List<Role> roles = roleRepository.findAllById(userAccountCreationReq.getRoleIds());
+        Set<Role> roles = new HashSet<>();
+
+        if(userAccountCreationReq.getRoleIds().isEmpty()){
+            roles.add(roleRepository.findByRoleKey("CUSTOMER").get());
+        } else {
+            roles = new HashSet<>(roleRepository.findAllById(userAccountCreationReq.getRoleIds()));
+        }
 
         user.setRoles(roles);
 

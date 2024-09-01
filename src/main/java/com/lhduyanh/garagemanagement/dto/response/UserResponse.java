@@ -21,5 +21,5 @@ public class UserResponse {
     int gender;
     int status;
     Address address;
-    Set<Role> roles;
+    Set<RoleBodyResponse> roles;
 }

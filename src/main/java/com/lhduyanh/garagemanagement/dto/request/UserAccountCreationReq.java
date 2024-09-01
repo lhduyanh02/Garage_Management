@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -33,7 +32,7 @@ public class UserAccountCreationReq {
 
     int addressId;
 
-    List<String> roleIds;
+    Set<String> roleIds;
 
     @NotNull(message = "BLANK_STATUS")
     int status;

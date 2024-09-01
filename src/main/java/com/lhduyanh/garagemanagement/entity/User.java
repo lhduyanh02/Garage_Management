@@ -3,7 +3,6 @@ package com.lhduyanh.garagemanagement.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -29,17 +28,17 @@ public class User {
     @Column(nullable = false)
     private int status = 1;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private Address address;
 
     @ManyToMany
     @JoinTable(
-            name = "userrole",
+            name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private List<Role> roles;
+    private Set<Role> roles;
 
     @OneToOne(mappedBy = "user")
     private Account account;

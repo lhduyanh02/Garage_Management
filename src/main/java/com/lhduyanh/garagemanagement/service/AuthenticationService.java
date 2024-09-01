@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.dto.request.AuthenticationRequest;
 import com.lhduyanh.garagemanagement.dto.request.IntrospectRequest;
 import com.lhduyanh.garagemanagement.dto.response.AuthenticationResponse;
 import com.lhduyanh.garagemanagement.dto.response.IntrospectResponse;
+import com.lhduyanh.garagemanagement.entity.User;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.AccountRepository;
@@ -22,11 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
+import java.util.StringJoiner;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ import java.util.Date;
 @Slf4j
 public class AuthenticationService {
     AccountRepository accountRepository;
+    UserRepository userRepository;
 
     @NonFinal
     @Value("${app.password-strength}")
@@ -72,6 +77,8 @@ public class AuthenticationService {
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli() // Het han sau 1h
                 ))
+                .claim("scope", buildScope(email))
+                .claim("UUID", buildUUID(email))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -90,13 +97,9 @@ public class AuthenticationService {
     public IntrospectResponse introspect(IntrospectRequest request) {
         try{
             var token = request.getToken();
-
             JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
-
             SignedJWT signedJWT = SignedJWT.parse(token);
-
             Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-
             var verified = signedJWT.verify(verifier);
 
             return IntrospectResponse.builder()
@@ -107,5 +110,23 @@ public class AuthenticationService {
         catch (Exception e){
             throw new AppException(ErrorCode.INTROSPECT_EXCEPTION);
         }
+    }
+
+    private String buildScope(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        StringJoiner stringJoiner = new StringJoiner(" ");
+
+        if(!CollectionUtils.isEmpty(user.getRoles())){
+            user.getRoles().forEach(role -> stringJoiner.add(role.getRoleKey()));
+        }
+
+        return stringJoiner.toString();
+    }
+
+    private String buildUUID(String email){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return user.getId();
     }
 }

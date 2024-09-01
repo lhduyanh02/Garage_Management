@@ -14,6 +14,7 @@ public interface UserMapper {
 
     public User toUser(UserCreationRequest request);
 
+    @Mapping(target = "roles", source = "roles")
     public UserResponse toUserResponse(User user);
 
     @Mapping(source = "name", target = "name")

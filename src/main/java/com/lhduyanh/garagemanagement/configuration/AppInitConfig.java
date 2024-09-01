@@ -59,7 +59,11 @@ public class AppInitConfig {
                 Optional<Role> optionalRole = roleRepository.findByRoleKey("ADMIN");
                 if (optionalRole.isPresent()) {
                     Role role = optionalRole.get();
-                    user.setRoles(Collections.singletonList(role));
+
+                    var roles = new HashSet<Role>();
+                    roles.add(role);
+
+                    user.setRoles(roles);
                     user = userRepository.save(user);
                 }
 

@@ -1,12 +1,15 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.UserDeletionReq;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
+import com.lhduyanh.garagemanagement.entity.Account;
 import com.lhduyanh.garagemanagement.entity.User;
 import com.lhduyanh.garagemanagement.entity.Address;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.UserMapper;
+import com.lhduyanh.garagemanagement.repository.AccountRepository;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import lombok.AccessLevel;
@@ -14,10 +17,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class UserService {
     UserRepository userRepository;
     AddressRepository addressRepository;
+    AccountRepository accountRepository;
     UserMapper userMapper;
 
     public List<UserResponse> getAllUserWithAddress(){
@@ -52,5 +56,20 @@ public class UserService {
         user.setAddress(address);
 
         return userRepository.save(user);
+    }
+
+    public boolean deleteUserById(UserDeletionReq request) {
+        Optional<User> user = userRepository.findById(request.getId());
+
+        if (user.isPresent()) {
+            Optional<Account> account = accountRepository.findByUserId(request.getId());
+            if (account.isPresent())
+                accountRepository.delete(account.get());
+            userRepository.delete(user.get());
+        }
+        else {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+        return true;
     }
 }
