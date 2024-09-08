@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,12 +50,14 @@ public class AppInitConfig {
 //                if (!r.isEmpty()) {
 //                    log.info("\n\n\n\nRole get by r: " + r.get(0).getRoleName() + "\n\n\n\n");
 //                }
+                User user;
 
-                User user = User.builder()
+                var adminUser = userRepository.findByStatus(9999);
+                user = adminUser.orElseGet(() -> User.builder()
                         .name("Quản trị")
                         .gender(1)
-                        .status(1)
-                        .build();
+                        .status(9999)
+                        .build());
 
                 Optional<Role> optionalRole = roleRepository.findByRoleKey("ADMIN");
                 if (optionalRole.isPresent()) {
@@ -74,7 +77,7 @@ public class AppInitConfig {
                                 .user(user)
                                 .build());
 
-                log.warn("Admin user has been created with default password: \"admin\", please change it.");
+                log.warn("\nAdmin user has been created with default password: \"admin\", please change it.\n");
 
             }
         };

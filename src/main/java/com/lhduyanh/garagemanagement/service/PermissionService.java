@@ -4,11 +4,13 @@ import com.lhduyanh.garagemanagement.dto.request.PermissionRequest;
 import com.lhduyanh.garagemanagement.dto.response.PermissionResponse;
 import com.lhduyanh.garagemanagement.entity.Functions;
 import com.lhduyanh.garagemanagement.entity.Permissions;
+import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.PermissionMapper;
 import com.lhduyanh.garagemanagement.repository.FunctionRepository;
 import com.lhduyanh.garagemanagement.repository.PermissionRepository;
+import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +29,7 @@ public class PermissionService {
     PermissionRepository permissionRepository;
     PermissionMapper permissionMapper;
     FunctionRepository functionRepository;
+    private final RoleRepository roleRepository;
 
     public PermissionResponse addPermission(PermissionRequest request) {
 
@@ -51,14 +54,17 @@ public class PermissionService {
     }
 
     public void deletePermission(String permissionId) {
-        var per = permissionRepository.findById(permissionId)
+        var permission = permissionRepository.findById(permissionId)
                 .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_EXISTED));
+
+        var roles = permission.getRoles(); // Lấy danh sách roles tham chiếu tới permission
+        for(Role r : roles) { // Duyệt qua từng role và gỡ permission đó
+            r.getPermissions().remove(permission);
+        }
+        roleRepository.saveAll(roles); // Lưu danh sách roles vừa chỉnh sửa lại
 
         permissionRepository.deleteById(permissionId);
     }
 
-    public boolean userHasPermission(String userId, String permissionKey) {
-        return true;
-    }
 
 }

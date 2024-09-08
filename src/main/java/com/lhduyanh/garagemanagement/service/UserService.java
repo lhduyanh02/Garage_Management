@@ -2,15 +2,16 @@ package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserDeletionReq;
+import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
-import com.lhduyanh.garagemanagement.entity.Account;
+import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
-import com.lhduyanh.garagemanagement.entity.Address;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.UserMapper;
 import com.lhduyanh.garagemanagement.repository.AccountRepository;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
+import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -19,9 +20,14 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
+import static java.util.Objects.isNull;
+import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Service
 @Data
@@ -32,44 +38,74 @@ public class UserService {
     UserRepository userRepository;
     AddressRepository addressRepository;
     AccountRepository accountRepository;
+    RoleRepository roleRepository;
     UserMapper userMapper;
 
     public List<UserResponse> getAllUserWithAddress(){
         List<User> users = userRepository.findAllWithAddress();
-
         return users.stream()
                 .map(userMapper::toUserResponse)
                 .collect(Collectors.toList());
     };
 
-    public User createUser(UserCreationRequest request){
-
-//        if (userRepository.existsByEmail(request.getEmail())){
-//            throw new AppException(ErrorCode.USER_EXISTED);
-//        }
-
-        Address address = addressRepository.findById(request.getAddressId())
-                .orElseThrow(() -> new RuntimeException("Address not found"));
-
-        User user = userMapper.toUser(request);
-
-        user.setAddress(address);
-
-        return userRepository.save(user);
+    public UserResponse getMyUserInfo(){
+        var UUID = getUUIDFromJwt();
+        User user = userRepository.findById(UUID)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
     }
 
-    public boolean deleteUserById(UserDeletionReq request) {
-        Optional<User> user = userRepository.findById(request.getId());
+    public UserResponse createUser(UserCreationRequest request){
+        User user = userMapper.toUser(request);
+        if(!(isNull(request.getAddressId()) || request.getAddressId() < 0)) {
+            var address = addressRepository.findById(request.getAddressId());
+            address.ifPresent(user::setAddress);
+        }
 
-        if (user.isPresent()) {
-            Optional<Account> account = accountRepository.findByUserId(request.getId());
-            if (account.isPresent())
-                accountRepository.delete(account.get());
-            userRepository.delete(user.get());
+        Set<Role> roles = new HashSet<>();
+        if(isNull(request.getRoleIds()) || request.getRoleIds().isEmpty()){
+            roles.add(roleRepository.findByRoleKey("CUSTOMER").get());
+        } else {
+            roles = new HashSet<>(roleRepository.findAllById(request.getRoleIds()));
         }
-        else {
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        user.setRoles(roles);
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public UserResponse updateUser(String userId, UserUpdateRequest request){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        userMapper.updateUser(user, request);
+        if(!(request.getAddressId() <= 0)) {
+            log.info(String.valueOf(request.getAddressId()));
+            var address = addressRepository.findById(request.getAddressId());
+            address.ifPresent(user::setAddress);
+        } else {
+            user.setAddress(null);
         }
-        return true;
+
+        Set<Role> roles = new HashSet<>();
+        if(request.getRoleIds() != null && !request.getRoleIds().isEmpty())
+            roles = new HashSet<>(roleRepository.findAllById(request.getRoleIds()));
+        if(isNull(roles) || roles.isEmpty()){
+            roles.add(roleRepository.findByRoleKey("CUSTOMER").get());
+        } else {
+            roles = new HashSet<>(roleRepository.findAllById(request.getRoleIds()));
+        }
+        user.setRoles(roles);
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public void deleteUserById(UserDeletionReq request) {
+        var user = userRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        var account = accountRepository.findByUserId(user.getId());
+        account.ifPresent(accountRepository::delete);
+
+        userRepository.deleteById(request.getId());
     }
 }

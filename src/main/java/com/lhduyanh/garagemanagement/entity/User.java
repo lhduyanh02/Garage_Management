@@ -2,7 +2,9 @@ package com.lhduyanh.garagemanagement.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -11,26 +13,27 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    String id;
 
     @Column(nullable = false)
-    private String name;
+    String name;
 
     @Column(columnDefinition = "VARCHAR(50)", nullable = true, length = 50)
-    private String phone;
+    String phone;
 
     @Column(nullable = false)
-    private int gender = -1;
+    int gender = -1;
 
     @Column(nullable = false)
-    private int status = 1;
+    int status = 1;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
-    private Address address;
+    Address address;
 
     @ManyToMany
     @JoinTable(
@@ -38,8 +41,8 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
+    Set<Role> roles;
 
-    @OneToOne(mappedBy = "user")
-    private Account account;
+    @OneToMany(mappedBy = "user")
+    Set<Account> accounts = new HashSet<>();
 }

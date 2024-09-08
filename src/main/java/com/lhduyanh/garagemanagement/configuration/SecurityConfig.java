@@ -1,8 +1,5 @@
 package com.lhduyanh.garagemanagement.configuration;
 
-import com.lhduyanh.garagemanagement.dto.request.IntrospectRequest;
-import com.lhduyanh.garagemanagement.exception.AppException;
-import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -27,19 +24,21 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINTS = {
+    private final String[] PUBLIC_POST_ENDPOINTS = {
             "/auth/token",
             "/auth/introspect",
             "/auth/logout",
             "/auth/refresh",
-            "/accounts/create_user_account"
+            "/accounts/create_user_account",
+            "/auth/logout",
+            "/auth/refreshToken",
+            "/accounts/register",
+            "/accounts/verify-account",
+            "/accounts/regenerate-otp"
     };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
-
-    @Value("${app.signer-key}")
-    private String signerKey;
 
     @Value("${app.password-strength}")
     private int strength;
@@ -47,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request ->
-                request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS)
+                request.requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS)
                         .permitAll()
                         .requestMatchers("/", "/dangky", "/static/**", "/css/**",
                                 "/js/**", "/img/**", "/plugins/**", "/dist/**","/favicon.ico").permitAll()
@@ -57,7 +56,7 @@ public class SecurityConfig {
                         .authenticated());
 
         httpSecurity.oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(jwtDecode())
+                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)
                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
         );
@@ -73,14 +72,6 @@ public class SecurityConfig {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
         return jwtAuthenticationConverter;
-    }
-
-    @Bean
-    JwtDecoder jwtDecode()  {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HS512");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec)
-                .macAlgorithm(MacAlgorithm.HS512)
-                .build();
     }
 
     @Bean

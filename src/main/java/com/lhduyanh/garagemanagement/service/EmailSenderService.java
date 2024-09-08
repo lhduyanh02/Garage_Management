@@ -16,6 +16,8 @@ import org.thymeleaf.context.Context;
 @Component
 public class EmailSenderService {
     @Autowired
+    private TemplateEngine templateEngine;
+    @Autowired
     JavaMailSender mailSender;
 
     public void sendEmail(String to, String subject, String body) {
@@ -30,29 +32,13 @@ public class EmailSenderService {
         System.out.println("Mail sent successfully!");
     }
 
-//    @Async
-//    public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
-//        MimeMessage mimeMessage = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-//        helper.setTo(to);
-//        helper.setSubject(subject);
-//        helper.setText(htmlContent, true); // true để chỉ ra rằng đây là HTML
-//
-//        mailSender.send(mimeMessage);
-//
-//        System.out.println("HTML mail sent successfully!");
-//    }
-
-
-    @Autowired
-    private TemplateEngine templateEngine;
-
     public String getHtmlContent(String Hoten, String otp) {
         Context context = new Context();
         context.setVariable("hoten", Hoten);
         context.setVariable("otpcode", otp);
         return templateEngine.process("OTPMailTemplate", context);
     }
+
     @Async
     public void sendOTPEmail(String to, String hoten, String otp) throws MessagingException {
         // Tạo nội dung HTML
@@ -64,7 +50,7 @@ public class EmailSenderService {
 
         // Thiết lập thông tin cho email
         helper.setTo(to);
-        helper.setSubject("VERIFY YOUR EMAIL");
+        helper.setSubject("[CAR DETAILING] VERIFY YOUR EMAIL");
         helper.setText(htmlContent, true); // true để gửi email dưới dạng HTML
 
         // Gửi email

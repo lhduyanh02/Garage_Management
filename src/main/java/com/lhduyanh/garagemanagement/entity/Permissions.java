@@ -30,11 +30,11 @@ public class Permissions {
     @ManyToMany(mappedBy = "permissions")
     private Set<Role> roles;
 
-    @PreRemove
-    private void preRemove() {
-        // Xóa permission trong bảng role_permission trước khi xóa permission
-        for (Role role : roles) {
-            role.getPermissions().remove(this);
-        }
-    }
+//    @PreRemove
+//    private void preRemove() {
+//        // Xóa permission trong bảng role_permission trước khi xóa permission
+//        for (Role role : roles) {
+//            role.getPermissions().remove(this);
+//        }
+//    }
 }

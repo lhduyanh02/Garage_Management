@@ -36,6 +36,6 @@ public class Role {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-        private Set<Permissions> permissions;
+    private Set<Permissions> permissions;
 
 }

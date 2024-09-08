@@ -1,7 +1,5 @@
 package com.lhduyanh.garagemanagement.dto.request;
 
-import com.lhduyanh.garagemanagement.entity.Address;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,7 +13,7 @@ import java.util.Set;
 @Data
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserCreationRequest {
+public class UserUpdateRequest {
     @NotBlank(message = "BLANK_NAME")
     String name;
 
@@ -23,9 +21,6 @@ public class UserCreationRequest {
     String phone;
 
     int gender;
-
-    @NotNull(message = "BLANK_STATUS")
-    int status;
 
     int addressId;
 

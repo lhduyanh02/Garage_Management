@@ -1,10 +1,10 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
 import com.lhduyanh.garagemanagement.entity.Address;
-import com.lhduyanh.garagemanagement.repository.RoleRepository;
-import jakarta.persistence.FieldResult;
-import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.util.List;
@@ -13,8 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserAccountResponse {
-
+public class UserRegisterResponse {
     String id;
     String email;
     String name;
@@ -23,5 +22,4 @@ public class UserAccountResponse {
     Address address;
     int status;
     List<RoleBodyResponse> roles;
-
 }

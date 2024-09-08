@@ -23,4 +23,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     @Query("SELECT a FROM Account a WHERE a.user.id = :userId")
     Optional<Account> findByUserId(@Param("userId") String userId);
+
+    @Query("SELECT COUNT(a) > 0 FROM Account a WHERE a.email = :email AND a.status = :status")
+    boolean existsByEmailAndStatus(@Param("email") String email, @Param("status") int status);
 }
