@@ -15,6 +15,26 @@ $(function () {
   // Get context with jQuery - using jQuery's .get() method.
   var salesChartCanvas = $('#salesChart').get(0).getContext('2d')
 
+  $(document).ready(function() {
+      // Gửi yêu cầu AJAX để lấy dữ liệu
+      var token = sessionStorage.getItem("token");
+      $.ajax({
+          url: "/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
+          type: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          success: function(res) {
+              $("#user_quantity").text(res.data);
+
+          },
+          error: function(xhr, status, error) {
+              alert("Error fetching data:", error);
+          }
+      });
+});
+
   var salesChartData = {
     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
     datasets: [

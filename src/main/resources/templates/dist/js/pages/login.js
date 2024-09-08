@@ -1,3 +1,5 @@
+// import { redirect_page } from "../utils";
+
 var Toast = Swal.mixin({
     toast: true,
     position: "top-end",
@@ -9,7 +11,7 @@ var Toast = Swal.mixin({
     let email = $("#email").val();
     let password = $("#password").val();
     $.ajax({
-      url: "http://127.0.0.1:8080/auth/token",
+      url: "auth/token",
       type: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -17,8 +19,16 @@ var Toast = Swal.mixin({
       data: JSON.stringify({ email: email, password: password }),
       success: function (res) {
         if (res.code === 1000 && res.data.authenticated) {
-            // Nếu đăng nhập thành công và authenticated = true
-            window.location.href = "http://127.0.0.1:8080/";
+          // Lưu token vào cookie
+          // document.cookie = `token=${res.data.token}; path=/; secure;`;
+          sessionStorage.setItem('token', res.data.token);
+          
+            
+          // Gửi yêu cầu với Bearer Token
+          // redirect_page('/');
+          window.location.href = "/";
+
+
           } else {
             alert(res.code);
             Toast.fire({
@@ -66,3 +76,53 @@ var Toast = Swal.mixin({
       login();
     }
   });
+
+
+
+
+
+
+
+
+
+
+//   function redirect_page(url) {
+//     // Lấy token từ sessionStorage
+//     const token = sessionStorage.getItem('token');
+
+//     if (!token) {
+//         alert("token not founded");
+//         window.location.href("/login")
+//         return;
+//     }
+
+//     // Gọi API để lấy trang HTML với Bearer Token
+//     fetch(url, {
+//         method: 'GET',
+//         headers: {
+//             'Authorization': `Bearer ${token}`,
+//             'Content-Type': 'text/html'
+//         }
+//     })
+//     .then(response => {
+//         if (!response.ok) {
+//             throw new Error('Failed to fetch the page');
+//         }
+//         return response.text(); // Nhận HTML dưới dạng text
+//     })
+//     .then(html => {
+//         const contentDiv = document.getElementById('content'); // Thay thế nội dung bằng HTML mới
+//         contentDiv.innerHTML = html;
+
+//         // Re-execute any scripts included in the fetched HTML
+//         const scripts = contentDiv.querySelectorAll('script');
+//         scripts.forEach(script => {
+//             const newScript = document.createElement('script');
+//             newScript.src = script.src;
+//             document.body.appendChild(newScript);
+//         });
+//     })
+//     .catch(error => {
+//         console.error('Error fetching the HTML page:', error);
+//     });
+// }

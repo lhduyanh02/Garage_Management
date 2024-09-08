@@ -136,7 +136,12 @@ public class AuthenticationService {
     private String buildUUID(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return user.getId();
+
+        // Build UUID cho user có status >= 1
+        if (user.getStatus() >= 1)
+            return user.getId();
+        else
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
     }
 
     public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {

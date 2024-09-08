@@ -75,5 +75,11 @@ public class UserController {
         return ApiResponse.<Void>builder().code(1000).message("Deleted!").build();
     }
 
-
+    @GetMapping("/get-quantity")
+    public ApiResponse<Integer> getUserQuantity(){
+        return ApiResponse.<Integer>builder()
+                .code(1000)
+                .data(9999)
+                .build();
+    }
 }

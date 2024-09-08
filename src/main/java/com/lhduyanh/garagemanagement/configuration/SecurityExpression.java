@@ -50,6 +50,7 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
 
         // Kiểm tra nếu role có permission tương ứng
         return roleRepository.existByRoleIdsAndPermissionKeys(roleIds, permissionKeys);
+
     }
 
     public static String getUUIDFromJwt() { // Hàm lấy UUID từ security context holder
