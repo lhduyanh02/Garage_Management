@@ -37,6 +37,7 @@ public class AuthenticationController {
         cookie.setHttpOnly(true); // Cookie không thể bị truy cập từ JavaScript
         cookie.setSecure(true); // Cookie chỉ được gửi qua kết nối HTTPS
         cookie.setPath("/"); // Cookie có hiệu lực cho tất cả các đường dẫn
+        cookie.setMaxAge(7 * 24 * 60 * 60);
 
         // Thêm cookie vào phản hồi
         response.addCookie(cookie);

@@ -17,13 +17,11 @@ $(function () {
 
   $(document).ready(function() {
       // Gửi yêu cầu AJAX để lấy dữ liệu
-      var token = sessionStorage.getItem("token");
       $.ajax({
           url: "/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
           type: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
           },
           success: function(res) {
               $("#user_quantity").text(res.data);

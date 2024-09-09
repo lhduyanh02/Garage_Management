@@ -6,6 +6,8 @@ import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import com.lhduyanh.garagemanagement.service.PermissionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,8 +18,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static java.util.Objects.isNull;
 
@@ -52,6 +56,7 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
         return roleRepository.existByRoleIdsAndPermissionKeys(roleIds, permissionKeys);
 
     }
+
 
     public static String getUUIDFromJwt() { // Hàm lấy UUID từ security context holder
         var auth = SecurityContextHolder.getContext().getAuthentication();
