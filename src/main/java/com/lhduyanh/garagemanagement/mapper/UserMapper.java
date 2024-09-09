@@ -38,6 +38,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "address", source = "address")
     public void toUserRegisterResponse(@MappingTarget UserRegisterResponse userRegisterResponse, User user);
 
     public void updateUser(@MappingTarget User user, UserUpdateRequest request);

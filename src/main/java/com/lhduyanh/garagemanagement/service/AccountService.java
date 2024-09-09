@@ -188,6 +188,9 @@ public class AccountService {
         if((account.getStatus() >= 0) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 2)) {
             otpService.createSendOtpCode(account);
         }
+        else {
+            throw new AppException(ErrorCode.CANNOT_REGENERATE_OTP);
+        }
     }
 
 

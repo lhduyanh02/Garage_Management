@@ -40,6 +40,7 @@ public enum ErrorCode {
     FUNCTION_NOT_EXISTED(1026, "Function does not existed", HttpStatus.NOT_FOUND),
     PERMISSION_NOT_EXISTED(1027, "Permission does not existed", HttpStatus.NOT_FOUND),
     EMAIL_SENDING_ERROR(1028, "Email sending error, try again manually", HttpStatus.INTERNAL_SERVER_ERROR),
+    CANNOT_REGENERATE_OTP(1029, "Can't regenerate otp", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
