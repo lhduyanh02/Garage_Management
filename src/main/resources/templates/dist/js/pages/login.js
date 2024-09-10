@@ -25,7 +25,7 @@ function login() {
   let email = $("#email").val();
   let password = $("#password").val();
   $.ajax({
-    url: "auth/token",
+    url: "/api/auth/token",
     type: "POST",
     headers: {
       "Content-Type": "application/json",

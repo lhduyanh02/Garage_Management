@@ -39,16 +39,15 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
             "/users/get-quantity",
-            "/addresses"
+            "/addresses",
     };
 
-    private final String[] PUBLIC_TEMPLATE = {
-            "/static/**", "/css/**", "/js/**", "/img/**", "/plugins/**", "/dist/**","/favicon.ico",
-            "/register",
-            "/login",
-            "/template/**",
-            "/"
-    };
+//    private final String[] PUBLIC_TEMPLATE = {
+//            "/static/**", "/css/**", "/js/**", "/img/**", "/plugins/**", "/dist/**","/favicon.ico",
+//            "/register",
+//            "/login",
+//            "/"
+//    };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
@@ -62,9 +61,7 @@ public class SecurityConfig {
                 request.requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS)
                         .permitAll()
-                        .requestMatchers(PUBLIC_TEMPLATE).permitAll()
-//                        .requestMatchers(HttpMethod.GET, "/users")
-//                        .hasRole("ADMIN")
+//                        .requestMatchers(PUBLIC_TEMPLATE).permitAll()
                         .anyRequest()
                         .authenticated());
 

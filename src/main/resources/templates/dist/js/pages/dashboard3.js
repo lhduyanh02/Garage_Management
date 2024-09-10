@@ -2,7 +2,9 @@
 
 $(function () {
   'use strict'
-
+  $(document).ready(function() {
+    $("#sidebar").load("include/sidebar.html");
+  });
   var ticksStyle = {
     fontColor: '#495057',
     fontStyle: 'bold'
