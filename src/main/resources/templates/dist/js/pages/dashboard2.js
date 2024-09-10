@@ -1,24 +1,13 @@
-/* global Chart:false */
-
 $(function () {
   'use strict'
-
-  /* ChartJS
-   * -------
-   * Here we will create a few charts using ChartJS
-   */
-
-  //-----------------------
-  // - MONTHLY SALES CHART -
-  //-----------------------
-
-  // Get context with jQuery - using jQuery's .get() method.
   var salesChartCanvas = $('#salesChart').get(0).getContext('2d')
 
   $(document).ready(function() {
+      $("#sidebar").load("include/sidebar.html");
+
       // Gửi yêu cầu AJAX để lấy dữ liệu
       $.ajax({
-          url: "/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
+          url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
           type: "GET",
           headers: {
             "Content-Type": "application/json",
