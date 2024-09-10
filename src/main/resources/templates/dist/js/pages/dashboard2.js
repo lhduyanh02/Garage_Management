@@ -1,17 +1,38 @@
+const getCookie = (name) => {
+  const cookieString = document.cookie;
+  const cookies = cookieString.split("; ");
+
+  for (let cookie of cookies) {
+    if (cookie.startsWith(name + "=")) {
+      return cookie.split("=")[1];
+    }
+  }
+  return null; // Return null if the cookie is not found
+};
+function setAjax() {
+  const authToken = getCookie("authToken");
+  console.log(authToken)
+  if(authToken!=null){
+    $.ajaxSetup({
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`
+      }
+    });
+  }
+}
+
 $(function () {
   'use strict'
   var salesChartCanvas = $('#salesChart').get(0).getContext('2d')
 
   $(document).ready(function() {
       $("#sidebar").load("include/sidebar.html");
-
+      setAjax();
       // Gửi yêu cầu AJAX để lấy dữ liệu
       $.ajax({
           url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
           type: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
           success: function(res) {
               $("#user_quantity").text(res.data);
 

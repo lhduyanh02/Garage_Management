@@ -79,7 +79,6 @@ public class UserService {
 
         userMapper.updateUser(user, request);
         if(!(request.getAddressId() <= 0)) {
-            log.info(String.valueOf(request.getAddressId()));
             var address = addressRepository.findById(request.getAddressId());
             address.ifPresent(user::setAddress);
         } else {
@@ -87,9 +86,7 @@ public class UserService {
         }
 
         Set<Role> roles = new HashSet<>();
-        if(request.getRoleIds() != null && !request.getRoleIds().isEmpty())
-            roles = new HashSet<>(roleRepository.findAllById(request.getRoleIds()));
-        if(isNull(roles) || roles.isEmpty()){
+        if(isNull(request.getRoleIds()) || request.getRoleIds().isEmpty()){
             roles.add(roleRepository.findByRoleKey("CUSTOMER").get());
         } else {
             roles = new HashSet<>(roleRepository.findAllById(request.getRoleIds()));

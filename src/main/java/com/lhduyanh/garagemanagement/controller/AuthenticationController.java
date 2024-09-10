@@ -34,8 +34,8 @@ public class AuthenticationController {
         var result = authenticationService.authenticate(request);
         // Tạo cookie với thuộc tính HttpOnly
         Cookie cookie = new Cookie("authToken", result.getToken());
-        cookie.setHttpOnly(true); // Cookie không thể bị truy cập từ JavaScript
-        cookie.setSecure(true); // Cookie chỉ được gửi qua kết nối HTTPS
+        cookie.setHttpOnly(false); // Cookie không thể bị truy cập từ JavaScript
+        cookie.setSecure(false); // Cookie chỉ được gửi qua kết nối HTTPS
         cookie.setPath("/"); // Cookie có hiệu lực cho tất cả các đường dẫn
         cookie.setMaxAge(7 * 24 * 60 * 60);
 
