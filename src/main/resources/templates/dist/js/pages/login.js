@@ -1,5 +1,3 @@
-// import { redirect_page } from "../utils";
-
 var Toast = Swal.mixin({
   toast: true,
   position: "top-end",
@@ -33,17 +31,8 @@ function login() {
     data: JSON.stringify({ email: email, password: password }),
     success: function (res) {
       if (res.code === 1000 && res.data.authenticated) {
-        const authToken = getCookie("authToken");
-        if(authToken!=null){
-          $.ajaxSetup({
-            beforeSend: function (xhr) {
-              xhr.setRequestHeader("Authorization", `Bearer ${authToken}`);
-            },
-          });
-        }
         // Gửi yêu cầu với Bearer Token
-       window.location.href = '/';
-    
+        window.location.href = '/';
        
       } else {
         alert(res.code);

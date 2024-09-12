@@ -6,6 +6,9 @@
  */
 
 /* eslint-disable camelcase */
+$(document).ready(function() {
+  $('body').removeClass('dark-mode');
+});
 
 (function ($) {
   'use strict'
