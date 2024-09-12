@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -32,7 +31,6 @@ public class SecurityConfig {
             "/auth/introspect",
             "/auth/logout",
             "/auth/refresh",
-            "/accounts/create_user_account",
             "/auth/logout",
             "/auth/refreshToken",
             "/accounts/register",
@@ -42,15 +40,11 @@ public class SecurityConfig {
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
 //            "/users/get-quantity",
-            "/addresses",
+            "/addresses/**",
+            "/brands/**",
+            "/models/**",
+            "/plate-types/**"
     };
-
-//    private final String[] PUBLIC_TEMPLATE = {
-//            "/static/**", "/css/**", "/js/**", "/img/**", "/plugins/**", "/dist/**","/favicon.ico",
-//            "/register",
-//            "/login",
-//            "/"
-//    };
 
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
@@ -64,7 +58,6 @@ public class SecurityConfig {
                 request.requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS)
                         .permitAll()
-//                        .requestMatchers(PUBLIC_TEMPLATE).permitAll()
                         .anyRequest()
                         .authenticated());
 
