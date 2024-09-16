@@ -32,16 +32,18 @@ public class AuthenticationController {
     @PostMapping("/token")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
         var result = authenticationService.authenticate(request);
-        // Tạo cookie với thuộc tính HttpOnly
-        Cookie cookie = new Cookie("authToken", result.getToken());
-        cookie.setHttpOnly(false); // Cookie không thể bị truy cập từ JavaScript
-        cookie.setSecure(false); // Cookie chỉ được gửi qua kết nối HTTPS
-        cookie.setPath("/"); // Cookie có hiệu lực cho tất cả các đường dẫn
-        cookie.setMaxAge(7 * 24 * 60 * 60);
+        if (result.isAuthenticated()) {
+            // Tạo cookie với thuộc tính HttpOnly
+            Cookie cookie = new Cookie("authToken", result.getToken());
+            cookie.setHttpOnly(false); // Cookie không thể bị truy cập từ JavaScript
+            cookie.setSecure(false); // Cookie chỉ được gửi qua kết nối HTTPS
+            cookie.setPath("/"); // Cookie có hiệu lực cho tất cả các đường dẫn
+            cookie.setMaxAge(7 * 24 * 60 * 60);
 
-        // Thêm cookie vào phản hồi
-        response.addCookie(cookie);
-        response.setHeader("Authorization", "Bearer " + result.getToken());
+            // Thêm cookie vào phản hồi
+            response.addCookie(cookie);
+            response.setHeader("Authorization", "Bearer " + result.getToken());
+        }
         return ApiResponse.<AuthenticationResponse>builder()
                 .code(1000)
                 .data(result)

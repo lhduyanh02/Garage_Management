@@ -9,12 +9,15 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PlateTypeRequest {
+public class OptionUpdateRequest {
+
     @NotBlank(message = "BLANK_NAME")
-    @Size(max = 150, message = "PLATE_TYPE_SIZE")
-    String type;
+    @Size(max = 100, message = "OPTION_NAME_LENGTH")
+    String name;
+
     int status;
+
 }

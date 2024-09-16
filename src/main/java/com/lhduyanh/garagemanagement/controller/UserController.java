@@ -1,11 +1,9 @@
 package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserDeletionReq;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
-import com.lhduyanh.garagemanagement.entity.User;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import com.lhduyanh.garagemanagement.service.UserService;
@@ -69,9 +67,9 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping
-    public ApiResponse<Void> deleteUser(@RequestBody UserDeletionReq request) {
-        userService.deleteUserById(request);
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteUser(@PathVariable String id) {
+        userService.deleteUserById(id);
         return ApiResponse.<Void>builder().code(1000).message("Deleted!").build();
     }
 

@@ -1,20 +1,29 @@
 package com.lhduyanh.garagemanagement.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+import java.util.Set;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PlateTypeRequest {
+public class ServiceCreationRequest {
+
     @NotBlank(message = "BLANK_NAME")
-    @Size(max = 150, message = "PLATE_TYPE_SIZE")
-    String type;
+    String name;
+
+    String description;
+
     int status;
+
+    @NotNull(message = "NULL_OPTION")
+    List<OptionPriceRequest> listOptionPrices;
 }

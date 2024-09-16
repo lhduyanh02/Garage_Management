@@ -58,12 +58,16 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
     }
 
 
-    public static String getUUIDFromJwt() { // Hàm lấy UUID từ security context holder
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (isNull(auth)) {
+    public static String getUUIDFromJwt(){ // Hàm lấy UUID từ security context holder
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (isNull(auth)) {
+                throw new AppException(ErrorCode.UNAUTHENTICATED);
+            }
+            var jwt = (Jwt) auth.getPrincipal();
+            return jwt.getClaimAsString("UUID");
+        } catch (Exception e) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        var jwt = (Jwt) auth.getPrincipal();
-        return jwt.getClaimAsString("UUID");
     }
 }

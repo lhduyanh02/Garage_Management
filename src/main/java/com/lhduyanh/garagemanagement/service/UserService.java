@@ -1,9 +1,7 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserDeletionReq;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
-import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
@@ -97,13 +95,13 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    public void deleteUserById(UserDeletionReq request) {
-        var user = userRepository.findById(request.getId())
+    public void deleteUserById(String id) {
+        var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         var account = accountRepository.findByUserId(user.getId());
         account.ifPresent(accountRepository::delete);
 
-        userRepository.deleteById(request.getId());
+        userRepository.deleteById(id);
     }
 }
