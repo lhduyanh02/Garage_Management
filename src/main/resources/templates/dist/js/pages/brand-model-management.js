@@ -1,11 +1,14 @@
+import * as utils from '/dist/js/utils.js';
+
 var Toast = Swal.mixin({
   toast: true,
   position: "top-end",
   showConfirmButton: false,
   timer: 3000,
 });
-import {check_token} from '/dist/js/utils.js';
-check_token();
+
+// utils.introspect();
+
 var dataTable;
 var dataTableCard = $('#data-table-card');
 
