@@ -3,28 +3,7 @@ import * as utils from "/dist/js/utils.js";
 var token = utils.getCookie("authToken");
 
 $(document).ready(function () {
-  if (token) {
-    $.ajax({
-      type: "POST",
-      url: "/api/auth/introspect",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({ token: token }),
-      success: function (res) {
-        if (res.code == 1000) {
-          if (res.data.valid == false) {
-            utils.deleteCookie("authToken");
-          } else if (res.data.valid == true) {
-            setAjax();
-          }
-        }
-      },
-      error: function (res) {
-        utils.deleteCookie("authToken");
-      },
-    });
-  }
+  
 });
 
 function setAjax() {
@@ -39,6 +18,13 @@ function setAjax() {
     });
   }
 }
+
+var Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+});
 
 $(function () {
   "use strict";
@@ -56,7 +42,10 @@ $(function () {
         $("#user_quantity").text(res.data);
       },
       error: function (xhr, status, error) {
-        console.log("Error fetching data:", error);
+        Toast.fire({
+          icon: "error",
+          title: "Internal server error",
+        });
       },
     });
   });

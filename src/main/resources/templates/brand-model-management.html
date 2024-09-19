@@ -24,14 +24,17 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-  
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
 <body class="hold-transition sidebar-mini layout-navbar-fixed">
 <!-- Site wrapper -->
 <div class="wrapper">
+
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__wobble" src="dist/img/SpringDetailingLogo.png" alt="SpringDetailingLogo" height="250" width="250">
+  </div>
+
   <!-- Navbar -->
   <nav id="navbar" class="main-header navbar navbar-expand navbar-dark"></nav>
   </nav>
@@ -42,10 +45,17 @@
 
   <!-- Main Sidebar Container -->
  <!-- sidebar -->
- <div id="sidebar">
- </div>
+ <div id="sidebar"></div>
  <script>
-   $("#sidebar").load("include/sidebar.html");
+   $("#sidebar").load("/include/sidebar.html", function() {
+   console.log("Sidebar loaded.");
+
+   // Khởi động lại layout AdminLTE để đảm bảo sidebar hoạt động đúng
+   if (typeof $.AdminLTE !== 'undefined') {
+     $.AdminLTE.layout.activate(); // Kích hoạt lại layout
+   }
+   $('.nav-item').Treeview('init');
+ });
  </script>
  <!-- /.sidebar -->
 
@@ -195,10 +205,12 @@
 </div>
 <!-- ./wrapper -->
 
+  <!-- AdminLTE App -->
+  <script src="dist/js/adminlte.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Bootstrap 4 -->
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
 <!-- DataTables  & Plugins -->
 <script src="/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
