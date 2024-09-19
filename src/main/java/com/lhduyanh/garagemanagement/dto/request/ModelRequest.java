@@ -18,4 +18,6 @@ public class ModelRequest {
     @Size(max = 100, message = "MODEL_NAME_LENGTH")
     String model;
 
+    int brand;
+
 }

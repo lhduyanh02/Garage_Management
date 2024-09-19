@@ -1,21 +1,30 @@
 package com.lhduyanh.garagemanagement.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Model {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    int id;
 
     @Column(unique = false, nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
-    private String model;
+    String model;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "brand_id", unique = false, nullable = false)
-    private Brand brand;
+    Brand brand;
+
+    @OneToMany(mappedBy = "model")
+    List<Car> cars = new ArrayList<>();
 }

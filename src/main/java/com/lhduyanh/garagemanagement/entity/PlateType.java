@@ -1,11 +1,11 @@
 package com.lhduyanh.garagemanagement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,4 +21,7 @@ public class PlateType {
     String type;
 
     int status = 1;
+
+    @OneToMany(mappedBy = "plateType")
+    List<Car> cars = new ArrayList<>();
 }
