@@ -33,7 +33,7 @@ public enum ErrorCode {
     BLANK_STATUS(1013, "Status must not be blank", HttpStatus.BAD_REQUEST),
     BLANK_EMAIL(1009, "Email must not be blank", HttpStatus.BAD_REQUEST),
     BLANK_PASSWORD(1011, "Password must not be blank", HttpStatus.BAD_REQUEST),
-    BLANK_SERVICE_CLASS(1041, "Service class must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_OPTION(1041, "Option must not be blank", HttpStatus.BAD_REQUEST),
 
     ADDRESS_NOT_EXISTED(1007, "Address does not exist", HttpStatus.NOT_FOUND),
 
@@ -71,6 +71,16 @@ public enum ErrorCode {
     BLANK_OPTION_ID(1041, "Option id must not be blank", HttpStatus.BAD_REQUEST),
     NEGATIVE_PRICE(1042, "Price must not be negative", HttpStatus.BAD_REQUEST),
     NULL_OPTION(1043, "Option must not be null", HttpStatus.BAD_REQUEST),
+
+    BLANK_NUM_PLATE(1044, "Num plate must not be blank", HttpStatus.BAD_REQUEST),
+    NUM_PLATE_LENGTH(1045, "Num plate up to {max} characters", HttpStatus.BAD_REQUEST),
+    BLANK_PLATE_TYPE(1046, "Plate type must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_MODEL(1047, "Car model must not be blank", HttpStatus.BAD_REQUEST),
+    CAR_COLOR_LENGTH(1048, "Car color up to {max} characters", HttpStatus.BAD_REQUEST),
+    CAR_DETAIL_LENGTH(1049, "Car detail up to {max} characters", HttpStatus.BAD_REQUEST),
+    CAR_NOT_EXISTS(1050, "Car does not exist", HttpStatus.NOT_FOUND),
+    CAR_EXISTED(1051, "This num plate & plate type already existed", HttpStatus.BAD_REQUEST),
+    BLANK_BRAND(1052, "Brand must not be blank", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

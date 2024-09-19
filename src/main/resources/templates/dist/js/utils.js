@@ -38,3 +38,23 @@ export function redirect_page(url) {
         console.error('Error fetching the HTML page:', error);
     });
 }
+
+export const getCookie = (name) => {
+    const cookieString = document.cookie;
+    const cookies = cookieString.split("; ");
+  
+    for (let cookie of cookies) {
+      if (cookie.startsWith(name + "=")) {
+        return cookie.split("=")[1];
+      }
+    }
+    return null; // Return null if the cookie is not found
+  };
+
+export function check_token(){
+    var token = getCookie('authToken');
+}
+
+export const deleteCookie = (name) => {
+    document.cookie = name + '=; Max-Age=-99999999; path=/';
+  };

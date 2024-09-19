@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.service;
 import com.lhduyanh.garagemanagement.dto.request.ModelRequest;
 import com.lhduyanh.garagemanagement.dto.response.BrandModelResponse;
 import com.lhduyanh.garagemanagement.dto.response.ModelResponse;
+import com.lhduyanh.garagemanagement.entity.Brand;
 import com.lhduyanh.garagemanagement.entity.Model;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
@@ -23,6 +24,7 @@ public class ModelService {
 
     ModelRepository modelRepository;
     ModelMapper modelMapper;
+    BrandRepository brandRepository;
 
     public List<ModelResponse> getAllModel() {
         return modelRepository.findAll()
@@ -41,7 +43,15 @@ public class ModelService {
             throw new AppException(ErrorCode.MODEL_NAME_EXISTED);
         }
 
-        return modelMapper.toModelResponse(modelRepository.save(modelMapper.toModel(request)));
+        if(request.getBrand() == 0)
+            throw new AppException(ErrorCode.BLANK_BRAND);
+
+        Brand brand = brandRepository.findById(request.getBrand())
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_EXISTS));
+
+        Model model = modelMapper.toModel(request);
+        model.setBrand(brand);
+        return modelMapper.toModelResponse(modelRepository.save(model));
     }
 
     public ModelResponse updateModel(int id, ModelRequest request) {

@@ -39,13 +39,14 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-//            "/users/get-quantity",
+            "/users/get-quantity",
             "/addresses/**",
             "/brands/**",
             "/models/**",
             "/plate-types/**",
             "/services/**",
-            "/options/**"
+            "/options/**",
+            "/cars/**"
     };
 
     @Autowired
@@ -89,6 +90,7 @@ public class SecurityConfig {
         return new CorsFilter(urlBasedCorsConfigurationSource);
     }
 
+    @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");

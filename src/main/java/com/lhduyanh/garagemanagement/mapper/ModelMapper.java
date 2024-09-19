@@ -4,12 +4,15 @@ import com.lhduyanh.garagemanagement.dto.request.ModelRequest;
 import com.lhduyanh.garagemanagement.dto.response.ModelResponse;
 import com.lhduyanh.garagemanagement.entity.Model;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ModelMapper {
 
-    public Model toModel(ModelRequest modelRequest);
+    @Mapping(target = "brand", ignore = true)
+    Model toModel(ModelRequest modelRequest);
 
-    public ModelResponse toModelResponse(Model model);
+    @Mapping(target = "brand", source = "brand")
+    ModelResponse toModelResponse(Model model);
 
 }

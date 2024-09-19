@@ -16,5 +16,4 @@ public interface PriceMapper {
     @Mapping(target = "price", source = "price")
     OptionPriceResponse toOptionPriceResponse(Price price);
 
-    List<OptionPriceResponse> toOptionPriceResponseList(List<Price> prices);
 }

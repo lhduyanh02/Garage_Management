@@ -10,4 +10,5 @@ import lombok.experimental.FieldDefaults;
 public class ModelResponse {
     int id;
     String model;
+    BrandSimpleResponse brand;
 }

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Danh mục hãng - xe | Spring Detailing</title>
+  
+  <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"/>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css" />
+  <!-- overlayScrollbars -->
+  <link
+    rel="stylesheet"
+    href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css"
+  />
+  <!-- DataTables -->
+  <link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="../../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <link rel="stylesheet" href="../../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+
+<body class="hold-transition sidebar-mini layout-navbar-fixed">
+<!-- Site wrapper -->
+<div class="wrapper">
+  <!-- Navbar -->
+  <nav id="navbar" class="main-header navbar navbar-expand navbar-dark"></nav>
+  </nav>
+  <script>
+    $("#navbar").load("include/navbar.html");
+  </script>
+  <!-- /.navbar -->
+
+  <!-- Main Sidebar Container -->
+ <!-- sidebar -->
+ <div id="sidebar">
+ </div>
+ <script>
+   $("#sidebar").load("include/sidebar.html");
+ </script>
+ <!-- /.sidebar -->
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Danh mục hãng - xe</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Danh mục hãng - xe</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+
+      <!-- Default box -->
+      <div class="card" hidden>
+        <div class="card-header">
+          <h3 class="card-title">Danh sách hãng</h3>
+          
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+              <i class="fas fa-minus"></i>
+            </button>
+
+            <!-- Remove card button -->
+            <!-- <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+              <i class="fas fa-times"></i>
+            </button> -->
+          </div>
+        </div>
+        <div class="card-body">
+          Copy this page and start creating your interface!
+        </div>
+        <!-- /.card-body -->
+        <div class="card-footer">
+          Footer
+        </div>
+        <!-- /.card-footer-->
+      </div>
+      <!-- /.card -->
+
+      <div class="container-fluid"></div>
+        <div class="row">
+          <div class="col-12">
+            
+            <div id="data-table-card" class="card">
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">Danh sách hãng - mẫu xe</h3>
+                <button class="btn btn-success btn-xs ms-auto ml-2" id="themvaitro_btn">
+                  <i class="fa-solid fa-plus"></i> Thêm hãng
+                </button>
+                <button class="btn btn-success btn-xs ms-auto ml-2" id="themvaitro_btn">
+                  <i class="fa-solid fa-plus"></i> Thêm mẫu
+                </button>
+                <div class="ml-auto card-tools">
+                  <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="data-table" class="table table-bordered table-striped">
+                  <thead>
+                  <tr>
+                    <th scope="col" style="text-align: center" width="10%">#</th>
+                    <th scope="col" style="text-align: center" width="30%">Hãng xe</th>
+                    <th scope="col" style="text-align: center">Mẫu xe</th>
+                    <th scope="col" style="text-align: center" width="15%">Thao tác</th>
+
+                    <!-- <th>Rendering engine</th>
+                    <th>Browser</th>
+                    <th>Platform(s)</th>
+                    <th>Engine version</th>
+                    <th>CSS grade</th> -->
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <!-- <tr>
+                    <td>Trident</td>
+                    <td>Internet
+                      Explorer 4.0
+                    </td>
+                    <td>Win 95+</td>
+                    <td> 4</td>
+                    <td>X</td>
+                  </tr>
+                  <tr>
+                    <td>Trident</td>
+                    <td>Internet
+                      Explorer 5.0
+                    </td>
+                    <td>Win 95+</td>
+                    <td>5</td>
+                    <td>C</td>
+                  </tr>
+                  <tr>
+                    <td>Trident</td>
+                    <td>Internet
+                      Explorer 5.5
+                    </td>
+                    <td>Win 95+</td>
+                    <td>5.5</td>
+                    <td>A</td>
+                  </tr> -->
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Main Footer -->
+  <footer class="main-footer text-sm">
+  </footer>
+  <script>
+    $('footer').load('/include/footer.html');
+  </script>
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.min.js"></script>
+<!-- DataTables  & Plugins -->
+<script src="/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="/plugins/jszip/jszip.min.js"></script>
+<script src="/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<!-- AdminLTE for demo purposes -->
+<!-- <script src="dist/js/demo.js"></script> -->
+<script type="module" src="dist/js/pages/brand-model-management.js"></script>
+</body>
+</html>

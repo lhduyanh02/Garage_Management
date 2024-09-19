@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.dto.request.ModelRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.ModelResponse;
 import com.lhduyanh.garagemanagement.service.ModelService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -36,10 +37,18 @@ public class ModelController {
     }
     
     @PutMapping
-    public ApiResponse<ModelResponse> updateModel(@RequestParam("id") int id, @RequestBody ModelRequest request) {
+    public ApiResponse<ModelResponse> updateModel(@RequestParam("id") int id, @RequestBody @Valid ModelRequest request) {
         return ApiResponse.<ModelResponse>builder()
                 .code(1000)
                 .data(modelService.updateModel(id, request))
+                .build();
+    }
+
+    @PostMapping
+    public ApiResponse<ModelResponse> newBrand(@RequestBody @Valid ModelRequest request) {
+        return ApiResponse.<ModelResponse>builder()
+                .code(1000)
+                .data(modelService.newModel(request))
                 .build();
     }
 }

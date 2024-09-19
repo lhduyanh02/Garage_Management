@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BrandResponse {
+public class BrandSimpleResponse {
     int id;
     String brand;
 }

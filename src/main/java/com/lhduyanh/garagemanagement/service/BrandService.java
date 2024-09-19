@@ -1,9 +1,8 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.BrandRequest;
-import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.BrandModelResponse;
-import com.lhduyanh.garagemanagement.dto.response.BrandResponse;
+import com.lhduyanh.garagemanagement.dto.response.BrandSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Brand;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
@@ -24,9 +23,9 @@ public class BrandService {
     BrandRepository brandRepository;
     BrandMapper brandMapper;
 
-    public List<BrandResponse> getAllBrand() {
+    public List<BrandSimpleResponse> getAllBrand() {
         return brandRepository.findAll()
-                .stream().map(brandMapper::toBrandResponse)
+                .stream().map(brandMapper::toBrandSimpleResponse)
                 .toList();
     }
 
@@ -37,22 +36,22 @@ public class BrandService {
                 .toList();
     }
 
-    public BrandResponse getBrandById(int id) {
-        Brand brand = brandRepository.findById(id)
+    public BrandModelResponse getBrandById(int id) {
+        Brand brand = brandRepository.findByIdAndFetchModels(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_EXISTS));
-        return brandMapper.toBrandResponse(brand);
+        return brandMapper.toBrandModelResponse(brand);
     }
 
-    public BrandResponse newBrand(BrandRequest request) {
+    public BrandSimpleResponse newBrand(BrandRequest request) {
         if (brandRepository.existsByBrand(request.getBrand())){
             throw new AppException(ErrorCode.BRAND_NAME_EXISTED);
         }
         Brand brand = brandMapper.toBrand(request);
         brand = brandRepository.save(brand);
-        return brandMapper.toBrandResponse(brand);
+        return brandMapper.toBrandSimpleResponse(brand);
     }
 
-    public BrandResponse updateBrand(int id, BrandRequest request) {
+    public BrandSimpleResponse updateBrand(int id, BrandRequest request) {
         if (brandRepository.existsByBrand(request.getBrand())){
             throw new AppException(ErrorCode.BRAND_NAME_EXISTED);
         }
@@ -60,7 +59,7 @@ public class BrandService {
                 .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_EXISTS));
 
         brand.setBrand(request.getBrand());
-        return brandMapper.toBrandResponse(brandRepository.save(brand));
+        return brandMapper.toBrandSimpleResponse(brandRepository.save(brand));
     }
 
 }
