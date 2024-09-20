@@ -1992,6 +1992,9 @@
         $__default["default"](this).dequeue();
       });
 
+      // Chọn các thẻ ul có class sidebar-ul và loại bỏ class pl-2
+      $__default["default"]("ul.sidebar-ul").addClass("pl-2");
+
       if (this._options.enableRemember) {
         localStorage.setItem("remember" + EVENT_KEY$2, CLASS_NAME_OPEN$3);
       }
@@ -2007,6 +2010,9 @@
       if (this._options.autoCollapseSize && $__default["default"](window).width() <= this._options.autoCollapseSize) {
         $bodySelector.removeClass(CLASS_NAME_OPEN$3).addClass(CLASS_NAME_CLOSED);
       }
+
+      // Chọn các thẻ ul có class sidebar-ul và loại bỏ class pl-2
+      $__default["default"]("ul.sidebar-ul").removeClass("pl-2");
 
       $bodySelector.addClass(CLASS_NAME_COLLAPSED);
 

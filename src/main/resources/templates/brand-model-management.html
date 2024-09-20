@@ -23,7 +23,19 @@
   <link rel="stylesheet" href="../../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon"><!-- Select2 -->
+  <link
+    href="/plugins/select2/css/select2.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
+    integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <link rel="stylesheet" href="include/customize.css">
 </head>
 
 <body class="hold-transition sidebar-mini layout-navbar-fixed">
@@ -89,7 +101,7 @@
     <script>
       $("#sidebar").load("/include/sidebar.html");
     </script>
-    <script src="/dist/js/demo.js"></script>
+    <!-- <script src="/dist/js/demo.js"></script> -->
     <!-- /.sidebar -->
 
     <!-- Content Wrapper. Contains page content -->
@@ -169,7 +181,7 @@
                       <th scope="col" style="text-align: center" width="10%">#</th>
                       <th scope="col" style="text-align: center" width="30%">Hãng xe</th>
                       <th scope="col" style="text-align: center">Mẫu xe</th>
-                      <th scope="col" style="text-align: center" width="15%">Thao tác</th>
+                      <th scope="col" style="text-align: center" width="10%">Thao tác</th>
 
                       <!-- <th>Rendering engine</th>
                     <th>Browser</th>
@@ -216,6 +228,12 @@
           <!-- /.col -->
         </div>
         <!-- /.row -->
+
+        <div id="modal-card"></div>
+        <script>
+          $("#modal-card").load("/include/modal.html")
+        </script>
+
     </div>
     <!-- /.container-fluid -->
 
@@ -240,7 +258,11 @@
   <!-- ./wrapper -->
 
   <!-- AdminLTE App -->
-  <script src="dist/js/adminlte.min.js"></script>
+  <script src="dist/js/adminlte.js"></script>
+  <script
+    src="/plugins/select2/js/select2.min.js"
+    defer
+  ></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Bootstrap 4 -->

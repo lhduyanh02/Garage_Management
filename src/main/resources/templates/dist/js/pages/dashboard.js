@@ -2,10 +2,6 @@ import * as utils from "/dist/js/utils.js";
 
 var token = utils.getCookie("authToken");
 
-$(document).ready(function () {
-  
-});
-
 function setAjax() {
   const authToken = utils.getCookie("authToken");
   // console.log(authToken);
@@ -28,27 +24,46 @@ var Toast = Swal.mixin({
 
 $(function () {
   "use strict";
-  var salesChartCanvas = $("#salesChart").get(0).getContext("2d");
 
-  $(document).ready(function () {
-    // Gửi yêu cầu AJAX để lấy dữ liệu
+  if (token) {
     $.ajax({
-      url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
-      type: "GET",
+      type: "POST",
+      url: "/api/auth/introspect",
       headers: {
         "Content-Type": "application/json",
       },
+      data: JSON.stringify({ token: token }),
       success: function (res) {
-        $("#user_quantity").text(res.data);
+        if (res.code == 1000) {
+          if (res.data.valid == false) {
+            utils.deleteCookie("authToken");
+          }
+        }
       },
-      error: function (xhr, status, error) {
-        Toast.fire({
-          icon: "error",
-          title: "Internal server error",
-        });
+      error: function (res) {
+        utils.deleteCookie("authToken");
       },
     });
+  }
+
+  $.ajax({
+    url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
+    type: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    success: function (res) {
+      $("#user_quantity").text(res.data);
+    },
+    error: function (xhr, status, error) {
+      Toast.fire({
+        icon: "error",
+        title: "Internal server error",
+      });
+    },
   });
+
+  var salesChartCanvas = $("#salesChart").get(0).getContext("2d");
 
   var salesChartData = {
     labels: ["January", "February", "March", "April", "May", "June", "July"],
