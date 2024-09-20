@@ -8,7 +8,7 @@ var Toast = Swal.mixin({
 
   
 function active_nav_link() {
-    let current = window.location.href.split("/").slice(-1)[0]; 
+    let current = window.location.href.split("/").slice(-1)[0].replace(/#$/, ''); 
     let elements = document.querySelectorAll(".nav-link");
   
     elements.forEach(function (el) {
@@ -24,3 +24,4 @@ function active_nav_link() {
   }
   
   active_nav_link();
+  

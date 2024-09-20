@@ -39,13 +39,53 @@
   </script>
   <!-- /.navbar -->
 
-  <!-- Main Sidebar Container -->
- <!-- sidebar -->
- <div id="sidebar"></div>
- <script>
-   $("#sidebar").load("include/sidebar.html");
- </script>
- <!-- /.sidebar -->
+  <!-- sidebar -->
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- Brand Logo -->
+      <a href="/" class="brand-link">
+        <img src="favicon.ico" alt="Spring Detailing Logo" class="brand-image img-circle elevation-3"
+          style="opacity: 0.8" />
+        <span class="brand-text font-weight-bold">Spring Detailing</span>
+      </a>
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+          <div class="image">
+            <img src="dist/img/mechanic.png" class="rounded elevation-2" alt="User Image" />
+          </div>
+          <div class="info">
+            <a href="#" class="d-block">GUEST</a>
+          </div>
+        </div>
+        <!-- SidebarSearch Form -->
+        <div class="form-inline">
+          <div class="input-group" data-widget="sidebar-search">
+            <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" />
+            <div class="input-group-append">
+              <button class="btn btn-sidebar">
+                <i class="fas fa-search fa-fw"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Menu -->
+        <nav id="sidebar" class="mt-2">
+        </nav>
+        <!-- /.sidebar-menu -->
+      </div>
+    </aside>
+    <!-- Font Awesome --><!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+      $("#sidebar").load("/include/sidebar.html");
+    </script>
+    <script src="/dist/js/demo.js"></script>
+    <!-- /.sidebar -->
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
