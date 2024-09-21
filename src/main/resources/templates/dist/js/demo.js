@@ -131,13 +131,13 @@ $(document).ready(function() {
     if ($(this).is(':checked')) {
       $('body').addClass('sidebar-collapse')
       $(window).trigger('resize')
-      $('.nav-treeview').each(function() {
+      $('.sidebar-ul').each(function() {
         $(this).removeClass('pl-2');
       });
     } else {
       $('body').removeClass('sidebar-collapse')
       $(window).trigger('resize')
-      $('.nav-treeview').each(function() {
+      $('.sidebar-ul').each(function() {
         $(this).addClass('pl-2');
       });
     }

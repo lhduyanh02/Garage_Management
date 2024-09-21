@@ -43,6 +43,7 @@ public class BrandService {
     }
 
     public BrandSimpleResponse newBrand(BrandRequest request) {
+        request.setBrand(request.getBrand().trim());
         if (brandRepository.existsByBrand(request.getBrand())){
             throw new AppException(ErrorCode.BRAND_NAME_EXISTED);
         }
@@ -52,6 +53,7 @@ public class BrandService {
     }
 
     public BrandSimpleResponse updateBrand(int id, BrandRequest request) {
+        request.setBrand(request.getBrand().trim());
         if (brandRepository.existsByBrand(request.getBrand())){
             throw new AppException(ErrorCode.BRAND_NAME_EXISTED);
         }

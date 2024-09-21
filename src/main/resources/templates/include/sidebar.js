@@ -1,11 +1,9 @@
-var Toast = Swal.mixin({
-    toast: true,
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 3000,
-  });
-
-
+// var Toast = Swal.mixin({
+//     toast: true,
+//     position: "top-end",
+//     showConfirmButton: false,
+//     timer: 3000,
+//   });
   
 function active_nav_link() {
     let current = window.location.href.split("/").slice(-1)[0].replace(/#$/, ''); 
