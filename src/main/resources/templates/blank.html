@@ -7,6 +7,8 @@
   
   <!-- jQuery -->
   <script src="/plugins/jquery/jquery.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Google Font: Source Sans Pro -->
   <link
     rel="stylesheet"
@@ -73,6 +75,9 @@
 
         <!-- Sidebar Menu -->
         <nav id="sidebar" class="mt-2">
+                
+        <!-- AdminLTE App -->
+        <script src="dist/js/adminlte.js"></script>
         </nav>
         <!-- /.sidebar-menu -->
       </div>
@@ -82,9 +87,11 @@
       integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
       crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
-      $("#sidebar").load("/include/sidebar.html");
+      $("#sidebar").load("/include/sidebar.html", function () {
+        // $('.nav-item').Treeview('init');
+
+      });
     </script>
-    <script src="/dist/js/demo.js"></script>
     <!-- /.sidebar -->
 
   <!-- Content Wrapper. Contains page content -->
@@ -155,11 +162,21 @@
   <!-- /.control-sidebar -->
 </div>
 <!-- ./wrapper -->
-<!-- Bootstrap 4 -->
-<script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="../../dist/js/adminlte.js"></script>
-<!-- AdminLTE for demo purposes -->
-<script src="../../dist/js/demo.js"></script>
+  <!-- REQUIRED SCRIPTS -->
+  <!-- Bootstrap -->
+  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- overlayScrollbars -->
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+
+  <!-- PAGE PLUGINS -->
+  <!-- jQuery Mapael -->
+  <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
+  <script src="plugins/raphael/raphael.min.js"></script>
+  <script src="plugins/jquery-mapael/jquery.mapael.min.js"></script>
+  <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
+  <!-- ChartJS -->
+  <script src="plugins/chart.js/Chart.min.js"></script>
+
+  <script src="/dist/js/demo.js"></script>
 </body>
 </html>

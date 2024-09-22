@@ -121,3 +121,47 @@ export function is_login() {
     }
   });
 }
+
+export function checkLoginStatus() {
+  return new Promise((resolve, reject) => {
+    let token = getCookie('authToken');
+    
+    if (token) {
+      $.ajax({
+        type: "POST",
+        url: "/api/auth/introspect",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({ token: token }),
+        success: function (res) {          
+          if (res.code == 1000 && res.data.valid) {
+            resolve(true);
+          } else {
+            deleteCookie("authToken");
+            resolve(false);
+          }
+        },
+        error: function () {
+          console.log('Login status: '+loginStatus);
+          deleteCookie("authToken");
+          resolve(false);
+        },
+      });
+    } else {
+      resolve(false);
+    }
+  });
+}
+
+export function loadScript(url) {
+  // Kiểm tra xem script đã tồn tại chưa
+  if (!document.querySelector(`script[src="${url}"]`)) {
+    let script = document.createElement('script');
+    script.src = url;
+    script.onload = function() {
+      console.log('Script loaded successfully.');
+    };
+    document.head.appendChild(script);
+  }
+}
