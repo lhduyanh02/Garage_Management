@@ -8,7 +8,7 @@ var Toast = Swal.mixin({
 });
 
 $(document).ready(function(){
-  utils.is_login().then(isValid => {
+  utils.checkLoginStatus().then(isValid => {
     if (isValid) {
       $("#login-out-btn").html(`
           <a id="logoutBtn" class="nav-link" href="javascript:void(0)" role="button" data-toggle="tooltip" data-placement="top" title="Đăng xuất">
@@ -17,7 +17,6 @@ $(document).ready(function(){
       `);
       $('[data-toggle="tooltip"]').tooltip();
       $("#logoutBtn").click(function (e) { 
-        console.log('click');
         
         let token = utils.getCookie('authToken');
         Swal.fire({
