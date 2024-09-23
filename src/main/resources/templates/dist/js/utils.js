@@ -172,7 +172,7 @@ export function setAjax() {
     $.ajaxSetup({
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
+        "Authorization": `Bearer ${authToken}`,
       },
     });
   }

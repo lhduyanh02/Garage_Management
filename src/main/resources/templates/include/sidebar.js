@@ -23,9 +23,9 @@ function active_nav_link() {
   });
 }
   
-active_nav_link();
 
 $(document).ready(function () {
+  active_nav_link();
   utils.loadScript('/plugins/bootstrap/js/bootstrap.bundle.min.js');
   $('[data-toggle="tooltip"]').tooltip();
 });

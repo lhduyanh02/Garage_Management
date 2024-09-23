@@ -51,10 +51,7 @@
       integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
       crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
-      $("#sidebar").load("/include/sidebar.html", function () {
-        // $('.nav-item').Treeview('init');
-
-      });
+      $("#sidebar").load("/include/sidebar.html");
     </script>
     <!-- /.sidebar -->
 
@@ -947,10 +944,9 @@
   <!-- ChartJS -->
   <script src="plugins/chart.js/Chart.min.js"></script>
 
-  <script src="/dist/js/demo.js"></script>
+  <script src="/dist/js/demo.js" defer></script>
   <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
   <script type="module" src="dist/js/pages/dashboard.js"></script>
-  
 </body>
 
 </html>

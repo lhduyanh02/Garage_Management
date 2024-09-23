@@ -8,6 +8,7 @@ var Toast = Swal.mixin({
   position: "top-end",
   showConfirmButton: false,
   timer: 3000,
+  width: 'auto'
 });
 
 // utils.introspect();
@@ -22,7 +23,7 @@ function clear_modal() {
 var dataTable;
 var dataTableCard = $("#data-table-card");
 
-$(document).ready(function () {
+$(document).ready(function () {    
   dataTable = $("#data-table").DataTable({
     responsive: true,
     lengthChange: true,
@@ -215,12 +216,25 @@ $("#newBrand_btn").on("click", function () {
 
   $("#modal_body").append(`
     <div class="form-group">
-      <label for="modal_brand_name_input">Tên hãng xe</label>
-      <input type="text" class="form-control" id="modal_brand_name_input" placeholder="Nhập tên hãng xe">
-      <p class="font-weight-light pt-3">**Lưu ý: Tên hãng tối đa 50 ký tự và không trùng với hãng đã có.</p>
+    <div class="container mt-3 mb-0">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="mb-0" for="modal_brand_name_input">Tên hãng xe</label>
+            <kbd id="char_count" class="mb-0 small">0/50</kbd>
+        </div>
+      <input type="text" class="form-control" id="modal_brand_name_input" maxlength="50" placeholder="Nhập tên hãng xe">
+      <p class="font-weight-light pt-3">Lưu ý: Tên hãng tối đa 50 ký tự và không trùng với hãng đã có.</p>
     </div>
     
     `);
+
+  // Đếm số ký tự
+  var $input = $('#modal_brand_name_input');
+  var $charCount = $('#char_count');
+  var maxChars = 50;
+  $input.on('input', function() {
+    var currentLength = $input.val().length;
+    $charCount.text(currentLength + '/' + maxChars);
+  });
 
   $("#modal_footer").append(
     '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
@@ -280,8 +294,149 @@ $("#newBrand_btn").on("click", function () {
         error: function (xhr, status, error) {
           Toast.fire({
             icon: "error",
-            title: "Lỗi! Thực hiện không thành công",
+            title: JSON.parse(xhr.responseText).message,
           });
+          dataTable.ajax.reload();
+        },
+      });
+      $("#modal_id").modal("hide");
+    }
+  });
+});
+
+
+$("#newModel_btn").on("click", function () {
+  clear_modal();
+
+  $("#modal_title").text("Thêm mới mẫu xe");
+
+  $("#modal_body").append(`
+    <div class="form-group">
+        <label>Hãng xe</label>
+        <div class="form-group">
+            <select id="brand-select" class="form-control select2bs4" style="width: 100%;">
+              <option selected disabled> Chọn hãng xe </option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+       <div class="container mt-3 mb-0">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="mb-0" for="modal_model_name_input">Tên mẫu xe</label>
+            <kbd id="char_count" class="mb-0 small">0/100</kbd>
+        </div>
+    </div>
+      <input type="text" class="form-control" id="modal_model_name_input" maxlength="100" placeholder="Nhập tên mẫu xe">
+      <p class="font-weight-light pt-3">Lưu ý: Tên mẫu xe tối đa 100 ký tự và không trùng với mẫu đã có.</p>
+    </div>
+    `);
+
+    // Đếm số ký tự
+    var $input = $('#modal_model_name_input');
+    var $charCount = $('#char_count');
+    var maxChars = 100;
+    $input.on('input', function() {
+      var currentLength = $input.val().length;
+      $charCount.text(currentLength + '/' + maxChars);
+    });
+    
+    $.ajax({
+      type: "GET",
+      url: "/api/brands",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "",
+      },
+      success: function (res) {
+        if(res.code == 1000) {
+          $.each(res.data, function (id, val) {
+            $("#brand-select").append(
+              '<option value="' + val.id + '">' + val.brand + '</option>'
+            );
+          });
+        }
+        else {
+          Toast.fire({
+            icon: "error",
+            title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+          })
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        Toast.fire({
+          icon: "error",
+          title: "Lỗi: " + JSON.parse(jqXHR.responseText).message,
+        });
+
+        console.error("AJAX request failed: " + textStatus, errorThrown);
+        console.log("Response Text: ", jqXHR.responseText);
+      }
+    });
+
+  $("#modal_footer").append(
+    '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+  );
+  $("#modal_id").modal("show");
+
+  $("#brand-select").select2({
+    placeholder: "Chọn hãng xe",
+    allowClear: true,
+    // dropdownParent: $('#modal_body'),
+    theme: "bootstrap",
+    // tokenSeparators: [",", " "],
+    closeOnSelect: true,
+  });
+
+  $("#modal_submit_btn").click(function () {
+    let brand = $("#brand-select").val();
+    let model = $('#modal_model_name_input').val().trim();
+
+    if(brand == null){
+      Toast.fire({
+        icon: "warning",
+        title: "Vui lòng chọn hãng xe!"
+      });
+      return;
+    } else if (model.length > 100) {
+      Toast.fire({
+        icon: "warning",
+        title: "Tên mẫu xe không được dài hơn 100 ký tự!"
+      });
+      return;
+    }
+     else {
+      $.ajax({
+        type: "POST",
+        url:
+          "/api/models",
+        contentType: "application/json",
+        data: JSON.stringify({
+          model: model,
+          brand: brand
+        }),
+        success: function (res) {
+          if(res.code==1000){
+            Toast.fire({
+              icon: "success",
+              title: "Đã thêm mẫu xe<br>" + model ,
+            });
+          }
+          else {
+            Toast.fire({
+              icon: "error",
+              title: "Đã xảy ra lỗi, chi tiết:<br>" + res.message,
+            });
+          }
+          // Tải lại bảng chức năng
+          dataTable.ajax.reload();
+        },
+        error: function (xhr, status, error) {
+          Toast.fire({
+            icon: "error",
+            title: JSON.parse(xhr.responseText).message,
+          });
+          dataTable.ajax.reload();
         },
       });
       $("#modal_id").modal("hide");
