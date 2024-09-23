@@ -2,19 +2,6 @@ import * as utils from "/dist/js/utils.js";
 
 var token = utils.getCookie("authToken");
 
-function setAjax() {
-  const authToken = utils.getCookie("authToken");
-  // console.log(authToken);
-  if (authToken != null) {
-    $.ajaxSetup({
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
-  }
-}
-
 var Toast = Swal.mixin({
   toast: true,
   position: "top-end",

@@ -1,6 +1,7 @@
 import * as utils from "/dist/js/utils.js";
 
 utils.introspect();
+utils.setAjax();
 
 var Toast = Swal.mixin({
   toast: true,
