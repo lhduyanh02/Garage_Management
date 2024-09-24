@@ -7,7 +7,7 @@
   <title>Danh mục hãng - xe | Spring Detailing</title>
 
   <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/plugins/jquery/jquery.min.js"></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Google Font: Source Sans Pro -->
@@ -16,14 +16,11 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css" />
   <!-- overlayScrollbars -->
-  <!-- <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css" /> -->
+  <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css" />
   <!-- DataTables -->
-  <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-  <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
-  <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- Select2 -->
   <link
     href="/plugins/select2/css/select2.min.css"
@@ -36,6 +33,9 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="include/customize.css">
 </head>
 
@@ -129,11 +129,23 @@
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
                 <h3 class="card-title">Danh sách hãng - mẫu xe</h3>
-                <button class="btn btn-success btn-sm ms-auto ml-2" id="newBrand_btn">
-                  <i class="fa-solid fa-plus"></i> Thêm hãng
-                </button>
-                <button class="btn btn-warning btn-sm ms-auto ml-2" id="newModel_btn">
-                  <i class="fa-solid fa-plus"></i> Thêm mẫu
+                <div class="dropdown w-auto">
+                  <button class="btn btn-success btn-sm ms-auto ml-2 dropdown-toggle" style="white-space: normal !important;" id="brand-dropdown"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="fa-solid fa-object-group mr-1"></i></i> Hãng xe
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="brand-dropdown">
+                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="newBrand_btn">
+                      <i class="fa-solid fa-plus mr-1"></i> Thêm hãng
+                    </button>
+                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="editBrand_btn">
+                      <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
+                    </button>
+                  </div>
+                </div>
+                
+                <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
+                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
                 </button>
                 <div class="ml-auto card-tools">
                   <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
@@ -226,10 +238,10 @@
   <!-- ./wrapper -->
 
 
-  <script
-    src="/plugins/select2/js/select2.min.js"
-    defer
-  ></script>
+    <script
+      src="/plugins/select2/js/select2.min.js"
+      defer
+    ></script>
   <!-- Bootstrap 4 -->
   <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- DataTables  & Plugins -->
@@ -247,7 +259,7 @@
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 
   <!-- overlayScrollbars -->
-  <!-- <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script> -->
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
   <!-- PAGE PLUGINS -->
   <!-- jQuery Mapael -->
   <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
