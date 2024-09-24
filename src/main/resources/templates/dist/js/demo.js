@@ -681,11 +681,11 @@ $(document).ready(function() {
   // comment with row 597
 
   var active_brand_color = null
-  $('.brand-link')[0].classList.forEach(function (className) {
-    if (logo_skins.indexOf(className) > -1 && active_brand_color === null) {
-      active_brand_color = className.replace('navbar-', 'bg-')
-    }
-  })
+  // $('.brand-link')[0].classList.forEach(function (className) {
+  //   if (logo_skins.indexOf(className) > -1 && active_brand_color === null) {
+  //     active_brand_color = className.replace('navbar-', 'bg-')
+  //   }
+  // })
 
   if (active_brand_color) {
     $brand_variants.find('option.' + active_brand_color).prop('selected', true)

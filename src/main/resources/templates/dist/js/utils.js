@@ -160,8 +160,20 @@ export function loadScript(url) {
     let script = document.createElement('script');
     script.src = url;
     script.onload = function() {
-      console.log('Script loaded successfully.');
     };
     document.head.appendChild(script);
+  }
+}
+
+export function setAjax() {
+  const authToken = getCookie("authToken");
+  // console.log(authToken);
+  if (authToken != null) {
+    $.ajaxSetup({
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`,
+      },
+    });
   }
 }

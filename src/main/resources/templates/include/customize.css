@@ -4,3 +4,9 @@
   font-size: 16px;
   outline: 0;
 }
+.input-group-text{
+  width: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

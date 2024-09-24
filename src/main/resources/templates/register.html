@@ -3,77 +3,143 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AdminLTE 3 | Registration Page (v2)</title>
+  <title>Đăng ký | Spring Detailing</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="../../plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
   <!-- icheck bootstrap -->
-  <link rel="stylesheet" href="../../plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
   <!-- Theme style -->
-  <link rel="stylesheet" href="../../dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" 
+  integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" 
+  crossorigin="anonymous" 
+  referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/include/customize.css">
+  <!-- Select2 -->
+  <link
+    href="/plugins/select2/css/select2.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
+    integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .select2-container {
+      width: unset !important;
+      flex-grow: 1;
+    }
+  </style>
 </head>
 <body class="hold-transition register-page">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__wobble" src="dist/img/SpringDetailingLogo.png" alt="SpringDetailingLogo" height="250"
+      width="250">
+  </div>
 <div class="register-box">
   <div class="card card-outline card-primary">
     <div class="card-header text-center">
-      <a href="../../index2.html" class="h1"><b>Admin</b>LTE</a>
+      <a href="/index.html" class="h1"><b>Spring </b>Detailing</a>
     </div>
     <div class="card-body">
-      <p class="login-box-msg">Register a new membership</p>
-
-      <form action="../../index.html" method="post">
-        <div class="input-group mb-3">
-          <input type="text" class="form-control" placeholder="Full name">
+      <form>
+        <label for="full-name" class="mb-1">Họ và tên <span class="text-danger">*</span></label>
+        <div class="input-group mb-2">
+          <input id="full-name" type="text" class="form-control" placeholder="Họ và tên">
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-user"></span>
+              <span class="fa-solid fa-signature"></span>
             </div>
           </div>
         </div>
-        <div class="input-group mb-3">
+        <label for="phone-number" class="mb-1">Số điện thoại</label>
+        <div class="input-group mb-2">
+          <input id="phone-number" type="text" class="form-control" maxlength="50" placeholder="Số điện thoại">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fa-solid fa-mobile-screen-button"></span>
+            </div>
+          </div>
+        </div>
+        <label for="gender-select" class="mb-1">Giới tính</label>
+        <div class="input-group mb-2 d-flex">
+            <select id="gender-select" class="form-control custom-select select2 flex-fill">
+              <option disabled selected>Giới tính</option>
+              <option value="1">Nam</option>
+              <option value="0">Nữ</option>
+            </select>
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fa-solid fa-venus-mars fa-sm"></span>
+              </div>
+            </div>
+        </div>
+        <label for="address-select" class="mb-1">Địa chỉ</label>
+        <div class="input-group mb-2">
+            <select id="address-select" class="form-control custom-select select2 flex-fill">
+              <option disabled selected>Chọn địa chỉ</option>
+            </select>
+            <div class="input-group-append">
+              <div class="input-group-text">
+                <span class="fa-solid fa-map-location-dot"></span>
+              </div>
+            </div>
+        </div>
+        <label for="email" class="mb-1">Email <span class="text-danger">*</span></label>
+        <div class="input-group mb-2">
           <input type="email" class="form-control" placeholder="Email">
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-envelope"></span>
+              <span class="fa-solid fa-paper-plane"></span>
+            </div>
+          </div>
+        </div>
+        <label for="password" class="mb-1">Mật khẩu <span class="text-danger">*</span></label>
+        <div class="input-group mb-2">
+          <input id="password" type="password" class="form-control" placeholder="Mật khẩu" data-toggle="tooltip" 
+          data-placement="top" title="Mật khẩu phải chứa tối thiếu 8 ký tự">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span id="password-icon" class="fa-solid fa-key"></span>
             </div>
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Password">
+          <input id="password-retype" type="password" class="form-control" placeholder="Nhập lại mật khẩu">
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
-        </div>
-        <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Retype password">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
+              <span id="password-retype-icon" class="fa-solid fa-unlock"></span>
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col-8">
             <div class="icheck-primary">
-              <input type="checkbox" id="agreeTerms" name="terms" value="agree">
+              <!-- <input type="checkbox" id="agreeTerms" name="terms" value="agree">
               <label for="agreeTerms">
                I agree to the <a href="#">terms</a>
-              </label>
+              </label> -->
             </div>
           </div>
           <!-- /.col -->
           <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">Register</button>
+            <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
           </div>
           <!-- /.col -->
         </div>
       </form>
 
-      <div class="social-auth-links text-center">
+      <!-- <div class="social-auth-links text-center">
         <a href="#" class="btn btn-block btn-primary">
           <i class="fab fa-facebook mr-2"></i>
           Sign up using Facebook
@@ -82,9 +148,9 @@
           <i class="fab fa-google-plus mr-2"></i>
           Sign up using Google+
         </a>
-      </div>
+      </div> -->
 
-      <a href="login.html" class="text-center">I already have a membership</a>
+      <a href="/login" class="text-center font-weight-bold">Tôi đã có tài khoản</a>
     </div>
     <!-- /.form-box -->
   </div><!-- /.card -->
@@ -92,10 +158,15 @@
 <!-- /.register-box -->
 
 <!-- jQuery -->
-<script src="../../plugins/jquery/jquery.min.js"></script>
+<script src="plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap 4 -->
-<script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- AdminLTE App -->
-<script src="../../dist/js/adminlte.min.js"></script>
+<script src="dist/js/adminlte.min.js"></script>
+<script
+  src="/plugins/select2/js/select2.min.js"
+  defer
+></script>
+<script type="module" src="/dist/js/pages/register.js"></script>
 </body>
 </html>

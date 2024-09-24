@@ -7,7 +7,7 @@
   <title>Danh mục hãng - xe | Spring Detailing</title>
 
   <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="/plugins/jquery/jquery.min.js"></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Google Font: Source Sans Pro -->
@@ -18,12 +18,10 @@
   <!-- overlayScrollbars -->
   <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css" />
   <!-- DataTables -->
-  <link rel="stylesheet" href="../../plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
-  <link rel="stylesheet" href="../../plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
-  <link rel="stylesheet" href="../../plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
-  <link rel="icon" href="favicon.ico" type="image/x-icon"><!-- Select2 -->
+    <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  <!-- Select2 -->
   <link
     href="/plugins/select2/css/select2.min.css"
     rel="stylesheet"
@@ -35,10 +33,13 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="include/customize.css">
 </head>
 
-<body class="hold-transition sidebar-mini layout-navbar-fixed">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed">
   <!-- Site wrapper -->
   <div class="wrapper">
 
@@ -58,43 +59,9 @@
 
     <!-- sidebar -->
     <!-- Main Sidebar Container -->
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
-      <!-- Brand Logo -->
-      <a href="/" class="brand-link">
-        <img src="favicon.ico" alt="Spring Detailing Logo" class="brand-image img-circle elevation-3"
-          style="opacity: 0.8" />
-        <span class="brand-text font-weight-bold">Spring Detailing</span>
-      </a>
-      <!-- Sidebar -->
-      <div class="sidebar">
-        <!-- Sidebar user panel (optional) -->
-        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-          <div class="image">
-            <img src="dist/img/mechanic.png" class="rounded elevation-2" alt="User Image" />
-          </div>
-          <div class="info">
-            <a href="#" class="d-block">GUEST</a>
-          </div>
-        </div>
-        <!-- SidebarSearch Form -->
-        <div class="form-inline">
-          <div class="input-group" data-widget="sidebar-search">
-            <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search" />
-            <div class="input-group-append">
-              <button class="btn btn-sidebar">
-                <i class="fas fa-search fa-fw"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar Menu -->
-        <nav id="sidebar" class="mt-2">
-        <!-- AdminLTE App -->
-        <script src="dist/js/adminlte.js"></script>
-        </nav>
-        <!-- /.sidebar-menu -->
-      </div>
+    <aside id="sidebar"  class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- AdminLTE App -->
+      <script src="dist/js/adminlte.js" defer></script>
     </aside>
     <!-- Font Awesome --><!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -117,7 +84,7 @@
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Quản lý danh mục</a></li>
                 <li class="breadcrumb-item active">Danh mục hãng - xe</li>
               </ol>
             </div>
@@ -162,11 +129,23 @@
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
                 <h3 class="card-title">Danh sách hãng - mẫu xe</h3>
-                <button class="btn btn-success btn-sm ms-auto ml-2" id="newBrand_btn">
-                  <i class="fa-solid fa-plus"></i> Thêm hãng
-                </button>
-                <button class="btn btn-warning btn-sm ms-auto ml-2" id="newModel_btn">
-                  <i class="fa-solid fa-plus"></i> Thêm mẫu
+                <div class="dropdown w-auto">
+                  <button class="btn btn-success btn-sm ms-auto ml-2 dropdown-toggle" style="white-space: normal !important;" id="brand-dropdown"
+                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="fa-solid fa-object-group mr-1"></i></i> Hãng xe
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="brand-dropdown">
+                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="newBrand_btn">
+                      <i class="fa-solid fa-plus mr-1"></i> Thêm hãng
+                    </button>
+                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="editBrand_btn">
+                      <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
+                    </button>
+                  </div>
+                </div>
+                
+                <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
+                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
                 </button>
                 <div class="ml-auto card-tools">
                   <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
@@ -244,25 +223,25 @@
   </div>
   <!-- /.content-wrapper -->
 
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
   <!-- Main Footer -->
   <footer class="main-footer text-sm">
   </footer>
   <script>
     $('footer').load('/include/footer.html');
   </script>
-
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
   </div>
   <!-- ./wrapper -->
 
-  <script
-    src="/plugins/select2/js/select2.min.js"
-    defer
-  ></script>
+
+    <script
+      src="/plugins/select2/js/select2.min.js"
+      defer
+    ></script>
   <!-- Bootstrap 4 -->
   <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- DataTables  & Plugins -->
@@ -278,10 +257,21 @@
   <script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+  <!-- overlayScrollbars -->
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+  <!-- PAGE PLUGINS -->
+  <!-- jQuery Mapael -->
+  <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
+  <script src="plugins/raphael/raphael.min.js"></script>
+  <script src="plugins/jquery-mapael/jquery.mapael.min.js"></script>
+  <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
+  <!-- ChartJS -->
+  <script src="plugins/chart.js/Chart.min.js"></script>
+
   <!-- AdminLTE for demo purposes -->
-  <!-- <script src="dist/js/demo.js"></script> -->
-  <script type="module" src="dist/js/pages/brand-model-management.js"></script>
   <script src="/dist/js/demo.js"></script>
+  <script type="module" src="dist/js/pages/brand-model-management.js"></script>
 </body>
 
 </html>
