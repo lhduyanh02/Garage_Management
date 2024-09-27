@@ -70,10 +70,22 @@ $(document).ready(function () {
           });
         }
       },
-      error: function () {
+      error: function(xhr, status, error){
+        var statusCode = xhr.status;
+        var message = 'Lỗi không xác định, không có mã lỗi';
+        try {
+            var response = JSON.parse(xhr.responseText);
+            if (response.code) {
+                message = utils.getErrorMessage(response.code);
+            }
+        } catch (e) {
+            // Lỗi khi parse JSON
+            console.log("JSON parse error");
+            message = 'Lỗi không xác định, không có mã lỗi';
+        }
         Toast.fire({
-          icon: "error",
-          title: "Internal server error",
+            icon: "error",
+            title: message
         });
       },
     },
@@ -291,13 +303,25 @@ $("#newBrand_btn").on("click", function () {
           // Tải lại bảng chức năng
           dataTable.ajax.reload();
         },
-        error: function (xhr, status, error) {
+        error: function(xhr, status, error){
+          var statusCode = xhr.status;
+          var message = 'Lỗi không xác định, không có mã lỗi';
+          try {
+              var response = JSON.parse(xhr.responseText);
+              if (response.code) {
+                  message = utils.getErrorMessage(response.code);
+              }
+          } catch (e) {
+              // Lỗi khi parse JSON
+              console.log("JSON parse error");
+              message = 'Lỗi không xác định, không có mã lỗi';
+          }
           Toast.fire({
-            icon: "error",
-            title: JSON.parse(xhr.responseText).message,
+              icon: "error",
+              title: message
           });
           dataTable.ajax.reload();
-        },
+        }
       });
       $("#modal_id").modal("hide");
     }
@@ -363,14 +387,23 @@ $("#newModel_btn").on("click", function () {
           })
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
+      error: function(xhr, status, error){
+        var statusCode = xhr.status;
+        var message = 'Lỗi không xác định, không có mã lỗi';
+        try {
+            var response = JSON.parse(xhr.responseText);
+            if (response.code) {
+                message = utils.getErrorMessage(response.code);
+            }
+        } catch (e) {
+            // Lỗi khi parse JSON
+            console.log("JSON parse error");
+            message = 'Lỗi không xác định, không có mã lỗi';
+        }
         Toast.fire({
-          icon: "error",
-          title: "Lỗi: " + JSON.parse(jqXHR.responseText).message,
+            icon: "error",
+            title: message
         });
-
-        console.error("AJAX request failed: " + textStatus, errorThrown);
-        console.log("Response Text: ", jqXHR.responseText);
       }
     });
 
@@ -434,10 +467,22 @@ $("#newModel_btn").on("click", function () {
           // Tải lại bảng chức năng
           dataTable.ajax.reload();
         },
-        error: function (xhr, status, error) {
+        error: function(xhr, status, error){
+          var statusCode = xhr.status;
+          var message = 'Lỗi không xác định, không có mã lỗi';
+          try {
+              var response = JSON.parse(xhr.responseText);
+              if (response.code) {
+                  message = utils.getErrorMessage(response.code);
+              }
+          } catch (e) {
+              // Lỗi khi parse JSON
+              console.log("JSON parse error");
+              message = 'Lỗi không xác định, không có mã lỗi';
+          }
           Toast.fire({
-            icon: "error",
-            title: JSON.parse(xhr.responseText).message,
+              icon: "error",
+              title: message
           });
           dataTable.ajax.reload();
         },
@@ -503,14 +548,23 @@ $('#editBrand_btn').click(function () {
           })
         }
       },
-      error: function (jqXHR, textStatus, errorThrown) {
+      error: function(xhr, status, error){
+        var statusCode = xhr.status;
+        var message = 'Lỗi không xác định, không có mã lỗi';
+        try {
+            var response = JSON.parse(xhr.responseText);
+            if (response.code) {
+                message = utils.getErrorMessage(response.code);
+            }
+        } catch (e) {
+            // Lỗi khi parse JSON
+            console.log("JSON parse error");
+            message = 'Lỗi không xác định, không có mã lỗi';
+        }
         Toast.fire({
-          icon: "error",
-          title: "Lỗi: " + JSON.parse(jqXHR.responseText).message,
+            icon: "error",
+            title: message
         });
-
-        console.error("AJAX request failed: " + textStatus, errorThrown);
-        console.log("Response Text: ", jqXHR.responseText);
       }
     });
 
@@ -577,10 +631,22 @@ $('#editBrand_btn').click(function () {
           // Tải lại bảng chức năng
           dataTable.ajax.reload();
         },
-        error: function (xhr, status, error) {
+        error: function(xhr, status, error){
+          var statusCode = xhr.status;
+          var message = 'Lỗi không xác định, không có mã lỗi';
+          try {
+              var response = JSON.parse(xhr.responseText);
+              if (response.code) {
+                  message = utils.getErrorMessage(response.code);
+              }
+          } catch (e) {
+              // Lỗi khi parse JSON
+              console.log("JSON parse error");
+              message = 'Lỗi không xác định, không có mã lỗi';
+          }
           Toast.fire({
-            icon: "error",
-            title: JSON.parse(xhr.responseText).message,
+              icon: "error",
+              title: message
           });
           dataTable.ajax.reload();
         },

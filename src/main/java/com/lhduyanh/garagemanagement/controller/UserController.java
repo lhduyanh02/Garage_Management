@@ -37,6 +37,15 @@ public class UserController {
                 .build();
     }
 
+    @GetMapping("/is-active")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ACCOUNT_LIST', 'GET_USER_LIST'})")
+    public ApiResponse<List<UserResponse>> getAllActivateUsers() {
+        return ApiResponse.<List<UserResponse>>builder()
+                .code(1000)
+                .data(userService.getAllActiveUser())
+                .build();
+    }
+
     @PreAuthorize("@securityExpression.hasPermission({'GET_USER_LIST'})")
     @GetMapping("/getMyInfo")
     public ApiResponse<UserResponse> getMyInfo() {

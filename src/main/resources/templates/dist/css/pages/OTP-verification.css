@@ -1,0 +1,82 @@
+.modal-custom .modal-content {
+    background-color: transparent; /* Nền modal trong suốt */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-custom .card {
+    width: 400px;
+    border: none;
+    height: 300px;
+    box-shadow: 0px 5px 20px 0px #d2dae3;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-custom .card h6 {
+    color: #007bff;
+    font-size: 20px;
+}
+
+.modal-custom .inputs input {
+    width: 40px;
+    height: 40px;
+}
+
+.modal-custom input[type=number]::-webkit-inner-spin-button,
+.modal-custom input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.modal-custom .card-2 {
+    background-color: #fff;
+    padding: 10px;
+    width: 350px;
+    height: 100px;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    position: absolute;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-custom .card-2 .content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-custom .card-2 .content a {
+    color: #007bff;
+}
+
+.modal-custom .form-control:focus {
+    box-shadow: none;
+    border: 2px solid red;
+}
+
+.modal-custom .validate {
+    border-radius: 20px;
+    height: 40px;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    width: 140px;
+}
+
+.modal-custom .modal-content {
+    background-color: transparent; /* Nền modal trong suốt */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: none; /* Loại bỏ box-shadow */
+    border: none; /* Loại bỏ viền */
+}

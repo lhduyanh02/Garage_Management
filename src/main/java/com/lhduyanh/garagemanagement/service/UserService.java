@@ -47,6 +47,13 @@ public class UserService {
                 .collect(Collectors.toList());
     };
 
+    public List<UserResponse> getAllActiveUser(){
+        List<User> users = userRepository.findAllActiveUser();
+        return users.stream()
+                .map(userMapper::toUserResponse)
+                .collect(Collectors.toList());
+    };
+
     public UserResponse getMyUserInfo(){
         var UUID = getUUIDFromJwt();
         User user = userRepository.findById(UUID)
@@ -98,6 +105,10 @@ public class UserService {
     public void deleteUserById(String id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() != 0){
+            throw new AppException(ErrorCode.DELETE_ACTIVATED_USER);
+        }
 
         var account = accountRepository.findByUserId(user.getId());
         account.ifPresent(accountRepository::delete);

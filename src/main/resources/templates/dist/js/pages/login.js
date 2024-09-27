@@ -1,3 +1,5 @@
+import * as utils from "/dist/js/utils.js"
+
 var Toast = Swal.mixin({
   toast: true,
   position: "top-end",
@@ -27,6 +29,7 @@ function login() {
     type: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": ""
     },
     data: JSON.stringify({ email: email, password: password }),
     success: function (res) {
@@ -42,28 +45,23 @@ function login() {
         });
       }
     },
-    error: function (xhr, status, error) {
+    error: function(xhr, status, error){    
+      var message = 'Lỗi không xác định, không có mã lỗi';
+      try {
+          var response = JSON.parse(xhr.responseText);
+          if (response.code) {
+              message = utils.getErrorMessage(response.code);
+          }
+      } catch (e) {
+          // Lỗi khi parse JSON
+          console.log("JSON parse error");
+          message = 'Lỗi không xác định, không có mã lỗi';
+      }
       Toast.fire({
-        icon: "error",
-        title: "Đăng nhập thất bại",
+          icon: "error",
+          title: message
       });
-
-      // Ví dụ bắt mã lỗi trả về và hiển thị message từ thông báo lỗi của server
-      setTimeout(function () {
-        // Chờ 3 giây trước khi hiển thị toast mã lỗi
-        let response = xhr.responseText ? JSON.parse(xhr.responseText) : null;
-        if (response && response.message) {
-          Toast.fire({
-            icon: "error",
-            title: response.message + " - " + response.code,
-          });
-        }
-        console.log(xhr.status); // HTTP status code
-        console.log(status); // status text (timeout, error, abort, parsererror)
-        console.log(error); // Textual portion of the HTTP status
-        // End example
-      }, 3000);
-    },
+    }
   });
 }
 

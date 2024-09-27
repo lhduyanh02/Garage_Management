@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Danh mục hãng - xe | Spring Detailing</title>
+  <title>Danh sách người dùng | Spring Detailing</title>
 
   <!-- jQuery -->
   <script src="/plugins/jquery/jquery.min.js"></script>
@@ -80,12 +80,12 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Danh mục hãng - xe</h1>
+              <h1>Danh sách người dùng</h1>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Quản lý danh mục</a></li>
-                <li class="breadcrumb-item active">Danh mục hãng - xe</li>
+                <li class="breadcrumb-item"><a href="#">Quản lý người dùng</a></li>
+                <li class="breadcrumb-item active">Danh sách người dùng</li>
               </ol>
             </div>
           </div>
@@ -95,40 +95,13 @@
       <!-- Main content -->
       <section class="content">
 
-        <!-- Default box -->
-        <div class="card" hidden>
-          <div class="card-header">
-            <h3 class="card-title">Danh sách hãng</h3>
-
-            <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                <i class="fas fa-minus"></i>
-              </button>
-
-              <!-- Remove card button -->
-              <!-- <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-              <i class="fas fa-times"></i>
-            </button> -->
-            </div>
-          </div>
-          <div class="card-body">
-            Copy this page and start creating your interface!
-          </div>
-          <!-- /.card-body -->
-          <div class="card-footer">
-            Footer
-          </div>
-          <!-- /.card-footer-->
-        </div>
-        <!-- /.card -->
-
         <div class="container-fluid"></div>
         <div class="row">
           <div class="col-12">
 
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">Danh sách hãng - mẫu xe</h3>
+                <h3 class="card-title">Bảng danh sách user</h3>
                 <div class="dropdown w-auto">
                   <button class="btn btn-success btn-sm ms-auto ml-2 dropdown-toggle" style="white-space: normal !important;" id="brand-dropdown"
                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -159,46 +132,16 @@
                 <table id="data-table" class="table table-bordered table-striped">
                   <thead>
                     <tr>
-                      <th scope="col" style="text-align: center" width="10%">#</th>
-                      <th scope="col" style="text-align: center" width="30%">Hãng xe</th>
-                      <th scope="col" style="text-align: center">Mẫu xe</th>
+                      <th scope="col" style="text-align: center" width="7%">#</th>
+                      <th scope="col" style="text-align: center" width="30%">Họ tên</th>
+                      <th scope="col" style="text-align: center" width="9%">Giới tính</th>
+                      <th scope="col" style="text-align: center">Địa chỉ</th>
+                      <th scope="col" style="text-align: center" width="12%">Vai trò</th>
+                      <th scope="col" style="text-align: center" width="10%">Trạng thái</th>
                       <th scope="col" style="text-align: center" width="10%">Thao tác</th>
-
-                      <!-- <th>Rendering engine</th>
-                    <th>Browser</th>
-                    <th>Platform(s)</th>
-                    <th>Engine version</th>
-                    <th>CSS grade</th> -->
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 4.0
-                    </td>
-                    <td>Win 95+</td>
-                    <td> 4</td>
-                    <td>X</td>
-                  </tr>
-                  <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 5.0
-                    </td>
-                    <td>Win 95+</td>
-                    <td>5</td>
-                    <td>C</td>
-                  </tr>
-                  <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 5.5
-                    </td>
-                    <td>Win 95+</td>
-                    <td>5.5</td>
-                    <td>A</td>
-                  </tr> -->
                   </tbody>
                 </table>
               </div>
@@ -271,7 +214,7 @@
 
   <!-- AdminLTE for demo purposes -->
   <script src="/dist/js/demo.js"></script>
-  <script type="module" src="dist/js/pages/brand-model-management.js"></script>
+  <script type="module" src="dist/js/pages/user-list.js"></script>
 </body>
 
 </html>

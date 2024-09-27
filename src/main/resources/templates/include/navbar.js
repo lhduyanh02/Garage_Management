@@ -56,10 +56,22 @@ $(document).ready(function(){
                   });
                 }
               },
-              error: function (xhr, status, error) {
+              error: function(xhr, status, error){
+                var statusCode = xhr.status;
+                var message = 'Lỗi không xác định, không có mã lỗi';
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.code) {
+                        message = utils.getErrorMessage(response.code);
+                    }
+                } catch (e) {
+                    // Lỗi khi parse JSON
+                    console.log("JSON parse error");
+                    message = 'Lỗi không xác định, không có mã lỗi';
+                }
                 Toast.fire({
                   icon: "error",
-                  title: "Internal server error",
+                  title: message,
                   didClose: () => {
                     utils.deleteCookie('authToken');
                     window.location.reload();
@@ -71,11 +83,22 @@ $(document).ready(function(){
         });
       });
     } else {
+      $("#register-btn").html(`
+          <a id="register" class="nav-link" href="/register" role="button" data-toggle="tooltip" data-placement="top" title="Đăng ký">
+            <i id="register-icon" class="fa-solid fa-user-plus"></i>
+          </a>
+      `);
+
       $("#login-out-btn").html(`
         <a class="nav-link" href="/login" role="button" data-toggle="tooltip" data-placement="top" title="Đăng nhập">
           <i class="fa-solid fa-car-on fa-shake fa-lg"></i>
         </a>
       `);
+
+      $('#register-btn').hover(function() {
+        $('#register-icon').toggleClass('fa-shake');
+      });
+
       $('[data-toggle="tooltip"]').tooltip();
     }
   });

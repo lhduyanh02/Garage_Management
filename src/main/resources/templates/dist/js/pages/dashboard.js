@@ -42,12 +42,24 @@ $(function () {
     success: function (res) {
       $("#user_quantity").text(res.data);
     },
-    error: function (xhr, status, error) {
+    error: function(xhr, status, error){
+      var statusCode = xhr.status;
+      var message = 'Lỗi không xác định, không có mã lỗi';
+      try {
+          var response = JSON.parse(xhr.responseText);
+          if (response.code) {
+              message = utils.getErrorMessage(response.code);
+          }
+      } catch (e) {
+          // Lỗi khi parse JSON
+          console.log("JSON parse error");
+          message = 'Lỗi không xác định, không có mã lỗi';
+      }
       Toast.fire({
-        icon: "error",
-        title: "Internal server error",
+          icon: "error",
+          title: message
       });
-    },
+    }
   });
 
   var salesChartCanvas = $("#salesChart").get(0).getContext("2d");

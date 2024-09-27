@@ -1,3 +1,5 @@
+import ErrorCode from '/dist/js/ErrorCode.js';
+
 export function redirect_page(url) {
   // Lấy token từ sessionStorage
   const token = sessionStorage.getItem("token");
@@ -90,38 +92,6 @@ export function introspect() {
   }
 }
 
-
-export function is_login() {
-  return new Promise((resolve, reject) => {
-    let token = getCookie('authToken');
-    
-    if (token) {
-      $.ajax({
-        type: "POST",
-        url: "/api/auth/introspect",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ token: token }),
-        success: function (res) {
-          if (res.code == 1000 && res.data.valid) {
-            resolve(true);
-          } else {
-            deleteCookie("authToken");
-            resolve(false);
-          }
-        },
-        error: function () {
-          deleteCookie("authToken");
-          resolve(false);
-        },
-      });
-    } else {
-      resolve(false);
-    }
-  });
-}
-
 export function checkLoginStatus() {
   return new Promise((resolve, reject) => {
     let token = getCookie('authToken');
@@ -176,4 +146,13 @@ export function setAjax() {
       },
     });
   }
+}
+
+export function getErrorMessage(code) {
+  for (let key in ErrorCode) {
+      if (ErrorCode[key].code === code) {
+          return ErrorCode[key].message;
+      }
+  }
+  return "Mã lỗi không xác định";
 }
