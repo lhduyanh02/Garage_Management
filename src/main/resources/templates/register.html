@@ -1,145 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Đăng ký | Spring Detailing</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Đăng ký | Spring Detailing</title>
 
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
-  <!-- icheck bootstrap -->
-  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="dist/css/adminlte.min.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" 
-  integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" 
-  crossorigin="anonymous" 
-  referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/include/customize.css">
-  <!-- Select2 -->
-  <link
-    href="/plugins/select2/css/select2.min.css"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
-    integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    .select2-container {
-      width: unset !important;
-      flex-grow: 1;
-    }
-  </style>
-</head>
-<body class="hold-transition register-page">
-  <!-- Preloader -->
-  <div class="preloader flex-column justify-content-center align-items-center">
-    <img class="animation__wobble" src="dist/img/SpringDetailingLogo.png" alt="SpringDetailingLogo" height="250"
-      width="250">
-  </div>
-<div class="register-box">
-  <div class="card card-outline card-primary">
-    <div class="card-header text-center">
-      <a href="/index.html" class="h1"><b>Spring </b>Detailing</a>
+    <!-- Google Font: Source Sans Pro -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
+    />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css" />
+    <!-- icheck bootstrap -->
+    <link
+      rel="stylesheet"
+      href="plugins/icheck-bootstrap/icheck-bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+    />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="dist/css/adminlte.min.css" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="/include/customize.css" />
+    <link rel="stylesheet" href="/dist/css/pages/OTP-verification.css" />
+    <!-- Select2 -->
+    <link href="/plugins/select2/css/select2.min.css" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
+      integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .select2-container {
+        width: unset !important;
+        flex-grow: 1;
+      }
+
+    </style>
+  </head>
+  <body class="hold-transition register-page">
+    <!-- Preloader -->
+    <div
+      class="preloader flex-column justify-content-center align-items-center"
+    >
+      <img
+        class="animation__wobble"
+        src="dist/img/SpringDetailingLogo.png"
+        alt="SpringDetailingLogo"
+        height="250"
+        width="250"
+      />
     </div>
-    <div class="card-body">
-      <form>
-        <label for="full-name" class="mb-1">Họ và tên <span class="text-danger">*</span></label>
-        <div class="input-group mb-2">
-          <input id="full-name" type="text" class="form-control" placeholder="Họ và tên">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fa-solid fa-signature"></span>
+
+    <div id="OTP-box" class="modal fade modal-custom" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content d-flex justify-content-center align-items-center">
+          <div class="card p-2 text-center">
+            <h6>Vui lòng nhập mã OTP<br> để xác thực email của bạn</h6>
+            <div>
+              <span>Một OTP đã được gửi đến</span>
+              <p id="email-sent" class="font-italic">example@gmail.com</p>
+            </div>
+            <div id="otp" class="inputs d-flex flex-row justify-content-center mt-2">
+              <input class="m-2 text-center form-control rounded" type="text" id="first" maxlength="1" />
+              <input class="m-2 text-center form-control rounded" type="text" id="second" maxlength="1" />
+              <input class="m-2 text-center form-control rounded" type="text" id="third" maxlength="1" />
+              <input class="m-2 text-center form-control rounded" type="text" id="fourth" maxlength="1" />
+              <input class="m-2 text-center form-control rounded" type="text" id="fifth" maxlength="1" />
+              <input class="m-2 text-center form-control rounded" type="text" id="sixth" maxlength="1" />
+            </div>
+            <div class="mt-4">
+              <button id="validate-otp-btn" class="btn btn-danger px-4 validate">Xác nhận</button>
+            </div>
+          </div>
+          <div class="card-2 d-flex justify-content-center align-items-center">
+            <div class="content d-flex justify-content-center align-items-center">
+              <span>Tôi không nhận được OTP</span>
+              <a href="javascript:void(0)" id="resent-btn" class="text-decoration-none ms-3">Gửi lại(1/3)</a>
             </div>
           </div>
         </div>
-        <label for="phone-number" class="mb-1">Số điện thoại</label>
-        <div class="input-group mb-2">
-          <input id="phone-number" type="text" class="form-control" maxlength="50" placeholder="Số điện thoại">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fa-solid fa-mobile-screen-button"></span>
-            </div>
-          </div>
+      </div>
+    </div>
+    
+
+    <div class="register-box">
+      <div class="card card-outline card-primary my-3">
+        <div class="card-header text-center pt-0">
+          <img src="favicon.ico" alt="Spring Detailing Logo" class="brand-image img-fluid"
+          style="opacity: 0.8; width: 45%;" />
+          <p><a href="/index.html" class="h1 font-weight-bolder">Spring Detailing</a></p>
         </div>
-        <label for="gender-select" class="mb-1">Giới tính</label>
-        <div class="input-group mb-2 d-flex">
-            <select id="gender-select" class="form-control custom-select select2 flex-fill">
-              <option disabled selected>Giới tính</option>
-              <option value="1">Nam</option>
-              <option value="0">Nữ</option>
-            </select>
-            <div class="input-group-append">
-              <div class="input-group-text">
-                <span class="fa-solid fa-venus-mars fa-sm"></span>
+        <div class="card-body">
+          <form id="register-form">
+            <label for="full-name" class="mb-1"
+              >Họ và tên <span class="text-danger">*</span></label
+            >
+            <div class="input-group mb-2">
+              <input
+                id="full-name"
+                required
+                type="text"
+                class="form-control"
+                placeholder="Họ và tên"
+              />
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fa-solid fa-signature"></span>
+                </div>
               </div>
             </div>
-        </div>
-        <label for="address-select" class="mb-1">Địa chỉ</label>
-        <div class="input-group mb-2">
-            <select id="address-select" class="form-control custom-select select2 flex-fill">
-              <option disabled selected>Chọn địa chỉ</option>
-            </select>
-            <div class="input-group-append">
-              <div class="input-group-text">
-                <span class="fa-solid fa-map-location-dot"></span>
+            <label for="phone-number" class="mb-1">Số điện thoại</label>
+            <div class="input-group mb-2">
+              <input
+                id="phone-number"
+                type="text"
+                class="form-control"
+                maxlength="50"
+                placeholder="Số điện thoại"
+              />
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fa-solid fa-mobile-screen-button"></span>
+                </div>
               </div>
             </div>
-        </div>
-        <label for="email" class="mb-1">Email <span class="text-danger">*</span></label>
-        <div class="input-group mb-2">
-          <input type="email" class="form-control" placeholder="Email">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fa-solid fa-paper-plane"></span>
+            <label for="gender-select" class="mb-1">Giới tính</label>
+            <div class="input-group mb-2 d-flex">
+              <select
+                id="gender-select"
+                class="form-control custom-select select2 flex-fill"
+              >
+                <option disabled selected>Giới tính</option>
+                <option value="1">Nam</option>
+                <option value="0">Nữ</option>
+              </select>
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fa-solid fa-venus-mars fa-sm"></span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <label for="password" class="mb-1">Mật khẩu <span class="text-danger">*</span></label>
-        <div class="input-group mb-2">
-          <input id="password" type="password" class="form-control" placeholder="Mật khẩu" data-toggle="tooltip" 
-          data-placement="top" title="Mật khẩu phải chứa tối thiếu 8 ký tự">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span id="password-icon" class="fa-solid fa-key"></span>
+            <label for="address-select" class="mb-1">Địa chỉ</label>
+            <div class="input-group mb-2">
+              <select
+                id="address-select"
+                class="form-control custom-select select2 flex-fill"
+              >
+                <option disabled selected>Chọn địa chỉ</option>
+              </select>
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fa-solid fa-map-location-dot"></span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="input-group mb-3">
-          <input id="password-retype" type="password" class="form-control" placeholder="Nhập lại mật khẩu">
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span id="password-retype-icon" class="fa-solid fa-unlock"></span>
+            <label for="email" class="mb-1"
+              >Email <span class="text-danger">*</span></label
+            >
+            <div class="input-group mb-2">
+              <input
+                id="email"
+                type="email"
+                required
+                maxlength="50"
+                class="form-control"
+                placeholder="Email"
+              />
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span class="fa-solid fa-paper-plane"></span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-8">
-            <div class="icheck-primary">
-              <!-- <input type="checkbox" id="agreeTerms" name="terms" value="agree">
+            <label for="password" required class="mb-1"
+              >Mật khẩu <span class="text-danger">*</span></label
+            >
+            <div class="input-group mb-2">
+              <input
+                id="password"
+                type="password"
+                class="form-control"
+                placeholder="Mật khẩu"
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Mật khẩu phải chứa tối thiếu 8 ký tự"
+              />
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span id="password-icon" class="fa-solid fa-key"></span>
+                </div>
+              </div>
+            </div>
+            <div class="input-group mb-3">
+              <input
+                id="password-retype"
+                required
+                type="password"
+                class="form-control"
+                placeholder="Nhập lại mật khẩu"
+              />
+              <div class="input-group-append">
+                <div class="input-group-text">
+                  <span
+                    id="password-retype-icon"
+                    class="fa-solid fa-unlock"
+                  ></span>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-8">
+                <div class="icheck-primary">
+                  <!-- <input type="checkbox" id="agreeTerms" name="terms" value="agree">
               <label for="agreeTerms">
                I agree to the <a href="#">terms</a>
               </label> -->
+                </div>
+              </div>
+              <!-- /.col -->
+              <div class="col-4">
+                <button
+                  id="submit-btn"
+                  type="submit"
+                  class="btn btn-primary btn-block"
+                >
+                  Đăng ký
+                </button>
+              </div>
+              <!-- /.col -->
             </div>
-          </div>
-          <!-- /.col -->
-          <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
-          </div>
-          <!-- /.col -->
-        </div>
-      </form>
+          </form>
 
-      <!-- <div class="social-auth-links text-center">
+          <!-- <div class="social-auth-links text-center">
         <a href="#" class="btn btn-block btn-primary">
           <i class="fab fa-facebook mr-2"></i>
           Sign up using Facebook
@@ -150,23 +257,27 @@
         </a>
       </div> -->
 
-      <a href="/login" class="text-center font-weight-bold">Tôi đã có tài khoản</a>
+          <a href="/login" class="text-center font-weight-bold"
+            >Tôi đã có tài khoản</a
+          >
+        </div>
+        <!-- /.form-box -->
+      </div>
+      <!-- /.card -->
+      <!-- <div id="modal-card"></div>
+    <script>
+      $("#modal-card").load("/include/modal.html")
+    </script> -->
     </div>
-    <!-- /.form-box -->
-  </div><!-- /.card -->
-</div>
-<!-- /.register-box -->
+    <!-- /.register-box -->
 
-<!-- jQuery -->
-<script src="plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="dist/js/adminlte.min.js"></script>
-<script
-  src="/plugins/select2/js/select2.min.js"
-  defer
-></script>
-<script type="module" src="/dist/js/pages/register.js"></script>
-</body>
+    <!-- jQuery -->
+    <script src="plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="dist/js/adminlte.min.js"></script>
+    <script src="/plugins/select2/js/select2.min.js" defer></script>
+    <script type="module" src="/dist/js/pages/register.js"></script>
+  </body>
 </html>

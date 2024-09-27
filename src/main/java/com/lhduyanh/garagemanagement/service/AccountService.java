@@ -116,8 +116,12 @@ public class AccountService {
     public UserRegisterResponse accountRegister(UserRegisterRequest request){
         var acc = accountRepository.findByEmail(request.getEmail());
         if(acc.isPresent()) {
-            if (acc.get().getStatus() == 0)
+            if (acc.get().getStatus() == 0) {
+                if (Duration.between(acc.get().getGeneratedAt(), LocalDateTime.now()).toMinutes() < 1){
+                    throw new AppException(ErrorCode.OTP_SEND_TIMER);
+                }
                 accountRepository.delete(acc.get());
+            }
             else if (acc.get().getStatus() == 1){
                 throw new AppException(ErrorCode.ACCOUNT_EXISTED);
             }
@@ -143,7 +147,7 @@ public class AccountService {
             user = userRepository.save(user);
         }
         catch(Exception e) {
-            log.error("ERROR IN USER REGISTER PROGRESS");
+            log.error("\n\nERROR IN USER REGISTER PROGRESS\n\n");
             log.error(e.getMessage());
         }
 
@@ -184,8 +188,8 @@ public class AccountService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
 
-        // Kiểm tra cách 2 phút kể từ lần gửi email trước
-        if((account.getStatus() >= 0) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 2)) {
+        // Kiểm tra cách 1 phút kể từ lần gửi email trước
+        if((account.getStatus() >= 0) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 1)) {
             otpService.createSendOtpCode(account);
         }
         else {
