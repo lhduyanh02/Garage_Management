@@ -31,7 +31,10 @@ $(document).ready(function(){
             $.ajax({
               type: "POST",
               url: "/api/auth/logout",
-              contentType: "application/json",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": ""
+              },
               data: JSON.stringify({
                 token: token
               }),

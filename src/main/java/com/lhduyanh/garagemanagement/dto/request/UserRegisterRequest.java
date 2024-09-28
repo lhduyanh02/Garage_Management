@@ -24,6 +24,7 @@ public class UserRegisterRequest {
     String name;
 
     @Pattern(regexp = "^(0|\\+[0-9]{1,3})[0-9 ]{6,13}$", message = "INVALID_PHONE_NUMBER")
+    @Size(max = 50, message = "PHONE_NUMBER_LENGTH")
     String phone;
 
     int gender;

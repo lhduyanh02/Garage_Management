@@ -54,6 +54,12 @@ public class UserService {
                 .collect(Collectors.toList());
     };
 
+    public UserResponse getUserById(String id){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
+    }
+
     public UserResponse getMyUserInfo(){
         var UUID = getUUIDFromJwt();
         User user = userRepository.findById(UUID)
@@ -114,5 +120,25 @@ public class UserService {
         account.ifPresent(accountRepository::delete);
 
         userRepository.deleteById(id);
+    }
+
+    public void disableUserById(String id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() != 1 && user.getStatus() != 0){
+            throw new AppException(ErrorCode.DISABLE_ACTIVE_USER_ONLY);
+        }
+
+        user.setStatus(-1);
+        userRepository.save(user);
+    }
+
+    public void activateUserById(String id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        user.setStatus(1);
+        userRepository.save(user);
     }
 }

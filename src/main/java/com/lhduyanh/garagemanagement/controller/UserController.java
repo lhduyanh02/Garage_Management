@@ -6,6 +6,7 @@ import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
+import com.lhduyanh.garagemanagement.repository.UserRepository;
 import com.lhduyanh.garagemanagement.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -26,6 +27,7 @@ public class UserController {
     UserService userService;
     AddressRepository addressRepository;
     RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
 
     @GetMapping
@@ -34,6 +36,14 @@ public class UserController {
         return ApiResponse.<List<UserResponse>>builder()
                 .code(1000)
                 .data(userService.getAllUserWithAddress())
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<UserResponse> getUserById(@PathVariable String id) {
+        return ApiResponse.<UserResponse>builder()
+                .code(1000)
+                .data(userService.getUserById(id))
                 .build();
     }
 
@@ -72,6 +82,24 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .code(1000)
                 .data(result)
+                .build();
+    }
+
+    @PutMapping("disable/{id}")
+    public ApiResponse<Boolean> disableUser(@PathVariable String id) {
+        userService.disableUserById(id);
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(true)
+                .build();
+    }
+
+    @PutMapping("activate/{id}")
+    public ApiResponse<Boolean> activateUser(@PathVariable String id) {
+        userService.activateUserById(id);
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(true)
                 .build();
     }
 

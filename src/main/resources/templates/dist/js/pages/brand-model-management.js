@@ -345,12 +345,12 @@ $("#newModel_btn").on("click", function () {
     </div>
 
     <div class="form-group">
-       <div class="container mt-3 mb-0">
+      <div class="container mt-3 mb-0">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <label class="mb-0" for="modal_model_name_input">Tên mẫu xe</label>
             <kbd id="char_count" class="mb-0 small">0/100</kbd>
         </div>
-    </div>
+      </div>
       <input type="text" class="form-control" id="modal_model_name_input" maxlength="100" placeholder="Nhập tên mẫu xe">
       <p class="font-weight-light pt-3">Lưu ý: Tên mẫu xe tối đa 100 ký tự và không trùng với mẫu đã có.</p>
     </div>
