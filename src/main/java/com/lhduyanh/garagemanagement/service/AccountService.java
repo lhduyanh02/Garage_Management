@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -50,16 +51,24 @@ public class AccountService {
     private final OtpService otpService;
 
     @NonFinal
-    @Value("${app.password-strength}")
-    int strength;
+    @Value("${app.admin-email}")
+    String ADMIN_EMAIL;
+
 
     public AccountResponse getAccountById(String id) {
-        return accountMapper.toAccountResponse(accountRepository.findById(id)
+        return accountMapper.toAccountResponse(accountRepository.findByIdFetchAddress(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)));
     }
 
     public List<AccountResponse> getAllAccounts() {
         return accountRepository.findAll()
+                .stream()
+                .map(accountMapper::toAccountResponse)
+                .toList();
+    }
+
+    public List<AccountResponse> getAllEnableAccounts() {
+        return accountRepository.findAllByStatus(1)
                 .stream()
                 .map(accountMapper::toAccountResponse)
                 .toList();
@@ -197,21 +206,26 @@ public class AccountService {
         }
     }
 
+    public boolean disableAccount(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
 
-//    public AccountResponse createAccount(AccountCreationRequest request) {
-//
-//        // Check if account existed
-//        boolean b = accountRepository.existsByEmail(request.getEmail());
-//        if (b) {
-//            throw new AppException(ErrorCode.ACCOUNT_EXISTED);
-//        }
-//
-//        Optional<User> user = userRepository.findByEmailStatus1(email);
-//        if (user.isPresent()) {
-//            // hashing password and save new account
-//
-//        }
-//
-//    }
+        if (account.getEmail().equals(ADMIN_EMAIL)) {
+            throw new AppException(ErrorCode.CAN_NOT_DISABLE_ADMIN);
+        }
+
+        account.setStatus(-1);
+        accountRepository.save(account);
+        return true;
+    }
+
+    public boolean enableAccount(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        account.setStatus(1);
+        accountRepository.save(account);
+        return true;
+    }
 
 }

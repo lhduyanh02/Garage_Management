@@ -1,7 +1,7 @@
 package com.lhduyanh.garagemanagement.mapper;
 
 import com.lhduyanh.garagemanagement.dto.request.RoleCreationRequest;
-import com.lhduyanh.garagemanagement.dto.response.RoleBodyResponse;
+import com.lhduyanh.garagemanagement.dto.response.RoleSimpleResponse;
 import com.lhduyanh.garagemanagement.dto.response.RoleResponse;
 import com.lhduyanh.garagemanagement.entity.Role;
 import org.mapstruct.Mapper;
@@ -16,5 +16,5 @@ public interface RoleMapper {
     @Mapping(target = "permissions", source = "permissions")
     RoleResponse toRoleResponse(Role role);
 
-    RoleBodyResponse toRoleBodyResponse(Role role);
+    RoleSimpleResponse toRoleSimpleResponse(Role role);
 }

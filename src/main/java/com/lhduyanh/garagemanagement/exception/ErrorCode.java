@@ -87,6 +87,7 @@ public enum ErrorCode {
 
     PHONE_NUMBER_LENGTH(1062, "Phone number up to {max} characters", HttpStatus.BAD_REQUEST),
     DISABLE_ACTIVE_USER_ONLY(1063, "Disable active user only", HttpStatus.BAD_REQUEST),
+    CAN_NOT_DISABLE_ADMIN(1064, "Can not disable admin account", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

@@ -85,7 +85,7 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("disable/{id}")
+    @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> disableUser(@PathVariable String id) {
         userService.disableUserById(id);
         return ApiResponse.<Boolean>builder()
@@ -94,7 +94,7 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("activate/{id}")
+    @PutMapping("/activate/{id}")
     public ApiResponse<Boolean> activateUser(@PathVariable String id) {
         userService.activateUserById(id);
         return ApiResponse.<Boolean>builder()

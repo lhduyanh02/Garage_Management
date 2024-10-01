@@ -1,7 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
 utils.introspect();
-utils.setAjax();
 
 var Toast = Swal.mixin({
   toast: true,
@@ -47,6 +46,7 @@ $(document).ready(function () {
       type: "GET",
       url: "/api/brands/fetch-model",
       dataType: "json",
+      headers: utils.defaultHeaders(),
       dataSrc: function (res) {
         if (res.code == 1000) {
           var data = [];
@@ -281,9 +281,9 @@ $("#newBrand_btn").on("click", function () {
      else {
       $.ajax({
         type: "POST",
-        url:
-          "/api/brands",
+        url: "/api/brands",
         contentType: "application/json",
+        headers: utils.defaultHeaders(),
         data: JSON.stringify({
           brand: ten
         }),
@@ -443,8 +443,8 @@ $("#newModel_btn").on("click", function () {
      else {
       $.ajax({
         type: "POST",
-        url:
-          "/api/models",
+        url: "/api/models",
+        headers: utils.defaultHeaders(),
         contentType: "application/json",
         data: JSON.stringify({
           model: model,
@@ -609,9 +609,9 @@ $('#editBrand_btn').click(function () {
      else {
       $.ajax({
         type: "PUT",
-        url:
-          "/api/brands?id=" + id,
+        url: "/api/brands?id=" + id,
         contentType: "application/json",
+        headers: utils.defaultHeaders(),
         data: JSON.stringify({
           brand: brand
         }),

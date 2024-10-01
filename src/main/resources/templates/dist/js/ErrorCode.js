@@ -62,8 +62,9 @@ const ErrorCode = {
     BLANK_BRAND: { code: 1059, message: "Thương hiệu xe không được để trống", statusCode: 400 },
     OTP_SEND_TIMER: { code: 1060, message: "Thời gian tối thiểu gửi OTP tới cùng email là 1 phút", statusCode: 400 },
     DELETE_ACTIVATED_USER: {code: 1061, message: "Không thể xóa người dùng đang hoạt động", httpStatus: 400},
-    PHONE_NUMBER_LENGTH: {code: 1062, mesage: "Phone number up to 50 characters", httpStatus: 400},
-    DISABLE_ACTIVE_USER_ONLY: {code: 1063, mesage: "Disable active user only", httpStatus: 400},
+    PHONE_NUMBER_LENGTH: {code: 1062, message: "Phone number up to 50 characters", httpStatus: 400},
+    DISABLE_ACTIVE_USER_ONLY: {code: 1063, message: "Không thể vô hiệu hóa người dùng này", httpStatus: 400},
+    CAN_NOT_DISABLE_ADMIN: {code: 1064, message: "Không thể khóa tài khoản quản trị này", httpStatus: 400},
 };
 
 export default ErrorCode;

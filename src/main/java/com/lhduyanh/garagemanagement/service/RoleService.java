@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.RoleCreationRequest;
 import com.lhduyanh.garagemanagement.dto.response.RoleResponse;
+import com.lhduyanh.garagemanagement.dto.response.RoleSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
@@ -30,6 +31,13 @@ public class RoleService {
 
     public List<RoleResponse> getAllRole(){
         return roleRepository.findAll().stream().map(roleMapper::toRoleResponse).toList();
+    }
+
+    public List<RoleSimpleResponse> getAllEnableRole(){
+        return roleRepository.findAllByStatus(1)
+                .stream()
+                .map(roleMapper::toRoleSimpleResponse)
+                .toList();
     }
 
     public RoleResponse addRole(RoleCreationRequest request){

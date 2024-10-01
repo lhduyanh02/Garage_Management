@@ -18,14 +18,14 @@ function refreshToken() {
         return;
     }
 
-    let expirationTime = sessionStorage.getItem("tokenExpirationTime");
+    let expirationTime = localStorage.getItem("tokenExpirationTime");
     
     if (expirationTime) {
         const currentTime = Date.now();
         expirationTime = parseInt(expirationTime);
 
         if ((expirationTime - currentTime) > 10 * 60 * 1000) {
-            // console.log("Token already refreshed.");
+            // console.log("Token already refreshed"); 
             return;
         }
     }
@@ -40,12 +40,12 @@ function refreshToken() {
         },
         dataType: "json",
         success: function (res) {
-            if (res.code == 1000) {
+            if (res.code == 1000 && res.data.authenticated) {
                 // console.log("Token refreshed successfully.");
 
-                // Lưu thời gian hết hạn vào sessionStorage (60 phút kể từ bây giờ)
+                // Lưu thời gian hết hạn vào localStorage (60 phút kể từ bây giờ)
                 const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
-                sessionStorage.setItem("tokenExpirationTime", expirationTime);
+                localStorage.setItem("tokenExpirationTime", expirationTime);
             } else {
                 console.log("Failed to refresh token.");
             }
@@ -60,4 +60,4 @@ refreshToken();
 
 setInterval(() => {
     refreshToken();
-}, 9*60*1000);
+}, 5*60*1000);

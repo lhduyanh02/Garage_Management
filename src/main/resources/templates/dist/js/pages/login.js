@@ -37,7 +37,7 @@ function login() {
     success: function (res) {
       if (res.code === 1000 && res.data.authenticated) {
         const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
-          sessionStorage.setItem("tokenExpirationTime", expirationTime);
+        localStorage.setItem("tokenExpirationTime", expirationTime);
         window.location.href = path || '/';
        
       } else {

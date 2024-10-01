@@ -1,8 +1,8 @@
 import ErrorCode from "/dist/js/ErrorCode.js";
 
 export function redirect_page(url) {
-    // Lấy token từ sessionStorage
-    const token = sessionStorage.getItem("token");
+    // Lấy token từ localStorage
+    const token = localStorage.getItem("token");
 
     if (!token) {
         alert("token not founded");
@@ -92,6 +92,12 @@ export function introspect(bool) {
             },
             error: function (res) {
                 deleteCookie("authToken");
+                if(bool) {
+                    window.location.href = "/login#" + path;
+                }
+                  else {
+                    window.location.href = "/login";
+                }
             },
         });
     } else {
@@ -146,19 +152,6 @@ export function loadScript(url) {
     }
 }
 
-export function setAjax() {
-    const authToken = getCookie("authToken");
-    // console.log(authToken);
-    if (authToken != null) {
-        $.ajaxSetup({
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${authToken}`,
-            },
-        });
-    }
-}
-
 export function getErrorMessage(code) {
     for (let key in ErrorCode) {
         if (ErrorCode[key].code === code) {
@@ -170,16 +163,46 @@ export function getErrorMessage(code) {
 
 export function getXHRInfo(xhr) {
     try {
-      response = JSON.parse(xhr.responseText);
-      statusCode = response.code;
-      message = getErrorMessage(statusCode);
+      let response = JSON.parse(xhr.responseText);
+      let statusCode = response.code;
+      let message = getErrorMessage(statusCode);
       return {
         statusCode: statusCode,
         message: message
       };
     } catch (error) {
-        return null;
+        return {
+            statusCode: 9999,
+            message: "Lỗi không xác định"
+        };
     }
 
     return null;
+}
+
+export function validatePhoneNumber(phoneNumber) {
+    if(phoneNumber==null || phoneNumber==""){
+        return true;
+    }
+    // Biểu thức chính quy để kiểm tra số điện thoại
+    var regex = /^\+?[0-9\s.-]+$/;
+    return regex.test(phoneNumber);
+}
+
+export function defaultHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getCookie("authToken")
+    };
+}
+
+export function set_char_count(inputId, counterId) {
+    const length = $(inputId).attr("maxlength");
+    var currentLength = $(inputId).val().length;
+    $(counterId).text(currentLength + '/' + length);
+
+    $(inputId).on('input', function() {
+      currentLength = $(inputId).val().length;
+      $(counterId).text(currentLength + '/' + length);
+    });
 }
