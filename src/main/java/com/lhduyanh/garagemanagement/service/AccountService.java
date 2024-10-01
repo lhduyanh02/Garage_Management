@@ -1,5 +1,6 @@
 package com.lhduyanh.garagemanagement.service;
 
+import com.lhduyanh.garagemanagement.dto.request.AccountUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.AccountVerifyRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
@@ -34,7 +35,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @RequiredArgsConstructor
 @Service
@@ -223,9 +224,66 @@ public class AccountService {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
 
+        List<Account> accounts = accountRepository.findAllByUserId(account.getUser().getId());
+        if (!accounts.isEmpty()) {
+            accounts.forEach(acc -> acc.setStatus(-1));
+            accountRepository.saveAll(accounts);
+        }
+
         account.setStatus(1);
         accountRepository.save(account);
         return true;
+    }
+
+    @Transactional
+    public AccountResponse updateAccount(String id, AccountUpdateRequest request, boolean confirm) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        boolean emailChange = !account.getEmail().equalsIgnoreCase(request.getEmail().trim());
+        boolean userChange = !account.getUser().getId().equals(request.getUserId());
+
+        if (!emailChange && !userChange) {
+            throw new AppException(ErrorCode.NO_CHANGE_UPDATE);
+        }
+
+        if(account.getUser().getStatus() == 9999) {
+            var uid = getUUIDFromJwt();
+            var user = userRepository.findById(uid).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+            if(user.getStatus() != 9999){
+                throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+            }
+        }
+
+        if(emailChange) {
+            accountRepository.findByEmail(request.getEmail())
+                    .filter(acc -> !acc.getId().equals(id))
+                    .ifPresent(acc -> {
+                        throw new AppException(ErrorCode.ACCOUNT_EXISTED);
+                    });
+            account.setEmail(request.getEmail());
+        }
+
+        if(userChange) {
+            var user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if(user.getStatus() == 9999){
+                throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+            }
+
+            if(!request.getUserId().equals(account.getUser().getId())) {
+                List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());
+                if (!accounts.isEmpty() && !confirm) {
+                    throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
+                } else {
+                    accounts.forEach(acc -> acc.setStatus(-1));
+                    accountRepository.saveAll(accounts);
+                }
+            }
+            account.setUser(user);
+        }
+        return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
 }

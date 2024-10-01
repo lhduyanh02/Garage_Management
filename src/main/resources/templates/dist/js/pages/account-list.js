@@ -126,8 +126,6 @@ $(document).ready(function () {
                         $.each(data , function (idx, val) {
                             html+=` <span class="badge badge-light">&nbsp; ${val.roleName}</span></br>`
                         });
-
-                        
                         return (
                             '<center>' + html + '</center>'
                         );
@@ -307,29 +305,74 @@ $("#data-table").on("click", "#editBtn", function () {
                     return;
                 }
 
-                if(phone == ""){
-                    phone = null;
+                if(email == ""){
+                    Toast.fire({
+                        icon: "warning",
+                        title: "Vui lòng điền email hợp lệ"
+                    });
+                    return;
                 }
 
                 $.ajax({
                     type: "PUT",
-                    url: "/api/users/"+id,
+                    url: "/api/accounts/"+id,
                     headers: utils.defaultHeaders(),
                     data: JSON.stringify({
-                        name: name,
-                        phone: phone, 
-                        gender: gender,
-                        addressId: address,
-                        roleIds: roles
+                        email: email,
+                        userId: user
                     }),
                     success: function (response) {
-                        if(response.code == 1000)
-                        Toast.fire({
-                            icon: "success", 
-                            title: "Cập nhật thông tin thành công"
-                        });
-                        $("#modal_id").modal("hide");
-                        dataTable.ajax.reload();
+                        if(response.code == 1000){
+                            Toast.fire({
+                                icon: "success", 
+                                title: "Cập nhật tài khoản thành công"
+                            });
+                            $("#modal_id").modal("hide");
+                            dataTable.ajax.reload();
+                        } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
+                            Swal.fire({
+                                title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
+                                showDenyButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: "Đồng ý",
+                                cancelButtonText: "Huỷ",
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: "/api/accounts/confirm/"+id,
+                                        headers: utils.defaultHeaders(),
+                                        data: JSON.stringify({
+                                            email: email,
+                                            userId: user
+                                        }),
+                                        success: function (res) {
+                                            if (res.code == 1000) {
+                                                Toast.fire({
+                                                    icon: "success", 
+                                                    title: "Cập nhật tài khoản thành công"
+                                                });
+                                            }
+                                            $("#modal_id").modal("hide");
+                                            dataTable.ajax.reload();
+                                        },
+                                        error: function (xhr, status, error) {
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: utils.getXHRInfo(xhr).message,
+                                            });
+                                        },
+                                    });
+                                }
+                            });
+                        } 
+                        else {
+                            Toast.fire({
+                                icon: "warning",
+                                title: utils.getErrorMessage(response.code)
+                            })
+                        }
                     },
                     error: function(xhr, status, error) {
                         Toast.fire({
@@ -379,6 +422,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
                 type: "DELETE",
                 url: "/api/accounts/" + id,
                 dataType: "json",
+                headers: utils.defaultHeaders(),
                 success: function (res) {
                     if (res.code == 1000) {
                         Toast.fire({
@@ -455,9 +499,20 @@ $("#data-table").on("click", "#activateBtn", function () {
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
     let email = rowData.email;
+    let userId = rowData.user.id;
+
+    var columnData = dataTable.column(1).data().toArray();
+    const count = columnData.filter(item => item.id === userId).length;
+
+    let question = "";
+    if(count > 1){
+        question = `Kích hoạt tài khoản ${email}<br> sẽ vô hiệu hóa các tài khoản khác liên kết đến cùng hồ sơ?`
+    } else {
+        question = `Kích hoạt tài khoản</br>${email}?`
+    }
 
     Swal.fire({
-        title: `Kích hoạt tài khoản</br>${email}?`,
+        title: question,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Đồng ý",

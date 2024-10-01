@@ -1,8 +1,6 @@
 package com.lhduyanh.garagemanagement.repository;
 
 import com.lhduyanh.garagemanagement.entity.Account;
-import jakarta.annotation.Nonnull;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +31,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     @Query("SELECT COUNT(a) > 0 FROM Account a WHERE a.email = :email AND a.status = :status")
     boolean existsByEmailAndStatus(@Param("email") String email, @Param("status") int status);
+
+    @Query("SELECT a FROM Account a WHERE a.user.id = :id")
+    List<Account> findAllByUserId(@Param("id") String userId);
 }

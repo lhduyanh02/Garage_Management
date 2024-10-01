@@ -18,6 +18,6 @@ public class UserResponse {
     String phone;
     int gender;
     int status;
-    Address address;
+    AddressResponse address;
     Set<RoleSimpleResponse> roles;
 }

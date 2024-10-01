@@ -1,5 +1,6 @@
 package com.lhduyanh.garagemanagement.controller;
 
+import com.lhduyanh.garagemanagement.dto.request.AccountUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.AccountVerifyRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
 import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
@@ -90,6 +91,24 @@ public class AccountController {   // for design account controller api
         return ApiResponse.<Boolean>builder()
                 .code(1000)
                 .data(accountService.enableAccount(id))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<AccountResponse> updateAccount(@PathVariable String id,
+                                                      @RequestBody @Valid AccountUpdateRequest request) {
+        return ApiResponse.<AccountResponse>builder()
+                .code(1000)
+                .data(accountService.updateAccount(id, request, false))
+                .build();
+    }
+
+    @PutMapping("/confirm/{id}")
+    public ApiResponse<AccountResponse> confirmUpdateAccount(@PathVariable String id,
+                                                      @RequestBody @Valid AccountUpdateRequest request) {
+        return ApiResponse.<AccountResponse>builder()
+                .code(1000)
+                .data(accountService.updateAccount(id, request, true))
                 .build();
     }
 

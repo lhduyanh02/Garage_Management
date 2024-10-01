@@ -102,24 +102,12 @@
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
                 <h3 class="card-title">Bảng danh sách hồ sơ</h3>
-                <div class="dropdown w-auto">
-                  <button class="btn btn-success btn-sm ms-auto ml-2 dropdown-toggle" style="white-space: normal !important;" id="brand-dropdown"
-                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <i class="fa-solid fa-object-group mr-1"></i> Hãng xe
-                  </button>
-                  <div class="dropdown-menu" aria-labelledby="brand-dropdown">
-                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="newBrand_btn">
-                      <i class="fa-solid fa-plus mr-1"></i> Thêm hãng
-                    </button>
-                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="editBrand_btn">
-                      <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
-                    </button>
-                  </div>
-                </div>
-                
-                <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
-                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
+                <button class="btn btn-success btn-sm ms-auto ml-2" id="new-user-btn">
+                  <i class="fa-solid fa-user-plus mr-1"></i> Hồ sơ mới
                 </button>
+                <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
+                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
+                </button> -->
                 <div class="ml-auto card-tools">
                   <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
                     title="Collapse">
@@ -133,7 +121,7 @@
                   <thead>
                     <tr>
                       <th scope="col" style="text-align: center" width="7%">#</th>
-                      <th scope="col" style="text-align: center" width="30%">Họ tên</th>
+                      <th scope="col" style="text-align: center" width="25%">Họ tên</th>
                       <th scope="col" style="text-align: center" width="9%">Giới tính</th>
                       <th scope="col" style="text-align: center">Địa chỉ</th>
                       <th scope="col" style="text-align: center" width="12%">Vai trò</th>
@@ -187,6 +175,8 @@
     ></script>
   <!-- Bootstrap 4 -->
   <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom Input -->
+   <script src="/plugins/bs-custom-file-input/bs-custom-file-input.js"></script>
   <!-- DataTables  & Plugins -->
   <script src="/plugins/datatables/jquery.dataTables.min.js"></script>
   <script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>

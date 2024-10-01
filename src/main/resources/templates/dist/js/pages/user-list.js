@@ -28,17 +28,6 @@ $("#tableCollapseBtn").click(function (e) {
     }
 });
 
-function set_char_count(inputId, counterId) {
-    const length = $(inputId).attr("maxlength");
-    var currentLength = $(inputId).val().length;
-    $(counterId).text(currentLength + '/' + length);
-
-    $(inputId).on('input', function() {
-      currentLength = $(inputId).val().length;
-      $(counterId).text(currentLength + '/' + length);
-    });
-}
-
 $(document).ready(function () {
     dataTable = $("#data-table").DataTable({
         responsive: true,
@@ -403,8 +392,8 @@ $("#data-table").on("click", "#editBtn", function () {
             $("#modal_name_input").val(res.data.name);
             $("#modal_phone_input").val(res.data.phone);
             
-            set_char_count("#modal_name_input", "#modal_name_counter");
-            set_char_count("#modal_phone_input", "#modal_phone_counter");
+            utils.set_char_count("#modal_name_input", "#modal_name_counter");
+            utils.set_char_count("#modal_phone_input", "#modal_phone_counter");
 
             $("#gender-select").val(res.data.gender).trigger('change');
 
@@ -441,13 +430,14 @@ $("#data-table").on("click", "#editBtn", function () {
                         roleIds: roles
                     }),
                     success: function (response) {
-                        if(response.code == 1000)
-                        Toast.fire({
-                            icon: "success", 
-                            title: "Cập nhật thông tin thành công"
-                        });
-                        $("#modal_id").modal("hide");
-                        dataTable.ajax.reload();
+                        if(response.code == 1000){
+                            Toast.fire({
+                                icon: "success", 
+                                title: "Cập nhật thông tin thành công"
+                            });
+                            $("#modal_id").modal("hide");
+                            dataTable.ajax.reload();
+                        }
                     },
                     error: function(xhr, status, error) {
                         Toast.fire({
@@ -615,6 +605,201 @@ $("#data-table").on("click", "#activateBtn", function () {
                 }
             });
         }
+    });
+});
+
+$("#new-user-btn").click(function () { 
+    
+    clear_modal();
+    $("#modal_title").text("Thêm hồ sơ người dùng");
+    $("#modal_body").append(`
+        <div class="form-group">
+            <div class="container mt-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="mb-0" for="modal_name_input">Họ tên</label>
+                    <kbd id="modal_name_counter" class="mb-0 small">0/255</kbd>
+                </div>
+            </div>
+            <input type="text" class="form-control" id="modal_name_input" maxlength="255" placeholder="Nhập tên người dùng">
+        </div>
+
+        <div class="form-group">
+            <div class="container mt-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="mb-0" for="modal_phone_input">Số điện thoại</label>
+                    <kbd id="modal_phone_counter" class="mb-0 small">0/50</kbd>
+                </div>
+            </div>
+            <input type="text" class="form-control" id="modal_phone_input" maxlength="50" placeholder="Nhập số điện thoại"
+                data-toggle="tooltip"
+                data-placement="top"
+                title='Độ dài 6-15 ký tự, bắt đầu bằng "0" hoặc mã vùng'>
+        </div>
+
+        <div class="form-group">
+            <label>Giới tính</label>
+            <div class="form-group">
+                <select id="gender-select" class="form-control select2bs4" style="width: 100%;">
+                <option disabled selected> Chọn giới tính </option>
+                <option value="-1"> Khác </option>
+                <option value="1"> Nam </option>
+                <option value="0"> Nữ </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Địa chỉ</label>
+            <select id="address-select" class="form-control select2bs4" style="width: 100%;">
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Vai trò</label>
+            <select id="roles-select" multiple="multiple" class="form-control select2" style="width: 100%;">
+            </select>
+        </div>
+
+        <div class="form-group">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="is-active-switch">
+                <label class="custom-control-label" for="is-active-switch">Kích hoạt</label>
+            </div>
+        </div>
+    `);
+    $('[data-toggle="tooltip"]').tooltip();
+    $.ajax({
+        type: "GET",
+        url: "/api/roles",
+        dataType: "json",
+        headers: utils.defaultHeaders(),
+        success: function (response) {
+            $("#roles-select").empty();
+            $("#roles-select").append(`<option disabled> Mặc định là "Khách hàng" </option>`);
+            $.each(response.data, function (idx, val) {
+                $("#roles-select").append(`<option value="${val.id}">[${val.roleKey}] ${val.roleName}</option>`);
+            });
+        }
+    });
+
+    $("#modal_footer").append(
+        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+        );
+    $("#gender-select").select2({
+        placeholder: "Chọn giới tính",
+        allowClear: true,
+        // dropdownParent: $('#modal_body'),
+        theme: "bootstrap",
+        // tokenSeparators: [",", " "],
+        closeOnSelect: true,
+    });
+
+    $('#address-select').empty();
+    $("#address-select").select2({
+        placeholder: "Chọn địa chỉ",
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+        minimumInputLength: 2,
+        ajax: {
+            transport: function (params, success, failure) {
+                let results = [];
+
+                // Lọc các address từ addressOptions dựa vào từ khóa người dùng nhập vào
+                var filtered = addressOptions.filter(function (option) {
+                    return option.address.toLowerCase().indexOf(params.data.term.toLowerCase()) > -1;
+                });
+
+                // Map data vào Select2 format
+                results = filtered.map(function (option) {
+                    return {
+                        id: option.id,
+                        text: option.address
+                    };
+                });
+
+                // Trả về kết quả
+                success({
+                    results: results
+                });
+            },
+            delay: 250, // Đặt delay để giảm thiểu số lần gọi tìm kiếm
+        }
+    });
+
+    $('#roles-select').select2({
+        placeholder: `Vai trò mặc định là "Khách hàng"`,  
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: false,
+    })
+
+    utils.set_char_count("#modal_name_input", "#modal_name_counter");
+    utils.set_char_count("#modal_phone_input", "#modal_phone_counter");
+
+    $("#modal_id").modal("show");
+
+    $("#modal_submit_btn").click(function (){
+        let name = $("#modal_name_input").val().trim();
+        let phone = $("#modal_phone_input").val().trim();
+        let gender = $("#gender-select").val();
+        let address = $("#address-select").val();
+        let roles = $("#roles-select").val();
+        let status = $('#is-active-switch').is(':checked') ? 1 : 0;
+        
+        console.log(status);
+        
+
+        if (name == null || name === ""){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng điền họ tên"
+            });
+            return;
+        }
+
+        if(!utils.validatePhoneNumber(phone)){
+            Toast.fire({
+                icon: "warning",
+                title: "Số điện thoại chưa hợp lệ"
+            });
+            return;
+        }
+
+        if(phone == ""){
+            phone = null;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/api/users",
+            headers: utils.defaultHeaders(),
+            data: JSON.stringify({
+                name: name,
+                phone: phone, 
+                gender: gender,
+                addressId: address,
+                roleIds: roles,
+                status: status
+            }),
+            success: function (response) {
+                if(response.code == 1000){
+                    Toast.fire({
+                        icon: "success", 
+                        title: "Thêm mới hồ sơ thành công"
+                    });
+                    $("#modal_id").modal("hide");
+                    dataTable.ajax.reload();
+                }
+            },
+            error: function(xhr, status, error) {
+                Toast.fire({
+                    icon: "error",
+                    title: utils.getXHRInfo(xhr).message
+                });
+                dataTable.ajax.reload();
+            }
+        });
     });
 });
 
