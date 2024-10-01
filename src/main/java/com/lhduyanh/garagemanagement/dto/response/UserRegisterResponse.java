@@ -1,6 +1,5 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
-import com.lhduyanh.garagemanagement.entity.Address;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,5 +20,5 @@ public class UserRegisterResponse {
     int gender;
     AddressResponse address;
     int status;
-    List<RoleBodyResponse> roles;
+    List<RoleSimpleResponse> roles;
 }

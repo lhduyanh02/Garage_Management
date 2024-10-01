@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class RoleBodyResponse {
+public class RoleSimpleResponse {
     String id;
     String roleName;
     String roleKey;

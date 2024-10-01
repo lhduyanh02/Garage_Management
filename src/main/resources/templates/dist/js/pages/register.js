@@ -1,5 +1,7 @@
 import * as utils from "/dist/js/utils.js";
 
+// Mảng để lưu các option mới
+var addressOptions = [];
 var OTP_sent = 1;
 let timer;
 let countdown = 60;
@@ -40,24 +42,20 @@ $(document).ready(function () {
             "Content-Type": "application/json",
             "Authorization": "",
         },
-        success: function (res) {
-            if(res.code==1000){
-                $.each(res.data, function (idx, val) {
-                     $('#address-select').append(`
-                        <option value=" ${val.id} "> ${val.address} </option>
-                    `);
-                });
-            }
-            else {
-                Toast.fire({
-                    icon: "warning",
-                    title: res.message
+        success: function (response) {
+            if(response.code==1000){
+                // Load address lên mảng
+                addressOptions = [];
+                $.each(response.data, function (idx, val) {
+                    addressOptions.push({
+                        id: val.id,
+                        address: val.address
+                    });
                 });
             }
         },
         error: function(xhr, status, error){
-            var statusCode = xhr.status;
-            var message = 'Lỗi không xác định, không có mã lỗi';
+            var message = 'Mã lỗi không xác định, không thể tải địa chỉ';
             try {
                 var response = JSON.parse(xhr.responseText);
                 if (response.code) {
@@ -66,12 +64,43 @@ $(document).ready(function () {
             } catch (e) {
                 // Lỗi khi parse JSON
                 console.log("JSON parse error");
-                message = 'Lỗi không xác định, không có mã lỗi';
             }
             Toast.fire({
                 icon: "error",
                 title: message
             });
+        }
+    });
+
+    $("#address-select").select2({
+        placeholder: "Chọn địa chỉ",
+        allowClear: true,
+        // dropdownParent: $('#modal_body'),
+        theme: "bootstrap",
+        // tokenSeparators: [",", " "],
+        closeOnSelect: true,
+        minimumInputLength: 2, // Chỉ tìm kiếm khi có ít nhất 2 ký tự
+        ajax: {
+            transport: function (params, success, failure) {
+                let results = [];
+
+                // Lọc các address từ addressOptions dựa vào từ khóa người dùng nhập vào
+                var filtered = addressOptions.filter(function (option) {
+                    return option.address.toLowerCase().indexOf(params.data.term.toLowerCase()) > -1;
+                });
+
+                results = filtered.map(function (option) {
+                    return {
+                        id: option.id,
+                        text: option.address
+                    };
+                });
+
+                success({
+                    results: results
+                });
+            },
+            delay: 250,
         }
     });
 });
@@ -147,15 +176,15 @@ var register = function () {
         return;
     }
 
-    console.table({
-        'fullname': fullName,
-        'phone': phoneNumber,
-        'gender': gender,
-        'address': address,
-        'email': email,
-        'password': passwd,
-        'retype': passwdRetype
-    });
+    // console.table({
+    //     'fullname': fullName,
+    //     'phone': phoneNumber,
+    //     'gender': gender,
+    //     'address': address,
+    //     'email': email,
+    //     'password': passwd,
+    //     'retype': passwdRetype
+    // });
 
     if(gender == null) {
         gender = -1;

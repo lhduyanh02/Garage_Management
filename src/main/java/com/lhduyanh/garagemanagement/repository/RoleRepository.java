@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.repository;
 
 import com.lhduyanh.garagemanagement.entity.Role;
+import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,13 @@ import java.util.Optional;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, String> {
+
+    @Override
+    @NonNull
+    @Query("SELECT r FROM Role r JOIN FETCH r.permissions")
+    List<Role> findAll();
+
+    List<Role> findAllByStatus(int status);
 
     @Query("SELECT r FROM Role r WHERE r.roleKey = :roleKey")
     Optional<Role> findByRoleKey(@Param("roleKey") String roleKey);

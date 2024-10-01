@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Danh sách người dùng | Spring Detailing</title>
+  <title>Danh sách tài khoản | Spring Detailing</title>
 
   <!-- jQuery -->
   <script src="/plugins/jquery/jquery.min.js"></script>
@@ -80,12 +80,12 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Danh sách hồ sơ</h1>
+              <h1>Danh sách tài khoản</h1>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#">Quản lý người dùng</a></li>
-                <li class="breadcrumb-item active">Danh sách hồ sơ</li>
+                <li class="breadcrumb-item active">Danh sách tài khoản</li>
               </ol>
             </div>
           </div>
@@ -101,25 +101,18 @@
 
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">Bảng danh sách hồ sơ</h3>
-                <div class="dropdown w-auto">
-                  <button class="btn btn-success btn-sm ms-auto ml-2 dropdown-toggle" style="white-space: normal !important;" id="brand-dropdown"
-                  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <i class="fa-solid fa-object-group mr-1"></i> Hãng xe
-                  </button>
-                  <div class="dropdown-menu" aria-labelledby="brand-dropdown">
-                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="newBrand_btn">
-                      <i class="fa-solid fa-plus mr-1"></i> Thêm hãng
-                    </button>
-                    <button class="btn btn-warning btn-sm ms-auto font-weight-bold dropdown-item" id="editBrand_btn">
-                      <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
-                    </button>
-                  </div>
-                </div>
+                <h3 class="card-title">Bảng danh sách tài khoản</h3>
                 
-                <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
-                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
+                <button class="btn btn-success btn-sm ms-auto ml-2" id="newAccount_btn">
+                  <i class="fa-solid fa-plus mr-1"></i> Thêm tài khoản
                 </button>
+                <button class="btn btn-info btn-sm ms-auto ml-2" id="editBrand_btn">
+                  <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
+                </button>
+                
+                <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
+                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
+                </button> -->
                 <div class="ml-auto card-tools">
                   <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
                     title="Collapse">
@@ -132,10 +125,9 @@
                 <table id="data-table" class="table table-bordered table-striped">
                   <thead>
                     <tr>
-                      <th scope="col" style="text-align: center" width="7%">#</th>
-                      <th scope="col" style="text-align: center" width="30%">Họ tên</th>
-                      <th scope="col" style="text-align: center" width="9%">Giới tính</th>
-                      <th scope="col" style="text-align: center">Địa chỉ</th>
+                      <th scope="col" style="text-align: center" width="4%">#</th>
+                      <th scope="col" style="text-align: center" min-width="25%">Hồ sơ</th>
+                      <th scope="col" style="text-align: center" width="20%">Email</th>
                       <th scope="col" style="text-align: center" width="12%">Vai trò</th>
                       <th scope="col" style="text-align: center" width="10%">Trạng thái</th>
                       <th scope="col" style="text-align: center" width="14%">Thao tác</th>
@@ -216,7 +208,7 @@
 
   <!-- AdminLTE for demo purposes -->
   <script src="/dist/js/demo.js"></script>
-  <script type="module" src="dist/js/pages/user-list.js"></script>
+  <script type="module" src="dist/js/pages/account-list.js"></script>
 </body>
 
 </html>

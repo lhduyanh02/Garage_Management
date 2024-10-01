@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.controller;
 import com.lhduyanh.garagemanagement.dto.request.RoleCreationRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.RoleResponse;
+import com.lhduyanh.garagemanagement.dto.response.RoleSimpleResponse;
 import com.lhduyanh.garagemanagement.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,11 +23,19 @@ public class RoleController {
 
     RoleService roleService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ApiResponse<List<RoleResponse>> getAllRoles() {
         return ApiResponse.<List<RoleResponse>>builder()
                 .code(1000)
                 .data(roleService.getAllRole())
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<RoleSimpleResponse>> getAllEnableRoles() {
+        return ApiResponse.<List<RoleSimpleResponse>>builder()
+                .code(1000)
+                .data(roleService.getAllEnableRole())
                 .build();
     }
 

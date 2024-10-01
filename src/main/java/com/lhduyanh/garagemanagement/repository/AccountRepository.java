@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.repository;
 
 import com.lhduyanh.garagemanagement.entity.Account;
+import jakarta.annotation.Nonnull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,11 +14,17 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
 
+    @Query("SELECT a FROM Account a JOIN FETCH a.user u LEFT JOIN FETCH u.address WHERE a.id = :id")
+    Optional<Account> findByIdFetchAddress(@Param("id") String id);
+
     @Query("SELECT COUNT(a) > 0 FROM Account a WHERE a.email = :email")
     boolean existsByEmail(@Param("email") String email);
 
-    @EntityGraph(attributePaths = {"user.address"})
+    @Query("SELECT a FROM Account a JOIN FETCH a.user u LEFT JOIN FETCH u.address")
     List<Account> findAll();
+
+    @Query("SELECT a FROM Account a JOIN FETCH a.user u LEFT JOIN FETCH u.address WHERE a.status = :status")
+    List<Account> findAllByStatus(@Param("status") int status);
 
     Optional<Account> findByEmail(String email);
 

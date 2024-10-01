@@ -1,8 +1,6 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lhduyanh.garagemanagement.entity.Address;
-import com.lhduyanh.garagemanagement.entity.Role;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -21,5 +19,5 @@ public class UserResponse {
     int gender;
     int status;
     Address address;
-    Set<RoleBodyResponse> roles;
+    Set<RoleSimpleResponse> roles;
 }

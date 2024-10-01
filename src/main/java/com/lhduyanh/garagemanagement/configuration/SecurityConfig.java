@@ -46,7 +46,8 @@ public class SecurityConfig {
             "/plate-types/**",
             "/services/**",
             "/options/**",
-            "/cars/**"
+            "/cars/**",
+            "/accounts/**"
     };
 
     @Autowired

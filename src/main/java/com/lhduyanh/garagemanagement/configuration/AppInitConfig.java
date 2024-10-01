@@ -29,9 +29,12 @@ public class AppInitConfig {
     PasswordEncoder passwordEncoder;
 
     @NonFinal
-    static final String ADMIN_EMAIL = "admin"; // @lhduyanh.com
+    @Value("${app.admin-email}")
+    String ADMIN_EMAIL; // @lhduyanh.com
+
     @NonFinal
-    static final String ADMIN_PASSWORD = "admin";
+    @Value("${app.admin-password}")
+    String ADMIN_PASSWORD;
 
     @Bean
     ApplicationRunner applicationRunner(UserRepository userRepository, AccountRepository accountRepository, RoleRepository roleRepository) {

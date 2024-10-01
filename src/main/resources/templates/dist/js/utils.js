@@ -1,158 +1,208 @@
-import ErrorCode from '/dist/js/ErrorCode.js';
+import ErrorCode from "/dist/js/ErrorCode.js";
 
 export function redirect_page(url) {
-  // Lấy token từ sessionStorage
-  const token = sessionStorage.getItem("token");
+    // Lấy token từ localStorage
+    const token = localStorage.getItem("token");
 
-  if (!token) {
-    alert("token not founded");
-    window.location.href("/login");
-    return;
-  }
+    if (!token) {
+        alert("token not founded");
+        window.location.href("/login");
+        return;
+    }
 
-  // Gọi API để lấy trang HTML với Bearer Token
-  fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "text/html",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to fetch the page");
-      }
-      return response.text(); // Nhận HTML dưới dạng text
+    // Gọi API để lấy trang HTML với Bearer Token
+    fetch(url, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "text/html",
+        },
     })
-    .then((html) => {
-      const contentDiv = document.getElementById("content"); // Thay thế nội dung bằng HTML mới
-      contentDiv.innerHTML = html;
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch the page");
+            }
+            return response.text(); // Nhận HTML dưới dạng text
+        })
+        .then((html) => {
+            const contentDiv = document.getElementById("content"); // Thay thế nội dung bằng HTML mới
+            contentDiv.innerHTML = html;
 
-      // Re-execute any scripts included in the fetched HTML
-      const scripts = contentDiv.querySelectorAll("script");
-      scripts.forEach((script) => {
-        const newScript = document.createElement("script");
-        newScript.src = script.src;
-        document.body.appendChild(newScript);
-      });
-    })
-    .catch((error) => {
-      console.error("Error fetching the HTML page:", error);
-    });
+            // Re-execute any scripts included in the fetched HTML
+            const scripts = contentDiv.querySelectorAll("script");
+            scripts.forEach((script) => {
+                const newScript = document.createElement("script");
+                newScript.src = script.src;
+                document.body.appendChild(newScript);
+            });
+        })
+        .catch((error) => {
+            console.error("Error fetching the HTML page:", error);
+        });
 }
 
 export const getCookie = (name) => {
-  const cookieString = document.cookie;
-  const cookies = cookieString.split("; ");
+    const cookieString = document.cookie;
+    const cookies = cookieString.split("; ");
 
-  for (let cookie of cookies) {
-    if (cookie.startsWith(name + "=")) {
-      return cookie.split("=")[1];
+    for (let cookie of cookies) {
+        if (cookie.startsWith(name + "=")) {
+            return cookie.split("=")[1];
+        }
     }
-  }
-  return null; // Return null if the cookie is not found
+    return null; // Return null if the cookie is not found
 };
 
 export function check_token() {
-  var token = getCookie("authToken");
+    var token = getCookie("authToken");
 }
 
 export const deleteCookie = (name) => {
-  document.cookie = name + "=; Max-Age=-99999999; path=/";
+    document.cookie = name + "=; Max-Age=-99999999; path=/";
 };
 
-export function introspect() {
-  // Hàm kiểm tra token có hợp lệ hay không, nếu không thì trả về trang index
-  let token = getCookie('authToken');
-  
-  if (token) {
-    $.ajax({
-      type: "POST",
-      url: "/api/auth/introspect",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({ token: token }),
-      success: function (res) {
-        if (res.code == 1000) {
-          if (res.data.valid == false) {
-            deleteCookie("authToken");
-            window.location.href = "/";
-          }
+export function introspect(bool) {
+    // Hàm kiểm tra token có hợp lệ hay không, nếu không thì trả về trang index
+    let token = getCookie("authToken");
+    let path = "";
+    if(bool) {
+      path = window.location.href.split("/").slice(-1)[0];
+    }
+
+    if (token) {
+        $.ajax({
+            type: "POST",
+            url: "/api/auth/introspect",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            data: JSON.stringify({ token: token }),
+            success: function (res) {
+                if (res.code == 1000) {
+                    if (res.data.valid == false) {
+                        deleteCookie("authToken");
+                        if(bool) {
+                          window.location.href = "/login#" + path;
+                        }
+                        else {
+                          window.location.href = "/login";
+                        }
+                    }
+                }
+            },
+            error: function (res) {
+                deleteCookie("authToken");
+                if(bool) {
+                    window.location.href = "/login#" + path;
+                }
+                  else {
+                    window.location.href = "/login";
+                }
+            },
+        });
+    } else {
+        if(bool) {
+          window.location.href = "/login#" + path;
         }
-      },
-      error: function (res) {
-        deleteCookie("authToken");
-        
-      },
-    });
-  }
-  else {
-    window.location.href = "/";
-  }
+        else {
+          window.location.href = "/login";
+        }
+    }
 }
 
 export function checkLoginStatus() {
-  return new Promise((resolve, reject) => {
-    let token = getCookie('authToken');
-    
-    if (token) {
-      $.ajax({
-        type: "POST",
-        url: "/api/auth/introspect",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: JSON.stringify({ token: token }),
-        success: function (res) {          
-          if (res.code == 1000 && res.data.valid) {
-            resolve(true);
-          } else {
-            deleteCookie("authToken");
+    return new Promise((resolve, reject) => {
+        let token = getCookie("authToken");
+
+        if (token) {
+            $.ajax({
+                type: "POST",
+                url: "/api/auth/introspect",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify({ token: token }),
+                success: function (res) {
+                    if (res.code == 1000 && res.data.valid) {
+                        resolve(true);
+                    } else {
+                        deleteCookie("authToken");
+                        resolve(false);
+                    }
+                },
+                error: function () {
+                    console.log("Login status: " + loginStatus);
+                    deleteCookie("authToken");
+                    resolve(false);
+                },
+            });
+        } else {
             resolve(false);
-          }
-        },
-        error: function () {
-          console.log('Login status: '+loginStatus);
-          deleteCookie("authToken");
-          resolve(false);
-        },
-      });
-    } else {
-      resolve(false);
-    }
-  });
+        }
+    });
 }
 
 export function loadScript(url) {
-  // Kiểm tra xem script đã tồn tại chưa
-  if (!document.querySelector(`script[src="${url}"]`)) {
-    let script = document.createElement('script');
-    script.src = url;
-    script.onload = function() {
-    };
-    document.head.appendChild(script);
-  }
-}
-
-export function setAjax() {
-  const authToken = getCookie("authToken");
-  // console.log(authToken);
-  if (authToken != null) {
-    $.ajaxSetup({
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`,
-      },
-    });
-  }
+    // Kiểm tra xem script đã tồn tại chưa
+    if (!document.querySelector(`script[src="${url}"]`)) {
+        let script = document.createElement("script");
+        script.src = url;
+        script.onload = function () {};
+        document.head.appendChild(script);
+    }
 }
 
 export function getErrorMessage(code) {
-  for (let key in ErrorCode) {
-      if (ErrorCode[key].code === code) {
-          return ErrorCode[key].message;
-      }
-  }
-  return "Mã lỗi không xác định";
+    for (let key in ErrorCode) {
+        if (ErrorCode[key].code === code) {
+            return ErrorCode[key].message;
+        }
+    }
+    return "Mã lỗi không xác định";
+}
+
+export function getXHRInfo(xhr) {
+    try {
+      let response = JSON.parse(xhr.responseText);
+      let statusCode = response.code;
+      let message = getErrorMessage(statusCode);
+      return {
+        statusCode: statusCode,
+        message: message
+      };
+    } catch (error) {
+        return {
+            statusCode: 9999,
+            message: "Lỗi không xác định"
+        };
+    }
+
+    return null;
+}
+
+export function validatePhoneNumber(phoneNumber) {
+    if(phoneNumber==null || phoneNumber==""){
+        return true;
+    }
+    // Biểu thức chính quy để kiểm tra số điện thoại
+    var regex = /^\+?[0-9\s.-]+$/;
+    return regex.test(phoneNumber);
+}
+
+export function defaultHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getCookie("authToken")
+    };
+}
+
+export function set_char_count(inputId, counterId) {
+    const length = $(inputId).attr("maxlength");
+    var currentLength = $(inputId).val().length;
+    $(counterId).text(currentLength + '/' + length);
+
+    $(inputId).on('input', function() {
+      currentLength = $(inputId).val().length;
+      $(counterId).text(currentLength + '/' + length);
+    });
 }

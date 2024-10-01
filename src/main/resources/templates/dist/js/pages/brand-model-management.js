@@ -1,7 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
 utils.introspect();
-utils.setAjax();
 
 var Toast = Swal.mixin({
   toast: true,
@@ -47,6 +46,7 @@ $(document).ready(function () {
       type: "GET",
       url: "/api/brands/fetch-model",
       dataType: "json",
+      headers: utils.defaultHeaders(),
       dataSrc: function (res) {
         if (res.code == 1000) {
           var data = [];
@@ -281,9 +281,9 @@ $("#newBrand_btn").on("click", function () {
      else {
       $.ajax({
         type: "POST",
-        url:
-          "/api/brands",
+        url: "/api/brands",
         contentType: "application/json",
+        headers: utils.defaultHeaders(),
         data: JSON.stringify({
           brand: ten
         }),
@@ -345,12 +345,12 @@ $("#newModel_btn").on("click", function () {
     </div>
 
     <div class="form-group">
-       <div class="container mt-3 mb-0">
+      <div class="container mt-3 mb-0">
         <div class="d-flex justify-content-between align-items-center mb-2">
             <label class="mb-0" for="modal_model_name_input">Tên mẫu xe</label>
             <kbd id="char_count" class="mb-0 small">0/100</kbd>
         </div>
-    </div>
+      </div>
       <input type="text" class="form-control" id="modal_model_name_input" maxlength="100" placeholder="Nhập tên mẫu xe">
       <p class="font-weight-light pt-3">Lưu ý: Tên mẫu xe tối đa 100 ký tự và không trùng với mẫu đã có.</p>
     </div>
@@ -443,8 +443,8 @@ $("#newModel_btn").on("click", function () {
      else {
       $.ajax({
         type: "POST",
-        url:
-          "/api/models",
+        url: "/api/models",
+        headers: utils.defaultHeaders(),
         contentType: "application/json",
         data: JSON.stringify({
           model: model,
@@ -609,9 +609,9 @@ $('#editBrand_btn').click(function () {
      else {
       $.ajax({
         type: "PUT",
-        url:
-          "/api/brands?id=" + id,
+        url: "/api/brands?id=" + id,
         contentType: "application/json",
+        headers: utils.defaultHeaders(),
         data: JSON.stringify({
           brand: brand
         }),

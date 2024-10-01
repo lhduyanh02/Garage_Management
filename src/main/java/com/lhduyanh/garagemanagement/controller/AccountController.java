@@ -18,24 +18,36 @@ import java.util.List;
 public class AccountController {   // for design account controller api
     @Autowired
     private AccountService accountService;
-    @Autowired
-    private OtpService otpService;
-    @Autowired
-    private EmailSenderService emailSenderService;
+
+    @GetMapping("/{id}")
+    public ApiResponse<AccountResponse> getAccountById(@PathVariable String id) {
+        return ApiResponse.<AccountResponse>builder()
+                .code(1000)
+                .data(accountService.getAccountById(id))
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<AccountResponse>> getAllEnableAccounts() {
+        return ApiResponse.<List<AccountResponse>>builder()
+                .code(1000)
+                .data(accountService.getAllEnableAccounts())
+                .build();
+    }
+
+    @GetMapping("/all")
+    public ApiResponse<List<AccountResponse>> getAllAccounts() {
+        return ApiResponse.<List<AccountResponse>>builder()
+                .code(1000)
+                .data(accountService.getAllAccounts())
+                .build();
+    }
 
     @PostMapping("/create-user-account")
     public ApiResponse<UserAccountResponse> createUserAccount(@RequestBody @Valid UserAccountCreationReq req) {
         return ApiResponse.<UserAccountResponse>builder()
                 .code(1000)
                 .data(accountService.createUserAccount(req))
-                .build();
-    }
-
-    @GetMapping
-    public ApiResponse<List<AccountResponse>> getAllAccounts() {
-        return ApiResponse.<List<AccountResponse>>builder()
-                .code(1000)
-                .data(accountService.getAllAccounts())
                 .build();
     }
 
@@ -62,6 +74,22 @@ public class AccountController {   // for design account controller api
         accountService.regenerateOtpCode(request);
         return ApiResponse.<AccountVerifyResponse>builder()
                 .code(1000)
+                .build();
+    }
+
+    @PutMapping("/disable/{id}")
+    public ApiResponse<Boolean> disableAccount(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.disableAccount(id))
+                .build();
+    }
+
+    @PutMapping("/active/{id}")
+    public ApiResponse<Boolean> enableAccount(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.enableAccount(id))
                 .build();
     }
 

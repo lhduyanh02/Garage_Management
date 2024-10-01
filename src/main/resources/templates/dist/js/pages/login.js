@@ -1,4 +1,5 @@
-import * as utils from "/dist/js/utils.js"
+import * as utils from "/dist/js/utils.js";
+import * as refreshService from "/dist/js/services/refreshTokenService.js"
 
 var Toast = Swal.mixin({
   toast: true,
@@ -24,6 +25,7 @@ const getCookie = (name) => {
 function login() {
   let email = $("#email").val();
   let password = $("#password").val();
+  let path = window.location.href.split("#")[1] || null;
   $.ajax({
     url: "/api/auth/token",
     type: "POST",
@@ -34,8 +36,9 @@ function login() {
     data: JSON.stringify({ email: email, password: password }),
     success: function (res) {
       if (res.code === 1000 && res.data.authenticated) {
-        // Gửi yêu cầu với Bearer Token
-        window.location.href = '/';
+        const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
+        localStorage.setItem("tokenExpirationTime", expirationTime);
+        window.location.href = path || '/';
        
       } else {
         alert(res.code);

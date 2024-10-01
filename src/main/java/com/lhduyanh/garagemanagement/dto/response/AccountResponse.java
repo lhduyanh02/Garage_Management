@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AccountResponse {
     String id;
-    UserResponse user;
     String email;
     int status;
+    UserResponse user;
 }

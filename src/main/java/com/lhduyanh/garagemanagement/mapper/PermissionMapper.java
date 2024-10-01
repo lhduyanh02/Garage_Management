@@ -10,8 +10,9 @@ import org.mapstruct.Mapping;
 public interface PermissionMapper {
 
     @Mapping(target = "function", ignore = true)
-    public Permissions toPermissions(PermissionRequest request);
+    Permissions toPermissions(PermissionRequest request);
 
-    public PermissionResponse toPermissionResponse(Permissions permissions);
+    @Mapping(target = "function", source = "function")
+    PermissionResponse toPermissionResponse(Permissions permissions);
 
 }

@@ -17,7 +17,9 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +28,6 @@ import java.util.stream.Collectors;
 
 import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 import static java.util.Objects.isNull;
-import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Service
 @Data
@@ -54,6 +55,12 @@ public class UserService {
                 .collect(Collectors.toList());
     };
 
+    public UserResponse getUserById(String id){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
+    }
+
     public UserResponse getMyUserInfo(){
         var UUID = getUUIDFromJwt();
         User user = userRepository.findById(UUID)
@@ -79,14 +86,26 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    @Transactional
     public UserResponse updateUser(String userId, UserUpdateRequest request){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        if (request.getPhone() != null) {
+            // Xóa ký tự khoảng trắng , . -
+            request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+            if(request.getPhone().length()<6) {
+                throw new AppException(ErrorCode.INVALID_PHONE_NUMBER);
+            }
+        };
+
         userMapper.updateUser(user, request);
+
         if(!(request.getAddressId() <= 0)) {
             var address = addressRepository.findById(request.getAddressId());
-            address.ifPresent(user::setAddress);
+            address.ifPresent(addr -> {
+                user.setAddress(addr);
+            });
         } else {
             user.setAddress(null);
         }
@@ -114,5 +133,25 @@ public class UserService {
         account.ifPresent(accountRepository::delete);
 
         userRepository.deleteById(id);
+    }
+
+    public void disableUserById(String id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() != 1 && user.getStatus() != 0){
+            throw new AppException(ErrorCode.DISABLE_ACTIVE_USER_ONLY);
+        }
+
+        user.setStatus(-1);
+        userRepository.save(user);
+    }
+
+    public void activateUserById(String id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        user.setStatus(1);
+        userRepository.save(user);
     }
 }

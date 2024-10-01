@@ -69,10 +69,30 @@ public class AuthenticationController {
 
 //    @CrossOrigin(origins = "http://127.0.0.1:5500")
     @PostMapping("/refreshToken")
-    ApiResponse<AuthenticationResponse> authenticate(@RequestBody RefreshTokenRequest request)
+    ApiResponse<AuthenticationResponse> authenticate(@RequestBody RefreshTokenRequest request, HttpServletResponse response)
             throws ParseException, JOSEException {
 
         var result = authenticationService.refreshToken(request);
+
+        // Xóa cookie cũ (nếu có) trước khi thêm cookie mới
+        Cookie oldCookie = new Cookie("authToken", "");
+        oldCookie.setHttpOnly(false);
+        oldCookie.setSecure(false);
+        oldCookie.setPath("/");
+        oldCookie.setMaxAge(0); // Đặt thời gian sống của cookie thành 0 để xóa nó
+        response.addCookie(oldCookie);
+
+        // Tạo cookie với thuộc tính HttpOnly
+        Cookie cookie = new Cookie("authToken", result.getToken());
+        cookie.setHttpOnly(false); // Cookie không thể bị truy cập từ JavaScript
+        cookie.setSecure(false); // Cookie chỉ được gửi qua kết nối HTTPS
+        cookie.setPath("/"); // Cookie có hiệu lực cho tất cả các đường dẫn
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+
+        // Thêm cookie vào phản hồi
+        response.addCookie(cookie);
+        response.setHeader("Authorization", "Bearer " + result.getToken());
+
         return ApiResponse.<AuthenticationResponse>builder()
                 .code(1000)
                 .data(result)

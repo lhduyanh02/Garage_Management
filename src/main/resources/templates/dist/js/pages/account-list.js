@@ -17,8 +17,6 @@ function clear_modal() {
     $("#modal_footer").empty();
 }
 
-// Mảng để lưu các option mới
-var addressOptions = [];
 var dataTable;
 var dataTableCard = $("#data-table-card");
 
@@ -27,17 +25,6 @@ $("#tableCollapseBtn").click(function (e) {
         dataTable.ajax.reload();
     }
 });
-
-function set_char_count(inputId, counterId) {
-    const length = $(inputId).attr("maxlength");
-    var currentLength = $(inputId).val().length;
-    $(counterId).text(currentLength + '/' + length);
-
-    $(inputId).on('input', function() {
-      currentLength = $(inputId).val().length;
-      $(counterId).text(currentLength + '/' + length);
-    });
-}
 
 $(document).ready(function () {
     dataTable = $("#data-table").DataTable({
@@ -56,28 +43,25 @@ $(document).ready(function () {
             { extend: "colvis", text: "Column Visibility" },
         ],
         columnDefs: [
-            { orderable: false, targets: 6 }, // Vô hiệu hóa sort cho cột Thao tác (index 6)
+            { orderable: false, targets: 5 }, // Vô hiệu hóa sort cho cột Thao tác (index 6)
             { className: "text-center", targets: 0 },
         ],
         ajax: {
             type: "GET",
-            url: "/api/users",
+            url: "/api/accounts/all",
             dataType: "json",
             headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     var data = [];
                     var counter = 1;
-                    res.data.forEach(function (user) {
+                    res.data.forEach(function (account) {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
-                            id: user.id,
-                            name: user.name,
-                            phone: user.phone,
-                            gender: user.gender,
-                            status: user.status,
-                            address: user.address,
-                            roles: user.roles,
+                            id: account.id,
+                            email: account.email,
+                            status: account.status,
+                            user: account.user,
                         });
                     });
 
@@ -110,42 +94,32 @@ $(document).ready(function () {
         columns: [
             { data: "number" },
             {
-                data: null,
+                data: "user",
                 render: function (data, type, row) {
-                    if (row.phone != null) {
-                        return (
-                            row.name +
-                            "<br><small><i>" +
-                            row.phone +
-                            "</i></small>"
-                        );
+                    let html="";
+                    html += `${data.name} `;
+                    if(data.gender==1){
+                        html += ` <small><span class="badge badge-info"><i class="fa-solid fa-child-dress"></i>&nbsp; Nam</span></small><br>`
+                    } else if(data.gender==0){
+                        html += ` <small><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp; Nữ</span></small><br>`
                     } else {
-                        return row.name;
+                        html += "<br>"
                     }
-                },
-            },
-            {
-                data: "gender",
-                render: function (data, type, row) {
-                    if (data == 0) {
-                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp; Nữ</span></center>';
-                    } else if (data == 1) {
-                        return '<center><span class="badge badge-success"><i class="fa-solid fa-child-reaching"></i>&nbsp; Nam</span></center>';
-                    } else {
-                        return '<center><span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp; Khác</span></center>';
+
+                    if(data.phone){
+                        html += `<small><i>${data.phone}</i></small><br>`;
                     }
+
+                    if(data.address){
+                        html += `<small> ${data.address.address}</small><br>`; 
+                    }
+
+                    return html;
                 },
             },
+            { data: "email"},
             {
-                data: "address",
-                render: function (data, type, row) {
-                    if (data != null) {
-                        return data.address;
-                    } else return "";
-                },
-            },
-            {
-                data: "roles",
+                data: "user.roles",
                 render: function (data, type, row) {
                     if (data != null && Array.isArray(data)) {
                         let html = "";
@@ -169,7 +143,7 @@ $(document).ready(function () {
                     } else if (data == 0) {
                         return '<center><span class="badge badge-warning"><i class="fa-solid fa-clock"></i>&nbsp; Chưa xác thực</span></center>';
                     } else if (data == -1) {
-                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp; Bị cấm</span></center>';
+                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp; Bị khóa</span></center>';
                     }
                     return "";
                 },
@@ -217,43 +191,6 @@ $(document).ready(function () {
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
         },
     });
-
-    $.ajax({
-        type: "GET",
-        url: "/api/addresses",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "",
-        },
-        success: function (response) {
-            if(response.code==1000){
-                // Load address lên mảng
-                addressOptions = [];
-                $.each(response.data, function (idx, val) {
-                    addressOptions.push({
-                        id: val.id,
-                        address: val.address
-                    });
-                });
-            }
-        },
-        error: function(xhr, status, error){
-            var message = 'Mã lỗi không xác định, không thể tải địa chỉ';
-            try {
-                var response = JSON.parse(xhr.responseText);
-                if (response.code) {
-                    message = utils.getErrorMessage(response.code);
-                }
-            } catch (e) {
-                // Lỗi khi parse JSON
-                console.log("JSON parse error");
-            }
-            Toast.fire({
-                icon: "error",
-                title: message
-            });
-        }
-    });
 });
 
 $("#data-table").on("click", "#editBtn", function () {
@@ -265,162 +202,107 @@ $("#data-table").on("click", "#editBtn", function () {
 
     $.ajax({
         type: "GET",
-        url: "/api/users/" + id,
+        url: "/api/accounts/" + id,
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if(res.code != 1000) {
                 Toast.fire({
                     icon: "error",
-                    title: "Không thể lấy dữ liệu người dùng"
+                    title: "Không thể lấy dữ liệu tài khoản"
                 });
                 return;
             }
             clear_modal();
-            $("#modal_title").text("Sửa thông tin người dùng");
+            $("#modal_title").text("Sửa thông tin tài khoản");
             $("#modal_body").append(`
                 <div class="form-group">
                     <div class="container mt-3 mb-0">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_name_input">Họ tên</label>
-                            <kbd id="modal_name_counter" class="mb-0 small">0/255</kbd>
+                            <label class="mb-0" for="modal_email_input">Email</label>
+                            <kbd id="modal_email_counter" class="mb-0 small">0/256</kbd>
                         </div>
                     </div>
-                    <input type="text" class="form-control" id="modal_name_input" maxlength="255" placeholder="Nhập tên người dùng">
+                    <input type="text" class="form-control" id="modal_email_input" maxlength="255" placeholder="Nhập email">
                 </div>
 
                 <div class="form-group">
-                    <div class="container mt-3 mb-0">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_phone_input">Số điện thoại</label>
-                            <kbd id="modal_phone_counter" class="mb-0 small">0/50</kbd>
-                        </div>
-                    </div>
-                    <input type="text" class="form-control" id="modal_phone_input" maxlength="50" placeholder="Nhập số điện thoại"
-                        data-toggle="tooltip"
-                        data-placement="top"
-                        title='Độ dài 6-15 ký tự, bắt đầu bằng "0" hoặc mã vùng'>
-                </div>
-
-                <div class="form-group">
-                    <label>Giới tính</label>
+                    <label>Hồ sơ liên kết</label>
                     <div class="form-group">
-                        <select id="gender-select" class="form-control select2bs4" style="width: 100%;">
-                        <option value="-1"> Khác </option>
-                        <option value="1"> Nam </option>
-                        <option value="0"> Nữ </option>
+                        <select id="user-select" class="form-control select2bs4" style="width: 100%;">
+                        <option disabled> Chọn 1 hồ sơ liên kết </option>
                         </select>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label>Địa chỉ</label>
-                    <select id="address-select" class="form-control select2bs4" style="width: 100%;">
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Vai trò</label>
-                    <select id="roles-select" multiple="multiple" class="form-control select2" style="width: 100%;">
-                    </select>
-                </div>
             `);
-            $('[data-toggle="tooltip"]').tooltip();
-            $('#address-select').empty();            
-            if (res.data.address) {
-                $('#address-select').append('<option selected value="' + res.data.address.id + '">' + res.data.address.address + '</option>');
+
+            $('#user-select').empty();            
+            if (res.data.user) {
+                const phone = res.data.user.phone ? ` - ${res.data.user.phone}` : "";
+                $('#user-select').append('<option selected value="' + res.data.user.id + '">' + res.data.user.name
+                    + phone +'</option>');
             }
-            $.ajax({
-                type: "GET",
-                url: "/api/roles",
-                dataType: "json",
-                headers: utils.defaultHeaders(),
-                success: function (response) {
-                    $("#roles-select").empty();
-                    $("#roles-select").append(`<option disabled>Chọn các vai trò</option>`);
-                    $.each(response.data, function (idx, val) {
-                        if(res.data.roles.some(role => role.id === val.id)){
-                            $("#roles-select").append(`<option selected value="${val.id}">[${val.roleKey}] ${val.roleName}</option>`);
-                        }else {
-                            $("#roles-select").append(`<option value="${val.id}">[${val.roleKey}] ${val.roleName}</option>`);
-                        }
-                    });
-                }
-            });
+
+            (function () { // Sử dụng hàm IIFE (Immediately Invoked Function Expression) để tránh truy cập list từ console
+                $.ajax({
+                    url: "/api/users/is-active",
+                    type: "GET",
+                    dataType: "json",
+                    headers: utils.defaultHeaders(),
+                    success: function (response) {
+                        let userList = response.data;  // Lưu userList trong closure, không phải biến toàn cục
+            
+                        // Khởi tạo Select2 sau khi nhận được dữ liệu từ AJAX
+                        $("#user-select").select2({
+                            allowClear: false,
+                            theme: "bootstrap",
+                            closeOnSelect: true,
+                            minimumInputLength: 2,
+                            data: userList.map(function (option) {
+                                const phone = option.phone ? ` - ${option.phone}` : "";
+
+                                return {
+                                    id: option.id,
+                                    text: `${option.name}${phone}`
+                                };
+                            }),
+                            matcher: function (params, data) {
+                                if ($.trim(params.term) === '') {
+                                    return data;
+                                }
+            
+                                const searchTerm = params.term.toLowerCase();
+            
+                                if (data.text.toLowerCase().indexOf(searchTerm) > -1) {
+                                    return data;
+                                }
+            
+                                return null;
+                            }
+                        });
+                    }
+                });
+            })();
+
 
             $("#modal_footer").append(
                 '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
               );
-            $("#gender-select").select2({
-                placeholder: "Chọn giới tính",
-                allowClear: true,
-                // dropdownParent: $('#modal_body'),
-                theme: "bootstrap",
-                // tokenSeparators: [",", " "],
-                closeOnSelect: true,
-            });
 
-            $("#address-select").select2({
-                placeholder: "Chọn địa chỉ",
-                allowClear: true,
-                // dropdownParent: $('#modal_body'),
-                theme: "bootstrap",
-                // tokenSeparators: [",", " "],
-                closeOnSelect: true,
-                minimumInputLength: 2, // Chỉ tìm kiếm khi có ít nhất 2 ký tự
-                ajax: {
-                    transport: function (params, success, failure) {
-                        let results = [];
-
-                        // Lọc các address từ addressOptions dựa vào từ khóa người dùng nhập vào
-                        var filtered = addressOptions.filter(function (option) {
-                            return option.address.toLowerCase().indexOf(params.data.term.toLowerCase()) > -1;
-                        });
-
-                        // Map data vào Select2 format
-                        results = filtered.map(function (option) {
-                            return {
-                                id: option.id,
-                                text: option.address
-                            };
-                        });
-
-                        // Trả về kết quả
-                        success({
-                            results: results
-                        });
-                    },
-                    delay: 250, // Đặt delay để giảm thiểu số lần gọi tìm kiếm
-                }
-            });
-
-            $('#roles-select').select2({  
-                allowClear: false,
-                theme: "bootstrap",
-                closeOnSelect: false,
-            })
-
-            $("#modal_name_input").val(res.data.name);
-            $("#modal_phone_input").val(res.data.phone);
+            $("#modal_email_input").val(res.data.email);
             
-            set_char_count("#modal_name_input", "#modal_name_counter");
-            set_char_count("#modal_phone_input", "#modal_phone_counter");
-
-            $("#gender-select").val(res.data.gender).trigger('change');
+            utils.set_char_count("#modal_email_input", "#modal_email_counter");
 
             $("#modal_id").modal("show");
 
             $("#modal_submit_btn").click(function (){
-                let name = $("#modal_name_input").val().trim();
-                let phone = $("#modal_phone_input").val().trim();
-                let gender = $("#gender-select").val();
-                let address = $("#address-select").val();
-                let roles = $("#roles-select").val();
+                let email = $("#modal_email_input").val().trim();
+                let user = $("#user-select").val();
 
-                if(!utils.validatePhoneNumber(phone)){
+                if(user == null){
                     Toast.fire({
                         icon: "warning",
-                        title: "Số điện thoại chưa hợp lệ"
+                        title: "Vui lòng chọn hồ sơ"
                     });
                     return;
                 }
@@ -482,27 +364,26 @@ $("#data-table").on("click", "#deleteBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let name = rowData.name;
+    let email = rowData.email;
 
     Swal.fire({
-        title: `Xóa người dùng</br>${name}?`,
+        title: `Xóa tài khoản</br>${email}?`,
         showDenyButton: false,
         showCancelButton: true,
-        confirmButtonText: "Đồng ý",
+        confirmButtonText: "Xác nhận",
         cancelButtonText: "Huỷ",
     }).then((result) => {
         /* Read more about isConfirmed, isDenied below */
         if (result.isConfirmed) {
             $.ajax({
                 type: "DELETE",
-                url: "/api/users/" + id,
+                url: "/api/accounts/" + id,
                 dataType: "json",
-                headers: utils.defaultHeaders(),
                 success: function (res) {
                     if (res.code == 1000) {
                         Toast.fire({
                             icon: "success",
-                            title: `Đã xóa ${name}`,
+                            title: `Đã xóa ${email}`,
                         });
                     } else {
                         Toast.fire({
@@ -513,17 +394,9 @@ $("#data-table").on("click", "#deleteBtn", function () {
                     dataTable.ajax.reload();
                 },
                 error: function (xhr, status, error) {
-                    let message = "Mã lỗi không xắc định";
-
-                    try {
-                        let responseCode = JSON.parse(xhr.responseText).code;
-                        message = utils.getErrorMessage(responseCode);
-                    } catch (error) {
-                        console.log("JSON parse error");
-                    }
                     Toast.fire({
                         icon: "error",
-                        title: message,
+                        title: utils.getXHRInfo(xhr).message,
                     });
                     dataTable.ajax.reload();
                 },
@@ -532,32 +405,33 @@ $("#data-table").on("click", "#deleteBtn", function () {
     });
 });
 
-$("#data-table").on("click", "#disableBtn", function () {
+$("#data-table").on("click", "#disableBtn", function () {  
+
     let id = $(this).data("id");
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let name = rowData.name;
+    let email = rowData.email;
 
     Swal.fire({
-        title: `Cấm (ban) người dùng</br>${name}?`,
+        title: `Khóa tài khoản</br>${email}?`,
         showDenyButton: false,
         showCancelButton: true,
-        confirmButtonText: "Đồng ý",
+        confirmButtonText: "Xác nhận",
         cancelButtonText: "Huỷ",
     }).then((result) => {
         /* Read more about isConfirmed, isDenied below */
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/users/disable/" + id,
+                url: "/api/accounts/disable/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã ban người dùng</br>" + name
+                            title: "Đã khóa tài khoản</br>" + email
                         });
                         dataTable.ajax.reload();
                     }
@@ -580,10 +454,10 @@ $("#data-table").on("click", "#activateBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let name = rowData.name;
+    let email = rowData.email;
 
     Swal.fire({
-        title: `Kích hoạt người dùng</br>${name}?`,
+        title: `Kích hoạt tài khoản</br>${email}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Đồng ý",
@@ -593,14 +467,14 @@ $("#data-table").on("click", "#activateBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/users/activate/" + id,
+                url: "/api/accounts/active/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã kích hoạt người dùng</br>"+name
+                            title: "Đã kích hoạt tài khoản</br>" + email
                         });
                         dataTable.ajax.reload();
                     }
