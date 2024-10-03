@@ -37,6 +37,13 @@ public class CarService {
     }
 
     public List<CarResponse> getAllCar() {
+        return carRepository.findAll()
+                .stream()
+                .map(carMapper::toCarResponse)
+                .toList();
+    }
+
+    public List<CarResponse> getAllEnableCar() {
         return carRepository.findAllByStatus(1)
                 .stream()
                 .map(carMapper::toCarResponse)

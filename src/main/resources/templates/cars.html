@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Danh sách tài khoản | Spring Detailing</title>
+  <title>Danh sách xe | Spring Detailing</title>
 
   <!-- jQuery -->
   <script src="/plugins/jquery/jquery.min.js"></script>
@@ -80,12 +80,12 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Danh sách tài khoản</h1>
+              <h1>Danh sách xe</h1>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Quản lý người dùng</a></li>
-                <li class="breadcrumb-item active">Danh sách tài khoản</li>
+                <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
+                <li class="breadcrumb-item active">Danh sách xe</li>
               </ol>
             </div>
           </div>
@@ -101,14 +101,14 @@
 
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">Bảng danh sách tài khoản</h3>
+                <h3 class="card-title">Bảng danh sách thông tin xe</h3>
                 
-                <button class="btn btn-success btn-sm ms-auto ml-2" id="new-account-btn">
-                  <i class="fa-solid fa-plus mr-1"></i> Thêm tài khoản
+                <button class="btn btn-success btn-sm ms-auto ml-2" id="new-car-btn">
+                  <i class="fa-solid fa-plus mr-1"></i> Thêm xe
                 </button>
-                <button class="btn btn-info btn-sm ms-auto ml-2" id="editBrand_btn">
+                <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="editBrand_btn">
                   <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
-                </button>
+                </button> -->
                 
                 <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
                   <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
@@ -126,9 +126,9 @@
                   <thead>
                     <tr>
                       <th scope="col" style="text-align: center" width="4%">#</th>
-                      <th scope="col" style="text-align: center" min-width="25%">Hồ sơ</th>
-                      <th scope="col" style="text-align: center" width="20%">Email</th>
-                      <th scope="col" style="text-align: center" width="12%">Vai trò</th>
+                      <th scope="col" style="text-align: center" min-width="15%">Biển số xe</th>
+                      <th scope="col" style="text-align: center" width="15%">Mẫu xe</th>
+                      <th scope="col" style="text-align: center" min-width="15%">Mô tả</th>
                       <th scope="col" style="text-align: center" width="10%">Trạng thái</th>
                       <th scope="col" style="text-align: center" width="14%">Thao tác</th>
                     </tr>
@@ -208,7 +208,7 @@
 
   <!-- AdminLTE for demo purposes -->
   <script src="/dist/js/demo.js"></script>
-  <script type="module" src="dist/js/pages/account-list.js"></script>
+  <script type="module" src="dist/js/pages/cars.js"></script>
 </body>
 
 </html>

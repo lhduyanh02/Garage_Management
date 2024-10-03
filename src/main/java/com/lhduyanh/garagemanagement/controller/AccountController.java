@@ -1,13 +1,8 @@
 package com.lhduyanh.garagemanagement.controller;
 
-import com.lhduyanh.garagemanagement.dto.request.AccountUpdateRequest;
-import com.lhduyanh.garagemanagement.dto.request.AccountVerifyRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
-import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
+import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.service.AccountService;
-import com.lhduyanh.garagemanagement.service.EmailSenderService;
-import com.lhduyanh.garagemanagement.service.OtpService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +36,22 @@ public class AccountController {   // for design account controller api
         return ApiResponse.<List<AccountResponse>>builder()
                 .code(1000)
                 .data(accountService.getAllAccounts())
+                .build();
+    }
+
+    @PostMapping("/new-account")
+    public ApiResponse<AccountResponse> createAccount(@RequestBody @Valid AccountCreationRequest request) {
+        return ApiResponse.<AccountResponse>builder()
+                .code(1000)
+                .data(accountService.newAccount(request, false))
+                .build();
+    }
+
+    @PostMapping("/new-account/confirm")
+    public ApiResponse<AccountResponse> confirmCreateAccount(@RequestBody @Valid AccountCreationRequest request) {
+        return ApiResponse.<AccountResponse>builder()
+                .code(1000)
+                .data(accountService.newAccount(request, true))
                 .build();
     }
 
@@ -109,6 +120,14 @@ public class AccountController {   // for design account controller api
         return ApiResponse.<AccountResponse>builder()
                 .code(1000)
                 .data(accountService.updateAccount(id, request, true))
+                .build();
+    }
+
+    @DeleteMapping("/hard/{id}")
+    public ApiResponse<Boolean> hardDeleteAccount(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.hardDeleteAccount(id))
                 .build();
     }
 

@@ -40,11 +40,11 @@ $(document).ready(function(){
               }),
               success: function (res) {
                 if(res.code==1000){
+                  utils.deleteCookie('authToken');
                   Toast.fire({
                     icon: "success",
                     title: "Đã đăng xuất",
                     didClose: () => {
-                      utils.deleteCookie('authToken');
                       window.location.reload();
                     }
                   });

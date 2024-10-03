@@ -747,9 +747,6 @@ $("#new-user-btn").click(function () {
         let roles = $("#roles-select").val();
         let status = $('#is-active-switch').is(':checked') ? 1 : 0;
         
-        console.log(status);
-        
-
         if (name == null || name === ""){
             Toast.fire({
                 icon: "warning",

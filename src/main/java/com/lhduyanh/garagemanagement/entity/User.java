@@ -8,7 +8,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -42,6 +43,6 @@ public class User {
     )
     Set<Role> roles;
 
-    @OneToMany(mappedBy = "user")
-    Set<Account> accounts = new HashSet<>();
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    Set<Account> accounts;
 }

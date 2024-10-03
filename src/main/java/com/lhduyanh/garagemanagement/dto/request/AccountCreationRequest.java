@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Optional;
+
 
 @Data
 @AllArgsConstructor
@@ -21,14 +23,10 @@ public class AccountCreationRequest {
     @Email(message = "INVALID_EMAIL")
     String email;
 
-    @NotBlank
+    @NotBlank(message = "BLANK_USER")
     String userId;
 
-    @NotNull(message = "BLANK_PASSWORD")
-    @Size(min = 8, message = "INVALID_PASSWORD")
-    String password;
+    Optional<String> password;
 
-    @NotNull(message = "BLANK_STATUS")
-    @NotBlank(message = "BLANK_STATUS")
     int status;
 }

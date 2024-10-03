@@ -1,9 +1,6 @@
 package com.lhduyanh.garagemanagement.service;
 
-import com.lhduyanh.garagemanagement.dto.request.AccountUpdateRequest;
-import com.lhduyanh.garagemanagement.dto.request.AccountVerifyRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
+import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
 import com.lhduyanh.garagemanagement.dto.response.AccountVerifyResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
@@ -54,6 +51,10 @@ public class AccountService {
     @NonFinal
     @Value("${app.admin-email}")
     String ADMIN_EMAIL;
+
+    @NonFinal
+    @Value("${app.default-password}")
+    String DEFAULT_PASSWORD;
 
 
     public AccountResponse getAccountById(String id) {
@@ -120,6 +121,49 @@ public class AccountService {
         userMapper.toUserAccountResponse(userAccountResponse, user);
         accountMapper.toUserAccountResponse(userAccountResponse, account);
         return userAccountResponse;
+    }
+
+    @Transactional
+    public AccountResponse newAccount(AccountCreationRequest request, boolean confirm) {
+        Account account = new Account();
+        accountRepository.findByEmail(request.getEmail().trim())
+                .ifPresent(acc -> {
+                    throw new AppException(ErrorCode.ACCOUNT_EXISTED);
+                });
+        account.setEmail(request.getEmail().trim());
+
+        var password = DEFAULT_PASSWORD;
+
+        if (request.getPassword() != null) {
+            if (request.getPassword().get().length() < 8) {
+                throw new AppException(ErrorCode.INVALID_PASSWORD);
+            }
+            password = passwordEncoder.encode(request.getPassword().get());
+        } else {
+            password = passwordEncoder.encode(DEFAULT_PASSWORD);
+        }
+        account.setPassword(password);
+
+        var user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(user.getStatus() == 9999){
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
+
+        List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());
+        if (!accounts.isEmpty()) {
+            if(!confirm) {
+                throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
+            } else {
+                accounts.forEach(acc -> acc.setStatus(-1));
+                accountRepository.saveAll(accounts);
+            }
+        }
+        account.setUser(user);
+        account.setStatus(request.getStatus());
+
+        return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
     // User register with only role: CUSTOMER
@@ -274,11 +318,13 @@ public class AccountService {
 
             if(!request.getUserId().equals(account.getUser().getId())) {
                 List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());
-                if (!accounts.isEmpty() && !confirm) {
-                    throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
-                } else {
-                    accounts.forEach(acc -> acc.setStatus(-1));
-                    accountRepository.saveAll(accounts);
+                if (!accounts.isEmpty()) {
+                    if (!confirm){
+                        throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
+                    } else {
+                        accounts.forEach(acc -> acc.setStatus(-1));
+                        accountRepository.saveAll(accounts);
+                    }
                 }
             }
             account.setUser(user);
@@ -286,4 +332,15 @@ public class AccountService {
         return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
+    public boolean hardDeleteAccount(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getEmail().equals(ADMIN_EMAIL)){
+            throw new AppException(ErrorCode.CAN_NOT_DISABLE_ADMIN);
+        }
+
+        accountRepository.delete(account);
+        return true;
+    }
 }
