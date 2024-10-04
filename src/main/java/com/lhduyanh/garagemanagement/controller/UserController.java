@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
+import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
@@ -40,8 +41,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<UserResponse> getUserById(@PathVariable String id) {
-        return ApiResponse.<UserResponse>builder()
+    public ApiResponse<UserWithAccountsResponse> getUserById(@PathVariable String id) {
+        return ApiResponse.<UserWithAccountsResponse>builder()
                 .code(1000)
                 .data(userService.getUserById(id))
                 .build();
@@ -53,6 +54,14 @@ public class UserController {
         return ApiResponse.<List<UserResponse>>builder()
                 .code(1000)
                 .data(userService.getAllActiveUser())
+                .build();
+    }
+
+    @GetMapping("/with-accounts")
+    public ApiResponse<List<UserWithAccountsResponse>> getAllUserWithAccounts(){
+        return ApiResponse.<List<UserWithAccountsResponse>>builder()
+                .code(1000)
+                .data(userService.getAllUserWithAccounts())
                 .build();
     }
 
@@ -105,9 +114,16 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteUser(@PathVariable String id) {
+    public ApiResponse<Boolean> deleteUser(@PathVariable String id) {
         userService.deleteUserById(id);
-        return ApiResponse.<Void>builder().code(1000).message("Deleted!").build();
+        return ApiResponse.<Boolean>builder().code(1000).data(true).build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/hard/{id}")
+    public ApiResponse<Boolean> hardDeleteUser(@PathVariable String id) {
+        userService.hardDeleteUserById(id);
+        return ApiResponse.<Boolean>builder().code(1000).data(true).build();
     }
 
     @GetMapping("/get-quantity")

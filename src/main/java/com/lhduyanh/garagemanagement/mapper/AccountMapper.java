@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.mapper;
 import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
 import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
+import com.lhduyanh.garagemanagement.dto.response.AccountSimpleResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserRegisterResponse;
 import com.lhduyanh.garagemanagement.entity.Account;
@@ -10,9 +11,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
     AccountResponse toAccountResponse(Account account);
+
+    AccountSimpleResponse toAccountSimpleResponse(Account account);
 
     @Mapping(source = "email", target = "email")
     @Mapping(source = "status", target = "status")

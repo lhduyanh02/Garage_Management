@@ -21,7 +21,15 @@ public class CarController {
     CarService carService;
 
     @GetMapping
-    public ApiResponse<List<CarResponse>> getAllCars() {
+    public ApiResponse<List<CarResponse>> getAllEnableCars() {
+        return ApiResponse.<List<CarResponse>>builder()
+                .code(1000)
+                .data(carService.getAllEnableCar())
+                .build();
+    }
+
+    @GetMapping("/all")
+    public ApiResponse<List<CarResponse>> getAllCar() {
         return ApiResponse.<List<CarResponse>>builder()
                 .code(1000)
                 .data(carService.getAllCar())

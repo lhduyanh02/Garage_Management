@@ -64,7 +64,11 @@ const ErrorCode = {
     DELETE_ACTIVATED_USER: {code: 1061, message: "Không thể xóa người dùng đang hoạt động", httpStatus: 400},
     PHONE_NUMBER_LENGTH: {code: 1062, message: "Phone number up to 50 characters", httpStatus: 400},
     DISABLE_ACTIVE_USER_ONLY: {code: 1063, message: "Không thể vô hiệu hóa người dùng này", httpStatus: 400},
-    CAN_NOT_DISABLE_ADMIN: {code: 1064, message: "Không thể khóa tài khoản quản trị này", httpStatus: 400},
+    CAN_NOT_DISABLE_ADMIN: {code: 1064, message: "Không thể khóa tài khoản quản trị hệ thống", httpStatus: 400},
+    BLANK_USER: { code: 1065, message: "Hồ sơ không được để trống", status: 400 },
+    CAN_NOT_EDIT_ADMIN: { code: 1066, message: "Bạn không có quyền chỉnh sửa tài khoản quản trị viên này", status: 403 },
+    DISABLE_ACCOUNT_WARNING: { code: 1067, message: "Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này", status: 200},
+    NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 }
 };
 
 export default ErrorCode;

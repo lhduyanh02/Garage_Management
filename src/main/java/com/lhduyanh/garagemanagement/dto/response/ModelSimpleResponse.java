@@ -1,16 +1,16 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BrandModelResponse {
+public class ModelSimpleResponse {
     int id;
-    String brand;
-    List<ModelSimpleResponse> models;
+    String model;
 }

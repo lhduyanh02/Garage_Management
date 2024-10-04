@@ -28,7 +28,7 @@ public enum ErrorCode {
     INVALID_PHONE_NUMBER(1015, "Phone number is invalid", HttpStatus.BAD_REQUEST),
     INVALID_PASSWORD(1016, "Password must be at least 8 characters", HttpStatus.BAD_REQUEST),
 
-    BLANK_ID(1017, "Id user must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_ID(1017, "Id must not be blank", HttpStatus.BAD_REQUEST),
     BLANK_NAME(1018, "Name must not be blank", HttpStatus.BAD_REQUEST),
     BLANK_STATUS(1019, "Status must not be blank", HttpStatus.BAD_REQUEST),
     BLANK_EMAIL(1020, "Email must not be blank", HttpStatus.BAD_REQUEST),
@@ -88,6 +88,10 @@ public enum ErrorCode {
     PHONE_NUMBER_LENGTH(1062, "Phone number up to {max} characters", HttpStatus.BAD_REQUEST),
     DISABLE_ACTIVE_USER_ONLY(1063, "Disable active user only", HttpStatus.BAD_REQUEST),
     CAN_NOT_DISABLE_ADMIN(1064, "Can not disable admin account", HttpStatus.BAD_REQUEST),
+    BLANK_USER(1065, "User can not be blank", HttpStatus.BAD_REQUEST),
+    CAN_NOT_EDIT_ADMIN(1066, "You have no permission to edit admin account", HttpStatus.FORBIDDEN),
+    DISABLE_ACCOUNT_WARNING(1067, "This action will disable all accounts link to this user", HttpStatus.OK),
+    NO_CHANGE_UPDATE(1068, "No change update", HttpStatus.OK),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

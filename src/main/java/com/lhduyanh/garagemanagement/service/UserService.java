@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.service;
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
+import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -55,10 +56,19 @@ public class UserService {
                 .collect(Collectors.toList());
     };
 
-    public UserResponse getUserById(String id){
+    public List<UserWithAccountsResponse> getAllUserWithAccounts(){
+        List<User> users = userRepository.findAllWithAccounts();
+        return users
+                .stream().filter(user -> user.getStatus() != 9999)
+                .map(userMapper::toUserWithAccountsResponse)
+                .toList();
+    }
+@Transactional
+    public UserWithAccountsResponse getUserById(String id){
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return userMapper.toUserResponse(user);
+
+        return userMapper.toUserWithAccountsResponse(user);
     }
 
     public UserResponse getMyUserInfo(){
@@ -69,6 +79,10 @@ public class UserService {
     }
 
     public UserResponse createUser(UserCreationRequest request){
+        if (request.getPhone() != null) {
+            request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+        }
+
         User user = userMapper.toUser(request);
         if(!(isNull(request.getAddressId()) || request.getAddressId() < 0)) {
             var address = addressRepository.findById(request.getAddressId());
@@ -128,6 +142,16 @@ public class UserService {
         if (user.getStatus() != 0){
             throw new AppException(ErrorCode.DELETE_ACTIVATED_USER);
         }
+
+        var account = accountRepository.findByUserId(user.getId());
+        account.ifPresent(accountRepository::delete);
+
+        userRepository.deleteById(id);
+    }
+
+    public void hardDeleteUserById(String id) {
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         var account = accountRepository.findByUserId(user.getId());
         account.ifPresent(accountRepository::delete);

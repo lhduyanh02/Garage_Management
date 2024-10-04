@@ -43,6 +43,6 @@ public class User {
     )
     Set<Role> roles;
 
-    @OneToMany(mappedBy = "user")
-    Set<Account> accounts = new HashSet<>();
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    Set<Account> accounts;
 }
