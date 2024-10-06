@@ -31,4 +31,7 @@ public class Price {
 
     double price;
 
+    @Column(nullable = false)
+    int status;
+
 }

@@ -6,16 +6,20 @@ import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Options;
 import com.lhduyanh.garagemanagement.entity.Price;
+import com.lhduyanh.garagemanagement.entity.PriceId;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.OptionMapper;
 import com.lhduyanh.garagemanagement.mapper.ServiceMapper;
 import com.lhduyanh.garagemanagement.repository.OptionRepository;
+import com.lhduyanh.garagemanagement.repository.PriceRepository;
 import com.lhduyanh.garagemanagement.repository.ServiceRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import com.lhduyanh.garagemanagement.entity.Service;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,25 +28,26 @@ import java.util.Optional;
 @org.springframework.stereotype.Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class ServicesService {
 
     ServiceRepository serviceRepository;
     ServiceMapper serviceMapper;
     OptionRepository optionRepository;
-    OptionMapper optionMapper;
+    PriceRepository priceRepository;
 
-    public ServiceSimpleResponse getServiceById(String id) {
-        return serviceMapper.toSimpleResponse(
+    public ServiceResponse getServiceById(String id) {
+        return serviceMapper.toServiceResponse(
                 serviceRepository.findById(id).orElseThrow(
                         () -> new AppException(ErrorCode.SERVICE_NOT_EXISTS)));
     }
 
-//    public List<ServiceFullResponse> getAllEnableServices() {
-//        return optionRepository.findAllEnableServiceWithClass()
-//                .stream()
-//                .map(optionMapper::toServiceFullResponse)
-//                .toList();
-//    }
+    public List<ServiceResponse> getAllServicesWithPrice() {
+        return serviceRepository.findAll()
+                .stream()
+                .map(serviceMapper::toServiceResponse)
+                .toList();
+    }
 
     public List<ServiceSimpleResponse> getAllEnableServices() {
         return serviceRepository.findAllEnableService()
@@ -58,6 +63,7 @@ public class ServicesService {
                 .toList();
     }
 
+    @Transactional
     public ServiceResponse newService(ServiceCreationRequest request, boolean sure) {
         if (!sure) {
             Optional<Service> serv = serviceRepository.findByName(request.getName());
@@ -67,8 +73,9 @@ public class ServicesService {
         }
 
         Service service = serviceMapper.toService(request);
-        List<Price> prices = new ArrayList<>();
+        service = serviceRepository.save(service);
 
+        List<Price> prices = new ArrayList<>();
         for (OptionPriceRequest optPrice : request.getListOptionPrices()) {
             // Duyệt qua từng cặp option_id và price trong request để kiểm tra status và thêm vào list Price
             Options options = optionRepository.findById(optPrice.getOptionId())
@@ -76,18 +83,23 @@ public class ServicesService {
 
             Price price = new Price();
             if (options.getStatus() == 1) {
+                price.setId(new PriceId(service.getId(), options.getId()));
                 price.setService(service);
                 price.setOptions(options);
                 price.setPrice(optPrice.getPrice());
+                price.setStatus(request.getStatus());
                 prices.add(price);
             }
         }
         if (prices.isEmpty()) {
             throw new AppException(ErrorCode.NULL_OPTION);
         }
+        else {
+            priceRepository.saveAll(prices);
+        }
         service.setPrices(prices);
 
-        return serviceMapper.toServiceResponse(serviceRepository.save(service));
+        return serviceMapper.toServiceResponse(service);
     }
 
 //    public ServiceResponse updateService(String id, ServiceUpdateRequest request) {

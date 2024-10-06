@@ -50,7 +50,7 @@ $(document).ready(function () {
         ],
         ajax: {
             type: "GET",
-            url: "/api/cars",
+            url: "/api/cars/all",
             dataType: "json",
             headers: utils.defaultHeaders(),
             dataSrc: function (res) {
@@ -107,15 +107,15 @@ $(document).ready(function () {
                     html += `<center>${data}<br> `;
 
                     if(row.plateType.type.includes('xanh')){
-                        html += `<span class="badge badge-info">&nbsp; ${row.plateType.type}</span><br>`
+                        html += `<span class="badge badge-primary">&nbsp;${row.plateType.type}</span><br>`
                     } else if(row.plateType.type.includes('trắng')) {
-                        html += `<span class="badge badge-light">&nbsp; ${row.plateType.type}</span><br>`
+                        html += `<span class="badge badge-light">&nbsp;${row.plateType.type}</span><br>`
                     } else if(row.plateType.type.includes('vàng')) {
-                        html += `<span class="badge badge-primary">&nbsp; ${row.plateType.type}</span><br>`
+                        html += `<span class="badge badge-warning">&nbsp;${row.plateType.type}</span><br>`
                     } else if(row.plateType.type.includes('đỏ')) {
-                        html += `<span class="badge badge-danger">&nbsp; ${row.plateType.type}</span><br>`
+                        html += `<span class="badge badge-danger">&nbsp;${row.plateType.type}</span><br>`
                     } else {
-                        html += `&nbsp; ${row.plateType.type}<br>`
+                        html += `<span class="badge badge-secondary">&nbsp;${row.plateType.type}</span><br>`
                     }
                     return html+'</center>';
                 },
@@ -131,11 +131,15 @@ $(document).ready(function () {
                 render: function (data, type, row) {
                     let html = "";
                     if(row.color != null) {
-                        html += `Màu xe: ${row.color}<br>`;
+                        html += `<b>Màu xe:</b> ${row.color}<br>`;
+                    }
+
+                    if(row.createAt != null) {
+                        html += `<b>Ngày tạo:</b> ${utils.formatVNDate(row.createAt)}<br>`;
                     }
 
                     if (data != null) {
-                        html += `Nội dung: ${data}`;
+                        html += `<b>Nội dung: <br></b> ${data.replace(/\n/g, '<br>')}`;
                     }
                     return html;
                 },
@@ -160,12 +164,12 @@ $(document).ready(function () {
                             <i class="fas fa-trash"></i></a>`;
 
                     if (row.status == 1) {
-                        html += ` <a class="btn btn-warning btn-sm" id="disableBtn" data-id="${data}">
-                            <i class="fas fa-user-slash"></i></a>`;
+                        html += ` <a class="btn btn-warning btn-sm" style="padding: .25rem 0.4rem;" id="disableBtn" data-id="${data}">
+                            <i class="fa-regular fa-circle-xmark fa-lg"></i></a>`;
                     }
                     if (row.status == -1) {
-                        html += ` <a class="btn btn-success btn-sm" id="enableBtn" data-id="${data}">
-                            <i class="fas fa-user-check"></i></a>`;
+                        html += ` <a class="btn btn-success btn-sm" style="padding: .25rem 0.4rem;" id="enableBtn" data-id="${data}">
+                            <i class="fa-regular fa-circle-check fa-lg"></i></a>`;
                     }
                     return "<center>" + html + "</center>";
                 },
@@ -199,173 +203,285 @@ $("#data-table").on("click", "#editBtn", function () {
 
     $.ajax({
         type: "GET",
-        url: "/api/accounts/" + id,
+        url: "/api/cars/" + id,
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if(res.code != 1000) {
                 Toast.fire({
                     icon: "error",
-                    title: "Không thể lấy dữ liệu tài khoản"
+                    title: "Không thể lấy dữ liệu xe"
                 });
                 return;
             }
+            var car = res.data;
             clear_modal();
-            $("#modal_title").text("Sửa thông tin tài khoản");
+            $("#modal_title").text("Sửa thông tin xe");
             $("#modal_body").append(`
-                <div class="form-group">
-                    <div class="container mt-3 mb-0">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_email_input">Email</label>
-                            <kbd id="modal_email_counter" class="mb-0 small">0/256</kbd>
+                <form id="modal-form">
+                    <div class="form-group">
+                        <div class="container mt-3 mb-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="mb-0" for="modal_numplate_input">Biển kiểm soát <span class="text-danger">*</span></label>
+                                <kbd id="modal_numplate_counter" class="mb-0 small">0/50</kbd>
+                            </div>
+                        </div>
+                        <input id="modal_numplate_input" type="text" class="form-control" required 
+                        style="text-transform: uppercase;" maxlength="50" placeholder="65A12345">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại biển kiểm soát <span class="text-danger">*</span></label>
+                        <div class="form-group">
+                            <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;">
+                            </select>
                         </div>
                     </div>
-                    <input type="text" class="form-control" id="modal_email_input" maxlength="255" placeholder="Nhập email">
-                </div>
 
-                <div class="form-group">
-                    <label>Hồ sơ liên kết</label>
                     <div class="form-group">
-                        <select id="user-select" class="form-control select2bs4" style="width: 100%;">
-                        <option disabled> Chọn 1 hồ sơ liên kết </option>
-                        </select>
+                        <label>Hãng xe <span class="text-danger">*</span></label>
+                        <div class="form-group">
+                            <select id="brand-select" class="form-control select2bs4" required style="width: 100%;">
+                                <option disabled selected> Chọn hãng xe </option>
+                            </select>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="form-group">
+                        <label>Mẫu xe <span class="text-danger">*</span></label>
+                        <div class="form-group">
+                            <select id="model-select" class="form-control select2bs4" required style="width: 100%;">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="container mt-3 mb-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="mb-0" for="modal_color_input">Màu sơn/wrap</label>
+                                <kbd id="modal_color_counter" class="mb-0 small">0/200</kbd>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" id="modal_color_input" maxlength="200" placeholder="Nhập mô tả màu sơn/wrap">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="container mt-3 mb-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="mb-0" for="modal_cardetail_input">Mô tả chi tiết</label>
+                                <kbd id="modal_cardetail_counter" class="mb-0 small">0/1000</kbd>
+                            </div>
+                        </div>
+                        <textarea wrap="soft" class="form-control" id="modal_cardetail_input" rows="3" maxlength="1000" placeholder="Mô tả chi tiết xe"></textarea>
+                    </div>
+                </form>
             `);
 
-            $('#user-select').empty();            
-            if (res.data.user) {
-                const phone = res.data.user.phone ? ` - ${res.data.user.phone}` : "";
-                $('#user-select').append('<option selected value="' + res.data.user.id + '">' + res.data.user.name
-                    + phone +'</option>');
-            }
+            var brandModelList = [];
 
-            (function () { // Sử dụng hàm IIFE (Immediately Invoked Function Expression) để tránh truy cập list từ console
-                $.ajax({
-                    url: "/api/users/is-active",
-                    type: "GET",
-                    dataType: "json",
-                    headers: utils.defaultHeaders(),
-                    success: function (response) {
-                        let userList = response.data;  // Lưu userList trong closure, không phải biến toàn cục
-            
-                        // Khởi tạo Select2 sau khi nhận được dữ liệu từ AJAX
-                        $("#user-select").select2({
-                            allowClear: false,
-                            theme: "bootstrap",
-                            closeOnSelect: true,
-                            minimumInputLength: 2,
-                            data: userList.map(function (option) {
-                                const phone = option.phone ? ` - ${option.phone}` : "";
+            $("#modal_numplate_input").val(car.numPlate);
+            $("#modal_color_input").val(car.color);
+            $("#modal_cardetail_input").val(car.carDetail);
 
-                                return {
-                                    id: option.id,
-                                    text: `${option.name}${phone}`
-                                };
-                            }),
-                            matcher: function (params, data) {
-                                if ($.trim(params.term) === '') {
-                                    return data;
-                                }
-            
-                                const searchTerm = params.term.toLowerCase();
-            
-                                if (data.text.toLowerCase().indexOf(searchTerm) > -1) {
-                                    return data;
-                                }
-            
-                                return null;
+            $.ajax({
+                type: "GET",
+                url: "/api/brands/fetch-model",
+                dataType: "json",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": ""
+                },
+                success: function (response) {
+                    if(response.code == 1000) {
+                        brandModelList = response.data;
+                        $("#brand-select").empty();
+                        $("#brand-select").append(`<option selected value=""> Chọn hãng xe </option>`);
+                        $.each(response.data, function (idx, brand) { 
+                            let html = "";
+                            if(brand.id == car.model.brand.id){
+                                html = `<option selected value=${brand.id}> ${brand.brand} </option>`;
+                            } else {
+                                html = `<option value=${brand.id}> ${brand.brand} </option>`;
                             }
+                            $("#brand-select").append(html);
+
+                            const selectedBrand = brandModelList.find(item => item.id == car.model.brand.id);
+                            $('#model-select').empty();
+                            $('#model-select').append(`<option disabled value=""> Chọn mẫu xe </option>`);
+                            $.each(selectedBrand.models, function (idx, val) { 
+                                html = "";
+                                if(val.id == car.model.id){
+                                    html = `<option selected value="${val.id}"> ${val.model} </option>`;
+                                } else {
+                                    html = `<option value="${val.id}"> ${val.model} </option>`;
+                                }
+                                $('#model-select').append(html);
+                            });
                         });
                     }
-                });
-            })();
+                    else {
+                        Toast.fire({
+                            icon: "warning",
+                            title: "Lỗi lấy dữ liệu brand-model"
+                        });
+                        console.log(utils.getErrorMessage(response.code));
+                        $("#modal_id").modal("hide");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Toast.fire({
+                        icon: "error",
+                        title: utils.getXHRInfo(xhr.message)
+                    });
+                    $("#modal_id").modal("hide");
+                }
+            });
 
+            $.ajax({
+                type: "GET",
+                url: "/api/plate-types",
+                dataType: "json",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": ""
+                },
+                success: function (response) {
+                    if(response.code == 1000) {
+                        $("#plate-type-select").append(`<option disabled value=""> Chọn loại biển kiểm soát </option>`);
+                        $.each(response.data, function (idx, plateType) { 
+                            let html = "";
+                            if(plateType.id == car.plateType.id) {
+                                html = `<option selected value=${plateType.id}> ${plateType.type} </option>`;
+                            }
+                            else {
+                                html = `<option value=${plateType.id}> ${plateType.type} </option>`;
+                            }
+
+                            $("#plate-type-select").append(html);
+                        });
+                    }
+                    else {
+                        Toast.fire({
+                            icon: "warning",
+                            title: "Lỗi lấy dữ liệu plate-type"
+                        });
+                        console.log(utils.getErrorMessage(response.code));
+                        $("#modal_id").modal("hide");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Toast.fire({
+                        icon: "error",
+                        title: utils.getXHRInfo(xhr.message)
+                    });
+                    $("#modal_id").modal("hide");
+                }
+            });
+
+            $('#plate-type-select').select2({
+                placeholder: "Chọn loại biển kiểm soát",
+                allowClear: true,
+                theme: "bootstrap",
+                closeOnSelect: true
+            });
+        
+            $('#brand-select').select2({
+                placeholder: "Chọn hãng xe",
+                allowClear: true,
+                theme: "bootstrap",
+                closeOnSelect: true,
+            });
+        
+            $('#model-select').select2({
+                placeholder: "Chọn mẫu xe",
+                allowClear: true,
+                theme: "bootstrap",
+                closeOnSelect: true
+            });
+        
+            $('#brand-select').on('change', function () {
+                let id = $(this).val();
+                
+                const brand = brandModelList.find(item => item.id == id);
+        
+                if(brand) {
+                    $('#model-select').empty();
+                    $('#model-select').append(`<option disabled selected value=""> Chọn mẫu xe </option>`);
+                    $.each(brand.models, function (idx, val) { 
+                        $('#model-select').append(`<option value="${val.id}"> ${val.model} </option>`);
+                    });
+                } else {
+                    console.log("Error in getting model");
+                }
+                
+            });
 
             $("#modal_footer").append(
-                '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
-              );
-
-            $("#modal_email_input").val(res.data.email);
+                '<button class="btn btn-primary" type="button" form="modal-form" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+            );
             
-            utils.set_char_count("#modal_email_input", "#modal_email_counter");
+            utils.set_char_count("#modal_numplate_input", "#modal_numplate_counter");
+            utils.set_char_count("#modal_color_input", "#modal_color_counter");
+            utils.set_char_count("#modal_cardetail_input", "#modal_cardetail_counter");
 
             $("#modal_id").modal("show");
 
             $("#modal_submit_btn").click(function (){
-                let email = $("#modal_email_input").val().trim();
-                let user = $("#user-select").val();
-
-                if(user == null){
+                if(!$('#modal-form')[0].checkValidity()){
+                    $('#modal-form')[0].reportValidity();
+                    return;
+                }
+                
+                let numPlate = $("#modal_numplate_input").val().replace(/\s+/g, '');
+                let plateType = $("#plate-type-select").val();
+                let model = $("#model-select").val();
+                let color = $("#modal_color_input").val().trim();
+                let detail = $("#modal_cardetail_input").val().trim();
+                
+                if(numPlate == null || numPlate == ""){
                     Toast.fire({
                         icon: "warning",
-                        title: "Vui lòng chọn hồ sơ"
+                        title: "Vui lòng điền biển kiểm soát"
                     });
                     return;
                 }
-
-                if(email == ""){
+        
+                if(plateType == null){
                     Toast.fire({
                         icon: "warning",
-                        title: "Vui lòng điền email hợp lệ"
+                        title: "Vui lòng chọn loại biển kiểm soát"
                     });
                     return;
                 }
-
+        
+                if(model == null){
+                    Toast.fire({
+                        icon: "warning",
+                        title: "Vui lòng chọn mẫu xe"
+                    });
+                    return;
+                }
+        
                 $.ajax({
                     type: "PUT",
-                    url: "/api/accounts/"+id,
+                    url: "/api/cars/" + id,
                     headers: utils.defaultHeaders(),
                     data: JSON.stringify({
-                        email: email,
-                        userId: user
+                        numPlate: numPlate,
+                        color: color,
+                        carDetail: detail,
+                        plateType: plateType,
+                        model: model
                     }),
                     success: function (response) {
                         if(response.code == 1000){
                             Toast.fire({
                                 icon: "success", 
-                                title: "Cập nhật tài khoản thành công"
+                                title: "Cập nhật thông tin xe thành công"
                             });
                             $("#modal_id").modal("hide");
                             dataTable.ajax.reload();
-                        } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
-                            Swal.fire({
-                                title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
-                                showDenyButton: false,
-                                showCancelButton: true,
-                                confirmButtonText: "Đồng ý",
-                                cancelButtonText: "Huỷ",
-                            }).then((result) => {
-                                /* Read more about isConfirmed, isDenied below */
-                                if (result.isConfirmed) {
-                                    $.ajax({
-                                        type: "PUT",
-                                        url: "/api/accounts/confirm/"+id,
-                                        headers: utils.defaultHeaders(),
-                                        data: JSON.stringify({
-                                            email: email,
-                                            userId: user
-                                        }),
-                                        success: function (res) {
-                                            if (res.code == 1000) {
-                                                Toast.fire({
-                                                    icon: "success", 
-                                                    title: "Cập nhật tài khoản thành công"
-                                                });
-                                            }
-                                            $("#modal_id").modal("hide");
-                                            dataTable.ajax.reload();
-                                        },
-                                        error: function (xhr, status, error) {
-                                            Toast.fire({
-                                                icon: "error",
-                                                title: utils.getXHRInfo(xhr).message,
-                                            });
-                                        },
-                                    });
-                                }
-                            });
-                        } 
+                        }
                         else {
                             Toast.fire({
                                 icon: "warning",
@@ -454,10 +570,10 @@ $("#data-table").on("click", "#disableBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
+    let numPlate = rowData.numPlate.toUpperCase();
 
     Swal.fire({
-        title: `Khóa tài khoản</br>${email}?`,
+        title: `Ngưng sử dụng xe</br>${numPlate}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Xác nhận",
@@ -467,14 +583,14 @@ $("#data-table").on("click", "#disableBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/accounts/disable/" + id,
+                url: "/api/cars/disable/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã khóa tài khoản</br>" + email
+                            title: "Đã ngưng sử dụng</br>" + numPlate
                         });
                         dataTable.ajax.reload();
                     }
@@ -492,26 +608,15 @@ $("#data-table").on("click", "#disableBtn", function () {
     });
 });
 
-$("#data-table").on("click", "#activateBtn", function () {
+$("#data-table").on("click", "#enableBtn", function () {
     let id = $(this).data("id");
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
-    let userId = rowData.user.id;
-
-    var columnData = dataTable.column(1).data().toArray();
-    const count = columnData.filter(item => item.id === userId).length;
-
-    let question = "";
-    if(count > 1){
-        question = `Kích hoạt tài khoản ${email}<br> sẽ vô hiệu hóa các tài khoản khác liên kết đến cùng hồ sơ?`
-    } else {
-        question = `Kích hoạt tài khoản</br>${email}?`
-    }
+    let numPlate = rowData.numPlate.toUpperCase();
 
     Swal.fire({
-        title: question,
+        title: `Sử dụng xe</br>${numPlate}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Đồng ý",
@@ -521,14 +626,14 @@ $("#data-table").on("click", "#activateBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/accounts/active/" + id,
+                url: "/api/cars/enable/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã kích hoạt tài khoản</br>" + email
+                            title: "Đã mở sử dụng xe</br>" + numPlate
                         });
                         dataTable.ajax.reload();
                     }
@@ -550,60 +655,63 @@ $("#new-car-btn").click(function () {
     clear_modal();
     $("#modal_title").text("Thêm hồ sơ xe");
     $("#modal_body").append(`
-        <div class="form-group">
-            <div class="container mt-3 mb-0">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="mb-0" for="modal_numplate_input">Biển kiểm soát</label>
-                    <kbd id="modal_numplate_counter" class="mb-0 small">0/50</kbd>
+        <form id="modal-form">
+            <div class="form-group">
+                <div class="container mt-3 mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_numplate_input">Biển kiểm soát <span class="text-danger">*</span></label>
+                        <kbd id="modal_numplate_counter" class="mb-0 small">0/50</kbd>
+                    </div>
+                </div>
+                <input id="modal_numplate_input" type="text" class="form-control" required 
+                style="text-transform: uppercase;" maxlength="50" placeholder="65A12345">
+            </div>
+
+            <div class="form-group">
+                <label>Loại biển kiểm soát <span class="text-danger">*</span></label>
+                <div class="form-group">
+                    <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;">
+                    </select>
                 </div>
             </div>
-            <input type="text" class="form-control" id="modal_numplate_input" maxlength="50" placeholder="65A12345">
-        </div>
 
-        <div class="form-group">
-            <label>Loại biển kiểm soát</label>
             <div class="form-group">
-                <select id="plate-type-select" class="form-control select2bs4" style="width: 100%;">
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="container mt-3 mb-0">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="mb-0" for="modal_color_input">Màu sơn/wrap</label>
-                    <kbd id="modal_color_counter" class="mb-0 small">0/200</kbd>
+                <label>Hãng xe <span class="text-danger">*</span></label>
+                <div class="form-group">
+                    <select id="brand-select" class="form-control select2bs4" required style="width: 100%;">
+                        <option disabled selected> Chọn hãng xe </option>
+                    </select>
                 </div>
             </div>
-            <input type="text" class="form-control" id="modal_color_input" maxlength="200" placeholder="Nhập mô tả màu sơn/wrap">
-        </div>
 
-        <div class="form-group">
-            <div class="container mt-3 mb-0">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="mb-0" for="modal_cardetail_input">Mô tả chi tiết</label>
-                    <kbd id="modal_cardetail_counter" class="mb-0 small">0/1000</kbd>
+            <div class="form-group">
+                <label>Mẫu xe <span class="text-danger">*</span></label>
+                <div class="form-group">
+                    <select id="model-select" class="form-control select2bs4" required style="width: 100%;">
+                    </select>
                 </div>
             </div>
-            <textarea wrap="soft" class="form-control" id="modal_cardetail_input" rows="3" maxlength="1000" placeholder="Mô tả chi tiết xe"></textarea>
-        </div>
 
-        <div class="form-group">
-            <label>Hãng xe</label>
             <div class="form-group">
-                <select id="brand-select" class="form-control select2bs4" style="width: 100%;">
-                    <option disabled selected> Chọn hãng xe </option>
-                </select>
+                <div class="container mt-3 mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_color_input">Màu sơn/wrap</label>
+                        <kbd id="modal_color_counter" class="mb-0 small">0/200</kbd>
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="modal_color_input" maxlength="200" placeholder="Nhập mô tả màu sơn/wrap">
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Mẫu xe</label>
             <div class="form-group">
-                <select id="model-select" class="form-control select2bs4" style="width: 100%;">
-                </select>
+                <div class="container mt-3 mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_cardetail_input">Mô tả chi tiết</label>
+                        <kbd id="modal_cardetail_counter" class="mb-0 small">0/1000</kbd>
+                    </div>
+                </div>
+                <textarea wrap="soft" class="form-control" id="modal_cardetail_input" rows="3" maxlength="1000" placeholder="Mô tả chi tiết xe"></textarea>
             </div>
-        </div>
+        </form>
     `);
 
     var brandModelList = [];
@@ -620,8 +728,8 @@ $("#new-car-btn").click(function () {
             if(response.code == 1000) {
                 brandModelList = response.data;
                 $("#brand-select").empty();
-                $("#brand-select").append(`<option disabled selected> Chọn hãng xe </option>`);
-                $.each(response.data, function (idx, brand) { 
+                $("#brand-select").append(`<option disabled selected value=""> Chọn hãng xe </option>`);
+                $.each(response.data, function (_idx, brand) { 
                     $("#brand-select").append(`<option value=${brand.id}> ${brand.brand} </option>`);
                 });
             }
@@ -634,7 +742,7 @@ $("#new-car-btn").click(function () {
                 $("#modal_id").modal("hide");
             }
         },
-        error: function(xhr, status, error) {
+        error: function(xhr, _status, error) {
             Toast.fire({
                 icon: "error",
                 title: utils.getXHRInfo(xhr.message)
@@ -653,7 +761,7 @@ $("#new-car-btn").click(function () {
         },
         success: function (response) {
             if(response.code == 1000) {
-                $("#plate-type-select").append(`<option disabled selected> Chọn loại biển kiểm soát </option>`);
+                $("#plate-type-select").append(`<option disabled selected value=""> Chọn loại biển kiểm soát </option>`);
                 $.each(response.data, function (idx, plateType) { 
                     $("#plate-type-select").append(`<option value=${plateType.id}> ${plateType.type} </option>`);
                 });
@@ -699,15 +807,14 @@ $("#new-car-btn").click(function () {
 
     $('#brand-select').on('change', function () {
         let id = $(this).val();
-        console.log(id);
         
         const brand = brandModelList.find(item => item.id == id);
 
         if(brand) {
             $('#model-select').empty();
-            $('#model-select').append(`<option disabled selected> Chọn mẫu xe </option>`);
+            $('#model-select').append(`<option disabled selected value=""> Chọn mẫu xe </option>`);
             $.each(brand.models, function (idx, val) { 
-                $('#model-select').append(`<option value"${val.id}"> ${val.model} </option>`);
+                $('#model-select').append(`<option value="${val.id}"> ${val.model} </option>`);
             });
         } else {
             console.log("Error in getting model");
@@ -716,8 +823,8 @@ $("#new-car-btn").click(function () {
     });
 
     $("#modal_footer").append(
-        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Thêm</button>'
-        );
+        '<button class="btn btn-primary" type="button" form="modal-form" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Thêm</button>'
+    );
     
     utils.set_char_count("#modal_numplate_input", "#modal_numplate_counter");
     utils.set_char_count("#modal_color_input", "#modal_color_counter");
@@ -726,82 +833,61 @@ $("#new-car-btn").click(function () {
     $("#modal_id").modal("show");
 
     $("#modal_submit_btn").click(function (){
-        let email = $("#modal_email_input").val().trim();
-        let user = $("#user-select").val();
-        let active = $('#is-active-switch').is(':checked') ? 1 : 0;
-
-        if(email == ""){
+        if(!$('#modal-form')[0].checkValidity()){
+            $('#modal-form')[0].reportValidity();
+            return;
+        }
+        
+        let numPlate = $("#modal_numplate_input").val().replace(/\s+/g, '');
+        let plateType = $("#plate-type-select").val();
+        let model = $("#model-select").val();
+        let color = $("#modal_color_input").val().trim();
+        let detail = $("#modal_cardetail_input").val().trim();
+        
+        if(numPlate == null || numPlate == ""){
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng điền email hợp lệ"
+                title: "Vui lòng điền biển kiểm soát"
             });
             return;
         }
 
-        if(user == null){
+        if(plateType == null){
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn hồ sơ"
+                title: "Vui lòng chọn loại biển kiểm soát"
+            });
+            return;
+        }
+
+        if(model == null){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn mẫu xe"
             });
             return;
         }
 
         $.ajax({
             type: "POST",
-            url: "/api/accounts/new-account",
+            url: "/api/cars",
             headers: utils.defaultHeaders(),
             data: JSON.stringify({
-                email: email,
-                userId: user,
-                status: active
+                numPlate: numPlate,
+                color: color,
+                carDetail: detail,
+                plateType: plateType,
+                model: model
             }),
             success: function (response) {
                 if(response.code == 1000){
                     Toast.fire({
                         icon: "success", 
-                        title: "Thêm tài khoản thành công"
+                        title: "Thêm hồ sơ xe thành công"
                     });
                     $("#modal_id").modal("hide");
                     dataTable.ajax.reload();
-                } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
-                    Swal.fire({
-                        title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
-                        showDenyButton: false,
-                        showCancelButton: true,
-                        confirmButtonText: "Đồng ý",
-                        cancelButtonText: "Huỷ",
-                    }).then((result) => {
-                        /* Read more about isConfirmed, isDenied below */
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                type: "POST",
-                                url: "/api/accounts/new-account/confirm/",
-                                headers: utils.defaultHeaders(),
-                                data: JSON.stringify({
-                                    email: email,
-                                    userId: user,
-                                    status: active
-                                }),
-                                success: function (res) {
-                                    if (res.code == 1000) {
-                                        Toast.fire({
-                                            icon: "success", 
-                                            title: "Thêm tài khoản thành công"
-                                        });
-                                    }
-                                    $("#modal_id").modal("hide");
-                                    dataTable.ajax.reload();
-                                },
-                                error: function (xhr, status, error) {
-                                    Toast.fire({
-                                        icon: "error",
-                                        title: utils.getXHRInfo(xhr).message,
-                                    });
-                                },
-                            });
-                        }
-                    });
-                } 
+                }
                 else {
                     Toast.fire({
                         icon: "warning",

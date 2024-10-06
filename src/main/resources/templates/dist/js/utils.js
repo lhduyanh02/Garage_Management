@@ -206,3 +206,18 @@ export function set_char_count(inputId, counterId) {
       $(counterId).text(currentLength + '/' + length);
     });
 }
+
+// Định dạng ngày giờ theo chuẩn VN với thời gian và 4 chữ số của năm
+export function formatVNDate(isoDate) {
+    var date = new Date(isoDate);
+    
+    var time = date.toLocaleTimeString("vi-VN", { hour12: false });
+    
+    // Lấy ngày tháng năm
+    var day = String(date.getDate()).padStart(2, '0');
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var year = date.getFullYear();
+    
+    // Định dạng cuối cùng
+    return `${time}, ${day}/${month}/${year}`;
+}

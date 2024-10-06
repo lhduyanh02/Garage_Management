@@ -44,25 +44,25 @@ $(document).ready(function () {
             { extend: "colvis", text: "Column Visibility" },
         ],
         columnDefs: [
-            { orderable: false, targets: 5 }, // Vô hiệu hóa sort cho cột Thao tác (index 5)
+            { orderable: false, targets: 4 }, // Vô hiệu hóa sort cho cột Thao tác (index 4)
             { className: "text-center", targets: 0 },
         ],
         ajax: {
             type: "GET",
-            url: "/api/accounts/all",
+            url: "/api/options/all-with-price",
             dataType: "json",
             headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     var data = [];
                     var counter = 1;
-                    res.data.forEach(function (account) {
+                    res.data.forEach(function (option) {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
-                            id: account.id,
-                            email: account.email,
-                            status: account.status,
-                            user: account.user,
+                            id: option.id,
+                            name: option.name,
+                            status: option.status,
+                            servicePrices: option.servicePrices
                         });
                     });
 
@@ -94,57 +94,49 @@ $(document).ready(function () {
         },
         columns: [
             { data: "number" },
-            {
-                data: "user",
-                render: function (data, type, row) {
-                    let html="";
-                    html += `${data.name} `;
-                    if(data.gender==1){
-                        html += ` <small><span class="badge badge-info"><i class="fa-solid fa-child-dress"></i>&nbsp;Nam</span></small><br>`
-                    } else if(data.gender==0){
-                        html += ` <small><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span></small><br>`
-                    } else {
-                        html += "<br>"
+            { data: "name" },
+            { data: "servicePrices",
+                render: function (data, type, row) {  
+                    if(data.length == 0){
+                        return "<i>Chưa có dịch vụ liên kết</i>"
                     }
-
-                    if(data.phone){
-                        html += `<small><i>${data.phone}</i></small><br>`;
-                    }
-
-                    if(data.address){
-                        html += `<small> ${data.address.address}</small><br>`; 
-                    }
-
-                    return html;
-                },
-            },
-            { data: "email"},
-            {
-                data: "user.roles",
-                render: function (data, type, row) {
-                    if (data != null && Array.isArray(data)) {
+                    else {
                         let html = "";
-                        $.each(data , function (idx, val) {
-                            html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                        $.each(data, function (idx, val) { 
+                            let priceStatus = "";
+                            if(val.priceStatus == 1) {
+                                priceStatus = `Đang áp dụng`;
+                            } else {
+                                priceStatus = `Ngưng áp dụng`;
+                            }
+
+                            if(val.status == 1) {
+                                html += `
+                                        <b>${val.name} <span class="badge badge-success"><i class="fa-solid fa-check"></i>&nbsp;Đang dùng</span><br></b>
+                                        - Giá: ${val.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}<br>
+                                        - Trạng thái: ${priceStatus}<br><br>
+                                `
+                            } else {
+                                html += `
+                                        <b>${val.name} <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Ngưng dùng</span><br></b>
+                                        - Giá: ${val.price}<br>
+                                        - Trạng thái: ${priceStatus}<br><br>
+                                `
+                            }
                         });
-                        return (
-                            '<center>' + html + '</center>'
-                        );
+
+                        return html;
                     }
-                    return "";
-                },
+                }
             },
             {
                 data: "status",
                 render: function (data, type, row) {
-                    if (data == 1 || data == 9999) {
-                        return '<center><span class="badge badge-success"><i class="fa-solid fa-check"></i>&nbsp;Đang hoạt động</span></center>';
-                    } else if (data == 0) {
-                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-clock"></i>&nbsp;Chưa xác thực</span></center>';
-                    } else if (data == -1) {
-                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Bị khóa</span></center>';
+                    if (data == 1) {
+                        return '<center><span class="badge badge-success"><i class="fa-solid fa-check"></i>&nbsp;Đang sử dụng</span></center>';
+                    } else {
+                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Ngưng sử dụng</span></center>';
                     }
-                    return "";
                 },
             },
             {
@@ -155,19 +147,12 @@ $(document).ready(function () {
                         <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
                             <i class="fas fa-trash"></i></a>`;
 
-                    if (row.status == 1 && row.user.status != 9999) {
-                        html += ` <a class="btn btn-warning btn-sm" id="disableBtn" data-id="${data}">
-                            <i class="fas fa-user-slash"></i></a>`;
-                    }
-                    if (row.status == 0 && row.user.status != 9999) {
-                        html += ` <a class="btn btn-success btn-sm" id="activateBtn" data-id="${data}">
-                            <i class="fas fa-user-check"></i></a>
-                             <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
-                            <i class="fas fa-trash"></i></a>`;
-                    }
-                    if (row.status == -1 && row.user.status != 9999) {
-                        html += ` <a class="btn btn-success btn-sm" id="activateBtn" data-id="${data}">
-                            <i class="fas fa-user-check"></i></a>`;
+                    if (row.status == 1) {
+                        html += ` <a class="btn btn-warning btn-sm" style="padding: .25rem 0.4rem;" id="disableBtn" data-id="${data}">
+                            <i class="fa-regular fa-circle-xmark fa-lg"></i></a>`;
+                    } else {
+                        html += ` <a class="btn btn-success btn-sm" style="padding: .25rem 0.4rem;" id="enableBtn" data-id="${data}">
+                            <i class="fa-regular fa-circle-check fa-lg"></i></a>`;
                     }
                     return "<center>" + html + "</center>";
                 },
@@ -512,7 +497,7 @@ $("#data-table").on("click", "#disableBtn", function () {
     });
 });
 
-$("#data-table").on("click", "#activateBtn", function () {
+$("#data-table").on("click", "#enableBtn", function () {
     let id = $(this).data("id");
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();

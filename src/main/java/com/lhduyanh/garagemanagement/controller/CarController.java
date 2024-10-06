@@ -60,8 +60,24 @@ public class CarController {
                 .build();
     }
 
-    @PutMapping
-    public ApiResponse<CarResponse> updateCar(@RequestParam("id") String id,
+    @PutMapping("/disable/{id}")
+    public ApiResponse<Boolean> disableCar(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(carService.disableCar(id))
+                .build();
+    }
+
+    @PutMapping("/enable/{id}")
+    public ApiResponse<Boolean> enableCar(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(carService.enableCar(id))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<CarResponse> updateCar(@PathVariable("id") String id,
                                               @RequestBody @Valid CarRequest request) {
         return ApiResponse.<CarResponse>builder()
                 .code(1000)

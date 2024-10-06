@@ -92,6 +92,7 @@ public enum ErrorCode {
     CAN_NOT_EDIT_ADMIN(1066, "You have no permission to edit admin account", HttpStatus.FORBIDDEN),
     DISABLE_ACCOUNT_WARNING(1067, "This action will disable all accounts link to this user", HttpStatus.OK),
     NO_CHANGE_UPDATE(1068, "No change update", HttpStatus.OK),
+    PRICE_NOT_EXIST(1069, "Price does not exist", HttpStatus.NOT_FOUND),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
