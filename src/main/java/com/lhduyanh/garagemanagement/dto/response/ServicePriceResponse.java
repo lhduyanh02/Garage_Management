@@ -10,11 +10,12 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OptionPriceResponse {
+public class ServicePriceResponse {
 
-    String id; // Option id
-    String name; // Option name
-    int status; // Option status
+    String id; // Service id
+    String name; // Service name
+    String description;
+    int status; // Service status
     double price;
     int priceStatus;
 

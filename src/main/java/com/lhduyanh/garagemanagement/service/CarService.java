@@ -123,4 +123,24 @@ public class CarService {
         carRepository.save(car);
     }
 
+    public boolean disableCar(String id) {
+        Car car = carRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
+
+        // check xe có đang làm dịch vụ hay không, nếu có 1 history đang có trạng thái là 0 thì từ chối
+
+        car.setStatus(-1);
+        carRepository.save(car);
+        return true;
+    }
+
+    public boolean enableCar(String id) {
+        Car car = carRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
+
+        car.setStatus(1);
+        carRepository.save(car);
+        return true;
+    }
+
 }

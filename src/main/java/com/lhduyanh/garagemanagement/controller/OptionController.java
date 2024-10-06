@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.OptionCreationRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
+import com.lhduyanh.garagemanagement.dto.response.OptionFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.OptionSimpleResponse;
 import com.lhduyanh.garagemanagement.service.OptionService;
 import jakarta.validation.Valid;
@@ -21,7 +22,7 @@ public class OptionController {
     OptionService optionService;
 
     @GetMapping
-    public ApiResponse<List<OptionSimpleResponse>> getAllEnableServiceClass() {
+    public ApiResponse<List<OptionSimpleResponse>> getAllEnableOption() {
         return ApiResponse.<List<OptionSimpleResponse>>builder()
                 .code(1000)
                 .data(optionService.getAllEnableOption())
@@ -29,23 +30,31 @@ public class OptionController {
     }
 
     @GetMapping("/all")
-    public ApiResponse<List<OptionSimpleResponse>> getAllServiceClass() {
+    public ApiResponse<List<OptionSimpleResponse>> getAllOption() {
         return ApiResponse.<List<OptionSimpleResponse>>builder()
                 .code(1000)
                 .data(optionService.getAllOption())
                 .build();
     }
 
+    @GetMapping("/all-with-price")
+    public ApiResponse<List<OptionFullResponse>> getAllOptionWithPrice() {
+        return ApiResponse.<List<OptionFullResponse>>builder()
+                .code(1000)
+                .data(optionService.getAllOptionWithPrice())
+                .build();
+    }
+
     @GetMapping("/{id}")
-    public ApiResponse<OptionSimpleResponse> getServiceClassById(@PathVariable String id) {
-        return ApiResponse.<OptionSimpleResponse>builder()
+    public ApiResponse<OptionFullResponse> getOptionById(@PathVariable String id) {
+        return ApiResponse.<OptionFullResponse>builder()
                 .code(1000)
                 .data(optionService.getOptionById(id))
                 .build();
     }
 
     @PostMapping
-    public ApiResponse<OptionSimpleResponse> newServiceClass(@RequestBody @Valid OptionCreationRequest request) {
+    public ApiResponse<OptionSimpleResponse> newOption(@RequestBody @Valid OptionCreationRequest request) {
         return ApiResponse.<OptionSimpleResponse>builder()
                 .code(1000)
                 .data(optionService.newOption(request))
@@ -53,7 +62,7 @@ public class OptionController {
     }
 
     @PutMapping("/unable")
-    public ApiResponse<Void> unableServiceClass(@RequestParam String id) {
+    public ApiResponse<Void> unableOption(@RequestParam String id) {
         optionService.unableOption(id);
         return ApiResponse.<Void>builder()
                 .code(1000)
@@ -61,7 +70,7 @@ public class OptionController {
     }
 
     @PutMapping("/enable")
-    public ApiResponse<Void> enableServiceClass(@RequestParam String id) {
+    public ApiResponse<Void> enableOption(@RequestParam String id) {
         optionService.enableOption(id);
         return ApiResponse.<Void>builder()
                 .code(1000)

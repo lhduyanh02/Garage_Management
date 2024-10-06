@@ -117,11 +117,11 @@ $(document).ready(function () {
                 data: "gender",
                 render: function (data, type, row) {
                     if (data == 0) {
-                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp; Nữ</span></center>';
+                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span></center>';
                     } else if (data == 1) {
-                        return '<center><span class="badge badge-success"><i class="fa-solid fa-child-reaching"></i>&nbsp; Nam</span></center>';
+                        return '<center><span class="badge badge-success"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span></center>';
                     } else {
-                        return '<center><span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp; Khác</span></center>';
+                        return '<center><span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center>';
                     }
                 },
             },
@@ -139,7 +139,7 @@ $(document).ready(function () {
                     if (data != null && Array.isArray(data)) {
                         let html = "";
                         $.each(data , function (idx, val) {
-                            html+=` <span class="badge badge-light">&nbsp; ${val.roleName}</span></br>`
+                            html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
                         });
 
                         
@@ -156,9 +156,9 @@ $(document).ready(function () {
                     if (data == 1 || data == 9999) {
                         return '<center><span class="badge badge-success"><i class="fa-solid fa-check"></i> Đang hoạt động</span></center>';
                     } else if (data == 0) {
-                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-clock"></i>&nbsp; Chưa xác thực</span></center>';
+                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-clock"></i>&nbsp;Chưa xác thực</span></center>';
                     } else if (data == -1) {
-                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp; Bị cấm</span></center>';
+                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Bị cấm</span></center>';
                     }
                     return "";
                 },

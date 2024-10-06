@@ -11,6 +11,8 @@ const getCookie = (name) => {
 };
 
 function refreshToken() {
+    // console.log("Refresh token");
+    
     let token = getCookie("authToken");
 
     if (token == null) {
@@ -24,7 +26,7 @@ function refreshToken() {
         const currentTime = Date.now();
         expirationTime = parseInt(expirationTime);
 
-        if ((expirationTime - currentTime) > 10 * 60 * 1000) {
+        if ((expirationTime - currentTime) > 20 * 60 * 1000) {
             // console.log("Token already refreshed"); 
             return;
         }
@@ -33,7 +35,7 @@ function refreshToken() {
     $.ajax({
         type: "POST",
         url: "/api/auth/refreshToken",
-        data: JSON.stringify({ token: token }),
+        data: JSON.stringify({ token: getCookie("authToken") }),
         headers: {
             "Content-Type": "application/json",
             "Authorization": ""
@@ -41,7 +43,7 @@ function refreshToken() {
         dataType: "json",
         success: function (res) {
             if (res.code == 1000 && res.data.authenticated) {
-                // console.log("Token refreshed successfully.");
+                console.log("**Token refreshed successfully.**");
 
                 // Lưu thời gian hết hạn vào localStorage (60 phút kể từ bây giờ)
                 const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút

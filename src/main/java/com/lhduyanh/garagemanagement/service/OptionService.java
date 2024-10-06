@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.OptionCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.OptionUpdateRequest;
+import com.lhduyanh.garagemanagement.dto.response.OptionFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.OptionSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Options;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -37,6 +38,13 @@ public class OptionService {
                 .toList();
     }
 
+    public List<OptionFullResponse> getAllOptionWithPrice() {
+        return optionRepository.findAll()
+                .stream()
+                .map(optionMapper::toOptionFullResponse)
+                .toList();
+    }
+
     public OptionSimpleResponse newOption(OptionCreationRequest request) {
         if (optionRepository.existsByName(request.getName())) {
             throw new AppException(ErrorCode.OPTION_EXISTED);
@@ -47,8 +55,8 @@ public class OptionService {
         );
     }
 
-    public OptionSimpleResponse getOptionById(String id) {
-        return optionMapper.toSimpleResponse(
+    public OptionFullResponse getOptionById(String id) {
+        return optionMapper.toOptionFullResponse(
                 optionRepository.findById(id)
                         .orElseThrow(() -> new AppException(ErrorCode.OPTION_NOT_EXISTS))
         );

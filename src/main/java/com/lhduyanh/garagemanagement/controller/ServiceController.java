@@ -2,8 +2,10 @@ package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.ServiceCreationRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
+import com.lhduyanh.garagemanagement.dto.response.PriceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceSimpleResponse;
+import com.lhduyanh.garagemanagement.service.PriceService;
 import com.lhduyanh.garagemanagement.service.ServicesService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -21,12 +23,21 @@ import java.util.List;
 public class ServiceController {
 
     ServicesService servicesService;
+    PriceService priceService;
 
     @GetMapping("/{id}")
-    public ApiResponse<ServiceSimpleResponse> getServiceById(@PathVariable String id) {
-        return ApiResponse.<ServiceSimpleResponse>builder()
+    public ApiResponse<ServiceResponse> getServiceById(@PathVariable String id) {
+        return ApiResponse.<ServiceResponse>builder()
                 .code(1000)
                 .data(servicesService.getServiceById(id))
+                .build();
+    }
+
+    @GetMapping("/service-id/{id}")
+    public ApiResponse<PriceResponse> getService(@PathVariable String id) {
+        return ApiResponse.<PriceResponse>builder()
+                .code(1000)
+                .data(priceService.getAllPriceByServiceId(id))
                 .build();
     }
 
@@ -44,6 +55,14 @@ public class ServiceController {
         return ApiResponse.<List<ServiceSimpleResponse>>builder()
                 .code(1000)
                 .data(servicesService.getAllServices())
+                .build();
+    }
+
+    @GetMapping("/all-with-price")
+    public ApiResponse<List<ServiceResponse>> getAllServicesWithPrice() {
+        return ApiResponse.<List<ServiceResponse>>builder()
+                .code(1000)
+                .data(servicesService.getAllServicesWithPrice())
                 .build();
     }
 
