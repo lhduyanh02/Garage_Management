@@ -63,7 +63,7 @@ public enum ErrorCode {
 
     NULL_PRICE_SERVICE(1042, "Price must not be null", HttpStatus.BAD_REQUEST),
     SERVICE_NOT_EXISTS(1043, "Service does not exist", HttpStatus.NOT_FOUND),
-    SERVICE_NAME_EXISTED(1044, "Service name already existed", HttpStatus.BAD_REQUEST),
+    SERVICE_NAME_EXISTED(1044, "Service name already existed", HttpStatus.OK),
 
     OPTION_NOT_EXISTS(1045, "Option does not exist", HttpStatus.NOT_FOUND),
     OPTION_EXISTED(1046, "Option name already existed", HttpStatus.BAD_REQUEST),
@@ -93,6 +93,10 @@ public enum ErrorCode {
     DISABLE_ACCOUNT_WARNING(1067, "This action will disable all accounts link to this user", HttpStatus.OK),
     NO_CHANGE_UPDATE(1068, "No change update", HttpStatus.OK),
     PRICE_NOT_EXIST(1069, "Price does not exist", HttpStatus.NOT_FOUND),
+    BLANK_CAR(1070, "Car can not be blank", HttpStatus.BAD_REQUEST),
+    DISABLED_USER(1071, "This user was disabled", HttpStatus.BAD_REQUEST),
+    DISABLED_CAR(1072, "This car was disabled", HttpStatus.BAD_REQUEST),
+    ILLEGAL_NUM_PLATE(1073, "Illegal num plate", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

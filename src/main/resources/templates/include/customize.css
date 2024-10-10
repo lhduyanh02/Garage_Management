@@ -14,3 +14,9 @@
 input.select2-search__field{
   width: 100% !important;
 }
+
+/* Tạo hiệu ứng cho dòng được chọn */
+table.dataTable tbody tr.selected {
+  background-color: #6bb3ff !important; /* Màu nền khi chọn */
+  color: white; /* Màu chữ khi chọn */
+}

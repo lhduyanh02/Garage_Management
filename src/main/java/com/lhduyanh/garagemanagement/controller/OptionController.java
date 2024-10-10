@@ -61,19 +61,27 @@ public class OptionController {
                 .build();
     }
 
-    @PutMapping("/unable")
-    public ApiResponse<Void> unableOption(@RequestParam String id) {
-        optionService.unableOption(id);
-        return ApiResponse.<Void>builder()
+    @PutMapping("/disable/{id}")
+    public ApiResponse<Boolean> disableOption(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
                 .code(1000)
+                .data(optionService.disableOption(id))
                 .build();
     }
 
-    @PutMapping("/enable")
-    public ApiResponse<Void> enableOption(@RequestParam String id) {
-        optionService.enableOption(id);
-        return ApiResponse.<Void>builder()
+    @PutMapping("/enable/{id}")
+    public ApiResponse<Boolean> enableOption(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
                 .code(1000)
+                .data(optionService.enableOption(id))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Boolean> deleteOption(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(optionService.deleteOption(id))
                 .build();
     }
 

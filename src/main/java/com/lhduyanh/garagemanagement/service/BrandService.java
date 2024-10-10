@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.service;
 import com.lhduyanh.garagemanagement.dto.request.BrandRequest;
 import com.lhduyanh.garagemanagement.dto.response.BrandModelResponse;
 import com.lhduyanh.garagemanagement.dto.response.BrandSimpleResponse;
+import com.lhduyanh.garagemanagement.dto.response.ModelSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Brand;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -31,9 +33,15 @@ public class BrandService {
 
     public List<BrandModelResponse> getAllBrandModel() {
         List<Brand> brands = brandRepository.findAllBrandModel();
-        return brands.stream()
+        var response = brands.stream()
                 .map(brandMapper::toBrandModelResponse)
                 .toList();
+
+        response.forEach(res -> {
+            res.getModels().sort(Comparator.comparing(ModelSimpleResponse::getModel));
+        });
+
+        return response;
     }
 
     public BrandModelResponse getBrandById(int id) {

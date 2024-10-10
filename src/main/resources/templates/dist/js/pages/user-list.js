@@ -139,7 +139,12 @@ $(document).ready(function () {
                     if (data != null && Array.isArray(data)) {
                         let html = "";
                         $.each(data , function (idx, val) {
-                            html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                            if(val.status == 1){
+                                html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                            }
+                            else if (val.status == 0){
+                                html+=` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`
+                            }
                         });
 
                         

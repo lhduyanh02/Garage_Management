@@ -17,6 +17,5 @@ public class ServicePriceResponse {
     String description;
     int status; // Service status
     double price;
-    int priceStatus;
 
 }

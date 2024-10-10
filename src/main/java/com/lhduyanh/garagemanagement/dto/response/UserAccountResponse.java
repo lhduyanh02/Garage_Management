@@ -16,6 +16,7 @@ public class UserAccountResponse {
     String email;
     String name;
     String phone;
+    long telegramId;
     int gender;
     Address address;
     int status;

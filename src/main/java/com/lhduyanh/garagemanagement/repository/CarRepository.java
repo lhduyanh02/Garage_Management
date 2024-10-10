@@ -10,9 +10,9 @@ public interface CarRepository extends JpaRepository<Car, String> {
 
     boolean existsByNumPlate(String numPlate);
 
-    boolean existsByNumPlateAndPlateTypeId(String numPlate, int plateTypeId);
+    boolean existsByNumPlateAndPlateTypeIdAndStatus(String numPlate, int plateTypeId, int status);
 
-    Optional<Car> findByNumPlateAndPlateTypeId(String numPlate, int plateTypeId);
+    List<Car> findByNumPlateAndPlateTypeId(String numPlate, int plateTypeId);
 
     List<Car> findAllByStatus(int status);
 

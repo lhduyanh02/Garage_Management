@@ -1,10 +1,12 @@
 package com.lhduyanh.garagemanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Data
@@ -38,4 +40,7 @@ public class Car {
     @ManyToOne
     @JoinColumn(nullable = false, name = "model")
     Model model;
+
+    @ManyToMany(mappedBy = "cars", fetch = FetchType.EAGER)
+    private Set<User> users;
 }

@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.ServiceCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.ServiceUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.PriceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
@@ -30,14 +31,6 @@ public class ServiceController {
         return ApiResponse.<ServiceResponse>builder()
                 .code(1000)
                 .data(servicesService.getServiceById(id))
-                .build();
-    }
-
-    @GetMapping("/service-id/{id}")
-    public ApiResponse<PriceResponse> getService(@PathVariable String id) {
-        return ApiResponse.<PriceResponse>builder()
-                .code(1000)
-                .data(priceService.getAllPriceByServiceId(id))
                 .build();
     }
 
@@ -82,14 +75,23 @@ public class ServiceController {
                 .build();
     }
 
-//    @PutMapping
-//    public ApiResponse<ServiceResponse> updateService(@RequestParam String id,
-//                                                            @RequestBody @Valid ServiceUpdateRequest request) {
-//        return ApiResponse.<ServiceResponse>builder()
-//                .code(1000)
-//                .data(servicesService.updateService(id, request))
-//                .build();
-//    }
+    @PutMapping("/{id}")
+    public ApiResponse<ServiceResponse> updateService(@PathVariable String id,
+                                                            @RequestBody @Valid ServiceUpdateRequest request) {
+        return ApiResponse.<ServiceResponse>builder()
+                .code(1000)
+                .data(servicesService.updateService(id, request, false))
+                .build();
+    }
+
+    @PutMapping("/confirm/{id}")
+    public ApiResponse<ServiceResponse> confirmUpdateService(@PathVariable String id,
+                                                      @RequestBody @Valid ServiceUpdateRequest request) {
+        return ApiResponse.<ServiceResponse>builder()
+                .code(1000)
+                .data(servicesService.updateService(id, request, true))
+                .build();
+    }
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteService(@PathVariable String id) {
@@ -99,19 +101,19 @@ public class ServiceController {
                 .build();
     }
 
-    @PutMapping("/enable")
-    public ApiResponse<Void> enableService(@RequestParam String id) {
-        servicesService.enableService(id);
-        return ApiResponse.<Void>builder()
+    @PutMapping("/enable/{id}")
+    public ApiResponse<Boolean> enableService(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
                 .code(1000)
+                .data(servicesService.enableService(id))
                 .build();
     }
 
-    @PutMapping("/unable")
-    public ApiResponse<Void> unableService(@RequestParam String id) {
-        servicesService.unableService(id);
-        return ApiResponse.<Void>builder()
+    @PutMapping("/disable/{id}")
+    public ApiResponse<Boolean> unableService(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
                 .code(1000)
+                .data(servicesService.disableService(id))
                 .build();
     }
 

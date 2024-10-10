@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.dto.request.RoleCreationRequest;
 import com.lhduyanh.garagemanagement.dto.response.RoleResponse;
 import com.lhduyanh.garagemanagement.dto.response.RoleSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Role;
+import com.lhduyanh.garagemanagement.enums.RoleStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.RoleMapper;
@@ -34,7 +35,7 @@ public class RoleService {
     }
 
     public List<RoleSimpleResponse> getAllEnableRole(){
-        return roleRepository.findAllByStatus(1)
+        return roleRepository.findAllByStatus(RoleStatus.USING.getCode())
                 .stream()
                 .map(roleMapper::toRoleSimpleResponse)
                 .toList();

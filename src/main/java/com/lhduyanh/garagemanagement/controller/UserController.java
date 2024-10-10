@@ -1,5 +1,6 @@
 package com.lhduyanh.garagemanagement.controller;
 
+import com.lhduyanh.garagemanagement.dto.request.UserCarMappingRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
@@ -33,7 +34,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ACCOUNT_LIST', 'GET_USER_LIST'})")
-    public ApiResponse<List<UserResponse>> getAllUsers() {
+    public ApiResponse<List<UserResponse>> getAllUsers() { // All disabled and no role user
         return ApiResponse.<List<UserResponse>>builder()
                 .code(1000)
                 .data(userService.getAllUserWithAddress())
@@ -111,6 +112,15 @@ public class UserController {
                 .data(true)
                 .build();
     }
+
+    @PutMapping("/car-mapping")
+    public ApiResponse<Boolean> userCarMapping(@RequestBody @Valid UserCarMappingRequest request){
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(userService.userCarMapping(request))
+                .build();
+    }
+
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")

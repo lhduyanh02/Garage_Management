@@ -16,7 +16,6 @@ public interface PriceMapper {
     @Mapping(target = "name", source = "options.name")
     @Mapping(target = "status", source = "options.status")
     @Mapping(target = "price", source = "price")
-    @Mapping(target = "priceStatus", source = "status")
     OptionPriceResponse toOptionPriceResponse(Price price);
 
     List<OptionPriceResponse> toOptionPriceResponseList(List<Price> prices);
@@ -26,7 +25,6 @@ public interface PriceMapper {
     @Mapping(target = "description", source = "service.description")
     @Mapping(target = "status", source = "service.status")
     @Mapping(target = "price", source = "price")
-    @Mapping(target = "priceStatus", source = "status")
     ServicePriceResponse toServicePriceResponse(Price price);
 
     List<ServicePriceResponse> toServicePriceResponseList(List<Price> prices);

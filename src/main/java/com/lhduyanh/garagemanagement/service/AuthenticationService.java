@@ -8,6 +8,8 @@ import com.lhduyanh.garagemanagement.dto.response.AuthenticationResponse;
 import com.lhduyanh.garagemanagement.dto.response.IntrospectResponse;
 import com.lhduyanh.garagemanagement.entity.InvalidatedToken;
 import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
+import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.AccountRepository;
@@ -56,7 +58,7 @@ public class AuthenticationService {
         var account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
-        if (account.getStatus() <= 0)
+        if (account.getStatus() <= AccountStatus.NOT_CONFIRM.getCode())
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(strength);
 
@@ -136,7 +138,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         // Build UUID cho user có status >= 1
-        if (user.getStatus() >= 1)
+        if (user.getStatus() >= UserStatus.CONFIRMED.getCode())
             return user.getId();
         else
             throw new AppException(ErrorCode.UNAUTHENTICATED);

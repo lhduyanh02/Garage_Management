@@ -5,6 +5,7 @@ import com.lhduyanh.garagemanagement.dto.request.OptionUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.OptionFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.OptionSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Options;
+import com.lhduyanh.garagemanagement.enums.OptionStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.OptionMapper;
@@ -13,7 +14,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,11 +26,13 @@ public class OptionService {
 
     OptionRepository optionRepository;
     OptionMapper optionMapper;
+    PriceService priceService;
 
     public List<OptionSimpleResponse> getAllEnableOption() {
-        return optionRepository.findAllByStatus(1)
+        return optionRepository.findAllByStatus(OptionStatus.USING.getCode())
                 .stream()
                 .map(optionMapper::toSimpleResponse)
+                .sorted(Comparator.comparing(OptionSimpleResponse::getName))
                 .toList();
     }
 
@@ -35,6 +40,7 @@ public class OptionService {
         return optionRepository.findAll()
                 .stream()
                 .map(optionMapper::toSimpleResponse)
+                .sorted(Comparator.comparing(OptionSimpleResponse::getName))
                 .toList();
     }
 
@@ -70,18 +76,30 @@ public class OptionService {
         return optionMapper.toSimpleResponse(optionRepository.save(options));
     }
 
-    public void enableOption(String id) {
+    public boolean enableOption(String id) {
         Options options = optionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OPTION_NOT_EXISTS));
-        options.setStatus(1);
+        options.setStatus(OptionStatus.USING.getCode());
         optionRepository.save(options);
+        return true;
     }
 
-    public void unableOption(String id) {
+    public boolean disableOption(String id) {
         Options options = optionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.OPTION_NOT_EXISTS));
-        options.setStatus(0);
+        options.setStatus(OptionStatus.NOT_USE.getCode());
         optionRepository.save(options);
+        return true;
+    }
+
+    @Transactional
+    public boolean deleteOption(String id) {
+        Options option = optionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.OPTION_NOT_EXISTS));
+
+        priceService.clearPriceByOption(option);
+        optionRepository.delete(option);
+        return true;
     }
 
 }

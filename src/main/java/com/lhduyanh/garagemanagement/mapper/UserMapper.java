@@ -19,6 +19,7 @@ public interface UserMapper {
     User toUser(UserCreationRequest request);
 
     @Mapping(target = "roles", source = "roles")
+    @Mapping(target = "cars", source = "cars")
     UserResponse toUserResponse(User user);
 
     @Mapping(target = "roles", source = "roles")

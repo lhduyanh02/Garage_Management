@@ -44,7 +44,7 @@ const ErrorCode = {
     PLATE_TYPE_NOT_EXISTS: { code: 1041, message: "Loại biển số không tồn tại", statusCode: 404 },
     NULL_PRICE_SERVICE: { code: 1042, message: "Giá không được để trống", statusCode: 400 },
     SERVICE_NOT_EXISTS: { code: 1043, message: "Dịch vụ không tồn tại", statusCode: 404 },
-    SERVICE_NAME_EXISTED: { code: 1044, message: "Tên dịch vụ đã tồn tại", statusCode: 400 },
+    SERVICE_NAME_EXISTED: { code: 1044, message: "Tên dịch vụ đã tồn tại", statusCode: 200 },
     OPTION_NOT_EXISTS: { code: 1045, message: "Tùy chọn không tồn tại", statusCode: 404 },
     OPTION_EXISTED: { code: 1046, message: "Tên tùy chọn đã tồn tại", statusCode: 400 },
     OPTION_NAME_LENGTH: { code: 1047, message: "Tên tùy chọn tối đa 100 ký tự", statusCode: 400 },
@@ -68,7 +68,8 @@ const ErrorCode = {
     BLANK_USER: { code: 1065, message: "Hồ sơ không được để trống", status: 400 },
     CAN_NOT_EDIT_ADMIN: { code: 1066, message: "Bạn không có quyền chỉnh sửa tài khoản quản trị viên này", status: 403 },
     DISABLE_ACCOUNT_WARNING: { code: 1067, message: "Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này", status: 200},
-    NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 }
+    NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 },
+    PRICE_NOT_EXIST: { code: 1069, message: "Không tìm thấy giá cho tùy chọn này", status: 404 },
 };
 
 export default ErrorCode;
