@@ -173,52 +173,10 @@ $("#data-table").on("click", "#editBtn", function () {
     theme: "bootstrap",
     tokenSeparators: [",", " "],
     closeOnSelect: false,
+    language: "vi",
   });
 
   $("#select2-select2-test-container").css("font-size", "17px !important");
-  // Swal.fire({
-  //     title: "Xác nhận?" ,
-  //     showDenyButton: false,
-  //     showCancelButton: true,
-  //     confirmButtonText: "Đồng ý",
-  //     cancelButtonText: "Huỷ",
-  //   }).then((result) => {
-  //     /* Read more about isConfirmed, isDenied below */
-  //     if (result.isConfirmed) {
-  //       $.ajax({
-  //         type: "POST",
-  //         url: "/",
-  //         contentType: "application/json",
-  //         data: JSON.stringify({
-  //           ids: id,
-  //           trangthai: 1
-  //         }),
-  //         success: function (res) {
-  //           if(res.total==1){
-  //             Toast.fire({
-  //               icon: "success",
-  //               title: "Confirmed",
-  //             });
-  //             // Tải lại bảng bangdsyeucau
-  //             dataTable.ajax.reload();
-  //           }else{
-  //             Toast.fire({
-  //               icon: "warning",
-  //               title: "Error"
-  //             });
-  //             // Tải lại bảng bangdsyeucau
-  //             dataTable.ajax.reload();
-  //           }
-  //         },
-  //         error: function (xhr, status, error) {
-  //           Toast.fire({
-  //             icon: "error",
-  //             title: "Internal server error",
-  //           });
-  //         },
-  //       });
-  //     }
-  //   });
 });
 
 $("#newBrand_btn").on("click", function () {
@@ -252,15 +210,6 @@ $("#newBrand_btn").on("click", function () {
     '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
   );
   $("#modal_id").modal("show");
-
-  // $(".select2bs4").select2({
-  //   placeholder: "",
-  //   allowClear: true,
-  //   // dropdownParent: $('#modal_body'),
-  //   theme: "bootstrap",
-  //   tokenSeparators: [",", " "],
-  //   closeOnSelect: false,
-  // });
 
   $("#modal_submit_btn").click(function () {
     let ten = $("#modal_brand_name_input").val();
@@ -419,6 +368,7 @@ $("#newModel_btn").on("click", function () {
     theme: "bootstrap",
     // tokenSeparators: [",", " "],
     closeOnSelect: true,
+    language: "vi",
   });
 
 
@@ -587,6 +537,7 @@ $('#editBrand_btn').click(function () {
     theme: "bootstrap",
     // tokenSeparators: [",", " "],
     closeOnSelect: true,
+    language: "vi",
   });
 
   $("#modal_submit_btn").click(function () {

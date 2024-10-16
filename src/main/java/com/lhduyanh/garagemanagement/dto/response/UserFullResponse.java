@@ -1,6 +1,5 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
-import com.lhduyanh.garagemanagement.entity.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,8 +11,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-//@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserResponse {
+public class UserFullResponse {
     String id;
     String name;
     String phone;
@@ -23,4 +21,5 @@ public class UserResponse {
     AddressResponse address;
     Set<RoleSimpleResponse> roles;
     List<CarResponse> cars;
+    List<AccountSimpleResponse> accounts;
 }

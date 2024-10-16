@@ -35,6 +35,7 @@ public class BrandService {
         List<Brand> brands = brandRepository.findAllBrandModel();
         var response = brands.stream()
                 .map(brandMapper::toBrandModelResponse)
+                .sorted(Comparator.comparing(BrandModelResponse::getBrand))
                 .toList();
 
         response.forEach(res -> {

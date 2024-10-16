@@ -14,4 +14,6 @@ public interface PriceRepository extends JpaRepository<Price, PriceId> {
     List<Price> findAllByService(Service service);
 
     List<Price> findAllByOptions(Options option);
+
+    Optional<Price> findById(PriceId id);
 }

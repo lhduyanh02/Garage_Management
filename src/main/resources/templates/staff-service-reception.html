@@ -7,7 +7,7 @@
     <title>Spring Detailing | Tiếp nhận xe</title>
   
   <!-- jQuery -->
-  <script src="/plugins/jquery/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Google Font: Source Sans Pro -->
@@ -21,9 +21,19 @@
   <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
   <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
   <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  <!-- Select2 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
+    integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
   <!-- Theme style -->
   <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="include/customize.css">
   <style>
     /* Thêm margin và căn giữa cho pagination của bảng service-history-table */
     #service-history-table_paginate {
@@ -42,8 +52,19 @@
     #service-history-table {
         margin: 0px 0px !important;
     }
+
+    #car-info-card .select2-selection__rendered {
+        line-height: 25px !important;
+        font-size: 1rem !important;
+    }
+    #car-info-card .select2-container .select2-selection--single {
+        height: 38px !important;
+    }
+    #car-info-card .select2-selection__placeholder {
+        font-size: 1rem !important;
+    }
   </style>
-  </head>
+</head>
 
 <body class="hold-transition sidebar-mini layout-navbar-fixed">
 <!-- Site wrapper -->
@@ -89,7 +110,7 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="#" class="text-dark">Trang chủ</a></li>
               <li class="breadcrumb-item active">Tiếp nhận dịch vụ</li>
             </ol>
           </div>
@@ -115,7 +136,7 @@
               <!-- /.card-header -->
               <div class="card-body">
                 <div class="row">
-                  <div class="col-md-6">
+                  <div id="car-info-card" class="col-md-6">
                     <div class="row">
                       <div class="col-md-6">
                         <div class="form-group">
@@ -123,7 +144,8 @@
                           <div class="input-group">
                             <input id="num-plate-search-input" type="text" class="form-control" placeholder="Nhập biển kiếm soát">
                             <span class="input-group-append">
-                              <button id="num-plate-search-btn" type="button" class="btn btn-default"><i class="fa-solid fa-magnifying-glass"></i></button>
+                              <button id="num-plate-search-btn" type="button" class="btn btn-default"
+                              ><i class="fa-solid fa-magnifying-glass fa-beat-fade" style="color: #007bff;"></i></button>
                             </span>
                           </div>
                         </div>
@@ -132,14 +154,7 @@
                       <div class="col-md-6">
                         <div class="form-group">
                           <label>Loại biển số</label>
-                          <select id="plate-tyle-select" class="form-control select2" style="width: 100%;" disabled>
-                            <option disabled selected="selected">Chọn loại biển số</option>
-                            <option>Alaska</option>
-                            <option>California</option>
-                            <option>Delaware</option>
-                            <option>Tennessee</option>
-                            <option>Texas</option>
-                            <option>Washington</option>
+                          <select id="plate-type-select" class="form-control select2" style="width: 100%;" data-placeholder="Chọn loại biển số">
                           </select>
                         </div>
                       </div>
@@ -150,14 +165,7 @@
                         <div class="form-group">
                           <label>Hãng xe</label>
                           <div class="input-group">
-                            <select id="brand-select" class="form-control select2" style="width: 100%;" disabled>
-                              <option disabled selected="selected">Chọn hãng xe</option>
-                              <option>Alaska</option>
-                              <option>California</option>
-                              <option>Delaware</option>
-                              <option>Tennessee</option>
-                              <option>Texas</option>
-                              <option>Washington</option>
+                            <select id="brand-select" class="form-control select2" style="width: 100%;" data-placeholder="Chọn hãng xe">
                             </select>
                           </div>
                         </div>
@@ -166,27 +174,18 @@
                       <div class="col-md-3">
                         <div class="form-group">
                           <label>Mẫu xe</label>
-                          <select id="model-select" class="form-control select2" style="width: 100%;" disabled>
-                            <option disabled selected="selected">Chọn mẫu xe</option>
-                            <option>Alaska</option>
-                            <option>California</option>
-                            <option>Delaware</option>
-                            <option>Tennessee</option>
-                            <option>Texas</option>
-                            <option>Washington</option>
+                          <select id="model-select" class="form-control select2" style="width: 100%;" data-placeholder="Chọn mẫu xe">
                           </select>
                         </div>
                       </div>
 
                       <div class="col-md-6">
                         <div class="form-group">
-                          <div class="container">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="mb-0" for="modal_description_input">Mô tả màu sơn/wrap</label>
-                                <kbd id="modal_description_counter" class="mb-0 small">0/200</kbd>
-                            </div>
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label class="text-truncate mb-0" for="color_input">Mô tả màu sơn/wrap</label>
+                              <kbd id="color_counter" class="py-0 small">0/200</kbd>
                           </div>
-                          <input id="color-input" type="text" maxlength="200" class="form-control" placeholder="Màu sơn/wrap" disabled>
+                          <input id="color_input" type="text" maxlength="200" class="form-control" placeholder="Màu sơn/wrap" disabled>
                         </div>
                       </div>
                     </div>
@@ -196,150 +195,60 @@
                         <div class="form-group" width="100%">
                           <div class="container">
                               <div class="d-flex justify-content-between align-items-center mb-2">
-                                  <label class="mb-0" for="modal_description_input">Mô tả chi tiết</label>
-                                  <kbd id="modal_description_counter" class="mb-0 small">0/1000</kbd>
+                                  <label class="mb-0" for="description_input">Mô tả chi tiết</label>
+                                  <kbd id="description_counter" class="py-0 small">0/1000</kbd>
                               </div>
                           </div>
                           <textarea wrap="soft" 
                             class="form-control" 
-                            id="modal_description_input" 
+                            id="description_input" 
                             rows="5" maxlength="1000" 
                             placeholder="Mô tả chi tiết" disabled></textarea>
                         </div>
                       </div>
                     </div>
 
+                    <div class="row pb-3 pb-md-0">
+                      <div class="col-md-12 d-flex">
+                        <button id="reset-btn" type="button" class="btn btn-outline-secondary ml-auto"><i class="fa-solid fa-arrow-rotate-left"></i> Reset</button>
+                        <button id="save-btn" type="button" class="btn btn-outline-success ml-2" data-state="add">Thêm</button>
+                      </div>
+                    </div>
                   </div>
                   <!-- /.col -->
-                  <div class="col-md-6" rowspan="2">
+
+                  <div class="col-md-6 d-flex flex-column" rowspan="4">
                     <div class="card">
-                      <div class="card-header">
-                        <h3 class="card-title">Lịch sử dịch vụ</h3>
+                      <div class="card-header py-2">
+                        <label class="card-title">Lịch sử dịch vụ</label>
                       </div>
                       <!-- /.card-header -->
                       <div class="card-body p-0">
                         <table id="service-history-table" class="table table-striped">
                           <thead>
                             <tr>
-                              <th style="width: 10px">#</th>
-                              <th>Task</th>
-                              <th>Progress</th>
-                              <th style="width: 40px">Label</th>
+                              <th scope="col" style="text-align: center" width="5%" >#</th>
+                              <th scope="col" style="text-align: center" width="40%" >Thời gian</th>
+                              <th scope="col" style="text-align: center">Trạng thái</th>
+                              <th scope="col" style="text-align: center" width="25%">Số tiền</th>
                             </tr>
                           </thead>
                           <tbody>
-                            <tr>
-                              <td>1.</td>
-                              <td>Update software</td>
-                              <td>
-                                <div class="progress progress-xs">
-                                  <div class="progress-bar progress-bar-danger" style="width: 55%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-danger">55%</span></td>
-                            </tr>
-                            <tr>
-                              <td>2.</td>
-                              <td>Clean database</td>
-                              <td>
-                                <div class="progress progress-xs">
-                                  <div class="progress-bar bg-warning" style="width: 70%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-warning">70%</span></td>
-                            </tr>
-                            <tr>
-                              <td>1.</td>
-                              <td>Update software</td>
-                              <td>
-                                <div class="progress progress-xs">
-                                  <div class="progress-bar progress-bar-danger" style="width: 55%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-danger">55%</span></td>
-                            </tr>
-                            <tr>
-                              <td>2.</td>
-                              <td>Clean database</td>
-                              <td>
-                                <div class="progress progress-xs">
-                                  <div class="progress-bar bg-warning" style="width: 70%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-warning">70%</span></td>
-                            </tr>
-                            <tr>
-                              <td>3.</td>
-                              <td>Cron job running</td>
-                              <td>
-                                <div class="progress progress-xs progress-striped active">
-                                  <div class="progress-bar bg-primary" style="width: 30%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-primary">30%</span></td>
-                            </tr>
-                            <tr>
-                              <td>4.</td>
-                              <td>Fix and squish bugs</td>
-                              <td>
-                                <div class="progress progress-xs progress-striped active">
-                                  <div class="progress-bar bg-success" style="width: 90%"></div>
-                                </div>
-                              </td>
-                              <td><span class="badge bg-success">90%</span></td>
-                            </tr>
                           </tbody>
                         </table>
                       </div>
                       <!-- /.card-body -->
                     </div>
+
+                    <div class="row mt-auto">
+                      <div class="col-md-12 d-flex justify-content-end">
+                        <button id="show-history-btn" type="button" class="btn btn-outline-info ml-auto" hidden><i class="fa-regular fa-eye"></i> Xem</button>
+                        <button id="new-history-btn" type="button" class="btn btn-success ml-2" disabled>Thêm mới</button>
+                      </div>
+                    </div>
                   </div>
                   <!-- /.col -->
                 </div>
-                <!-- /.row -->
-    
-
-
-
-
-                <div hidden>
-                <h5>Custom Color Variants</h5>
-                <div class="row">
-                  <div class="col-12 col-sm-6">
-                    <div class="form-group">
-                      <label>Minimal (.select2-danger)</label>
-                      <select class="form-control select2 select2-danger" data-dropdown-css-class="select2-danger" style="width: 100%;">
-                        <option selected="selected">Alabama</option>
-                        <option>Alaska</option>
-                        <option>California</option>
-                        <option>Delaware</option>
-                        <option>Tennessee</option>
-                        <option>Texas</option>
-                        <option>Washington</option>
-                      </select>
-                    </div>
-                    <!-- /.form-group -->
-                  </div>
-                  <!-- /.col -->
-                  <div class="col-12 col-sm-6">
-                    <div class="form-group">
-                      <label>Multiple (.select2-purple)</label>
-                      <div class="select2-purple">
-                        <select class="select2" multiple="multiple" data-placeholder="Select a State" data-dropdown-css-class="select2-purple" style="width: 100%;">
-                          <option>Alabama</option>
-                          <option>Alaska</option>
-                          <option>California</option>
-                          <option>Delaware</option>
-                          <option>Tennessee</option>
-                          <option>Texas</option>
-                          <option>Washington</option>
-                        </select>
-                      </div>
-                    </div>
-                    <!-- /.form-group -->
-                  </div>
-                  <!-- /.col -->
-                </div></div>
                 <!-- /.row -->
               </div>
               <!-- /.card-body -->
@@ -347,13 +256,12 @@
 
 
             <!-- Main content -->
-            <div class="invoice p-3 mb-3">
+            <div id="invoice-card" class="invoice p-3 mb-3" hidden>
               <!-- title row -->
               <div class="row">
                 <div class="col-12">
                   <h4>
-                    <i class="fas fa-globe"></i> AdminLTE, Inc.
-                    <small class="float-right">Date: 2/10/2014</small>
+                    <i class="fas fa-globe"></i> Spring Detailing
                   </h4>
                 </div>
                 <!-- /.col -->
@@ -363,31 +271,30 @@
                 <div class="col-sm-4 invoice-col">
                   From
                   <address>
-                    <strong>Admin, Inc.</strong><br>
-                    795 Folsom Ave, Suite 600<br>
-                    San Francisco, CA 94107<br>
-                    Phone: (804) 123-5432<br>
-                    Email: info@almasaeedstudio.com
+                    <strong>Spring, Inc.</strong><br>
+                    Đồng Văn Cống, An Thới,<br>
+                    Bình Thủy, Cần Thơ<br>
+                    Phone: <a href="tel:+84818700047" class="text-dark hover-underline">(+84) 81 8700047</a><br>
+                    Email: <a href="mailto:lhduyanh2002@gmail.com" class="text-dark hover-underline">lhduyanh2002@gmail.com</a>
                   </address>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-4 invoice-col">
-                  To
+                  To<button id="edit-user-btn" type="button" class="btn btn-sm btn-outline-dark ml-2 py-0" data-state="add">Sửa</button>
                   <address>
-                    <strong>John Doe</strong><br>
-                    795 Folsom Ave, Suite 600<br>
-                    San Francisco, CA 94107<br>
-                    Phone: (555) 539-1037<br>
-                    Email: john.doe@example.com
+                    <strong><span id="customer-name">Khách vãng lai</span></strong><br>
+                    <span id="customer-address"></span><br>
+                    <span id="customer-phone">Phone: </span><br>
+                    <span id="customer-email">Email: </span><br>
                   </address>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-4 invoice-col">
-                  <b>Invoice #007612</b><br>
-                  <br>
-                  <b>Order ID:</b> 4F3S8J<br>
-                  <b>Payment Due:</b> 2/22/2014<br>
-                  <b>Account:</b> 968-34567
+                  <b>Invoice #<span id="invoice-id"></span></b><br>
+                  <b>Service Date: </b><span id="history-date"></span><br>
+                  <b>Odo:</b> <span id="odo-info">Không xác định</span><br>
+                  <span id="advisor-name">Advisor: </span><br>
+                  <span id="advisor-contact">Email: </span><br>
                 </div>
                 <!-- /.col -->
               </div>
@@ -399,42 +306,15 @@
                   <table class="table table-striped">
                     <thead>
                     <tr>
+                      <th>#</th>
+                      <th>Service</th>
+                      <th>Unit Price</th>
+                      <th>Discount (%)</th>
                       <th>Qty</th>
-                      <th>Product</th>
-                      <th>Serial #</th>
-                      <th>Description</th>
-                      <th>Subtotal</th>
+                      <th>Total Price</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Call of Duty</td>
-                      <td>455-981-221</td>
-                      <td>El snort testosterone trophy driving gloves handsome</td>
-                      <td>$64.50</td>
-                    </tr>
-                    <tr>
-                      <td>1</td>
-                      <td>Need for Speed IV</td>
-                      <td>247-925-726</td>
-                      <td>Wes Anderson umami biodiesel</td>
-                      <td>$50.00</td>
-                    </tr>
-                    <tr>
-                      <td>1</td>
-                      <td>Monsters DVD</td>
-                      <td>735-845-642</td>
-                      <td>Terry Richardson helvetica tousled street art master</td>
-                      <td>$10.70</td>
-                    </tr>
-                    <tr>
-                      <td>1</td>
-                      <td>Grown Ups Blue Ray</td>
-                      <td>422-568-642</td>
-                      <td>Tousled lomo letterpress</td>
-                      <td>$25.99</td>
-                    </tr>
                     </tbody>
                   </table>
                 </div>
@@ -444,7 +324,7 @@
 
               <div class="row">
                 <!-- accepted payments column -->
-                <div class="col-6">
+                <div class="col-12 col-lg-6">
                   <p class="lead">Payment Methods:</p>
                   <img src="../../dist/img/credit/visa.png" alt="Visa">
                   <img src="../../dist/img/credit/mastercard.png" alt="Mastercard">
@@ -458,27 +338,39 @@
                   </p>
                 </div>
                 <!-- /.col -->
-                <div class="col-6">
-                  <p class="lead">Amount Due 2/22/2014</p>
+                <div class="col-12 col-lg-6">
+                  <p class="lead">Payment</p>
 
                   <div class="table-responsive">
                     <table class="table">
-                      <tr>
-                        <th style="width:50%">Subtotal:</th>
-                        <td>$250.30</td>
-                      </tr>
-                      <tr>
-                        <th>Tax (9.3%)</th>
-                        <td>$10.34</td>
-                      </tr>
-                      <tr>
+                      <tr class="row w-100">
+                        <th class="col-sm-5 col-12">Subtotal:</th>
+                        <td class="col-sm-7 col-12" id="total-amount-info">-1</td>
+                    </tr>
+                    <tr class="row w-100">
+                        <th class="col-sm-5 col-12">Discount (%)</th>
+                        <td class="col-sm-7 col-12">
+                          <div class="dropdown w-100" style="z-index: 1000;">
+                            <input id="discount-info" type="text" class="form-control dropdown-toggle h-auto w-100 p-0" placeholder="0" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="border: none; z-index: 1000;" value="0">
+                            <div class="dropdown-menu overflow-auto" aria-labelledby="discount-info" style="z-index: 1000; height: 150px;">
+                              <a class="dropdown-item discount-suggestion" role="button">5%</a>
+                              <a class="dropdown-item discount-suggestion" role="button">10%</a>
+                              <a class="dropdown-item discount-suggestion" role="button">20%</a>
+                              <a class="dropdown-item discount-suggestion" role="button">30%</a>
+                              <a class="dropdown-item discount-suggestion" role="button">50%</a>
+                              <a class="dropdown-item discount-suggestion" role="button">100%</a>
+                            </div>
+                          </div>  
+                        </td>
+                    </tr>
+                    <!-- <tr>
                         <th>Shipping:</th>
                         <td>$5.80</td>
-                      </tr>
-                      <tr>
-                        <th>Total:</th>
-                        <td>$265.24</td>
-                      </tr>
+                    </tr> -->
+                    <tr class="row w-100">
+                        <th class="col-sm-5 col-12">Amount Due:</th>
+                        <td class="col-sm-7 col-12" id="payable-amount-info">-1</td>
+                    </tr>
                     </table>
                   </div>
                 </div>
@@ -505,6 +397,10 @@
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
+    <div id="modal-card"></div>
+    <script>
+      $("#modal-card").load("/include/modal.html")
+    </script>
   </div>
   <!-- /.content-wrapper -->
 
@@ -523,7 +419,11 @@
   </script>
 </div>
 <!-- ./wrapper -->
+
   <!-- REQUIRED SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/vi.js"></script>
+
   <!-- Bootstrap -->
   <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- overlayScrollbars -->
@@ -541,6 +441,7 @@
   <script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+  
   <!-- PAGE PLUGINS -->
   <!-- jQuery Mapael -->
   <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>

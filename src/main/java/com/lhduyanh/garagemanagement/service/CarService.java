@@ -16,6 +16,7 @@ import com.lhduyanh.garagemanagement.repository.PlateTypeRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import java.util.Optional;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class CarService {
 
     CarRepository carRepository;
@@ -60,6 +62,41 @@ public class CarService {
                 .stream()
                 .map(carMapper::toCarResponse)
                 .toList();
+    }
+
+    public List<CarResponse> searchCars(String partialNumPlate, String plateTypeId, String brandId, String modelId) {
+        String numPlate = null;
+        if (partialNumPlate != null && !partialNumPlate.trim().isEmpty()) {
+            numPlate = partialNumPlate.trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+        }
+
+        Integer plateType = (plateTypeId != null && !plateTypeId.trim().isEmpty())
+                ? Integer.valueOf(plateTypeId.trim())
+                : null;
+
+        Integer brand = (brandId != null && !brandId.trim().isEmpty())
+                ? Integer.valueOf(brandId.trim())
+                : null;
+
+        Integer model = (modelId != null && !modelId.trim().isEmpty())
+                ? Integer.valueOf(modelId.trim())
+                : null;
+
+        // Kiểm tra nếu tất cả tham số đều null hoặc rỗng
+        if (numPlate == null && plateType == null && brand == null && model == null) {
+            throw new AppException(ErrorCode.INVALID_SEARCH_CRITERIA);
+        }
+
+        List<CarResponse> cars = carRepository.searchCars(numPlate, plateType, brand, model)
+                .stream()
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .map(carMapper::toCarResponse)
+                .toList();
+
+        if (cars.isEmpty()) {
+            throw new AppException(ErrorCode.NO_CARS_FOUND);
+        }
+        return cars;
     }
 
     public CarResponse newCar(CarRequest request) {

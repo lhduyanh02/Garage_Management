@@ -125,7 +125,12 @@ $(document).ready(function () {
                     if (data != null && Array.isArray(data)) {
                         let html = "";
                         $.each(data , function (idx, val) {
-                            html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                            if(val.status == 1){
+                                html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                            }
+                            else if (val.status == 0){
+                                html+=` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`
+                            }
                         });
                         return (
                             '<center>' + html + '</center>'
@@ -274,6 +279,7 @@ $("#data-table").on("click", "#editBtn", function () {
                             allowClear: false,
                             theme: "bootstrap",
                             closeOnSelect: true,
+                            language: "vi",
                             minimumInputLength: 2,
                             data: userList.map(function (option) {
                                 const phone = option.phone ? ` - ${option.phone}` : "";
@@ -615,6 +621,7 @@ $("#new-account-btn").click(function () {
         placeholder: "Chọn phân loại hồ sơ",
         allowClear: true,
         theme: "bootstrap",
+        language: "vi",
         closeOnSelect: true
     });
 
@@ -644,6 +651,7 @@ $("#new-account-btn").click(function () {
             allowClear: true,
             theme: "bootstrap",
             closeOnSelect: true,
+            language: "vi",
             minimumInputLength: 2,
             ajax: {
                 transport: function (params, success, failure) {

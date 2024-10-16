@@ -3,13 +3,13 @@ package com.lhduyanh.garagemanagement.service;
 import com.lhduyanh.garagemanagement.dto.request.UserCarMappingRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
-import com.lhduyanh.garagemanagement.dto.response.CarResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.Car;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
 import com.lhduyanh.garagemanagement.enums.CarStatus;
+import com.lhduyanh.garagemanagement.enums.RoleStatus;
 import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
@@ -46,7 +46,7 @@ public class UserService {
     CarRepository carRepository;
 
     public List<UserResponse> getAllUserWithAddress(){
-        List<User> users = userRepository.findAllWithAddress();
+        List<User> users = userRepository.findAllUserFullInfo();
         return users.stream()
                 .map(user -> {
                     UserResponse response = userMapper.toUserResponse(user);
@@ -65,7 +65,7 @@ public class UserService {
 
     public List<UserResponse> getAllActiveUser(){
 
-        List<User> users = userRepository.findAllActiveUser();
+        List<User> users = userRepository.findAllActiveUserFetchCars();
         return users.stream()
                 .map(user -> {
                     UserResponse response = userMapper.toUserResponse(user);
@@ -82,6 +82,35 @@ public class UserService {
                 .collect(Collectors.toList());
     };
 
+    public List<UserFullResponse> getAllActiveCustomers(){
+        List<User> users = userRepository.findAllActiveCustomerFullInfo();
+        return users.stream()
+                .map(user -> {
+                    UserFullResponse response = userMapper.toUserFullResponse(user);
+                    Set<RoleSimpleResponse> roles = response.getRoles()
+                            .stream()
+                            .filter(role -> role.getStatus()== RoleStatus.USING.getCode())
+                            .collect(Collectors.toSet());
+                    response.setRoles(roles);
+
+                    List<CarResponse> cars = response.getCars().stream()
+                            .filter(car -> car.getStatus() == CarStatus.USING.getCode())
+                            .toList();
+                    response.setCars(cars);
+
+                    List<AccountSimpleResponse> accounts = response.getAccounts()
+                            .stream()
+                            .filter(account -> account.getStatus() >= AccountStatus.NOT_CONFIRM.getCode())
+                            .toList();
+                    response.setAccounts(accounts);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(UserFullResponse::getName))
+                .filter(user -> user.getRoles().size()>0)
+                .collect(Collectors.toList());
+    };
+
     public List<UserWithAccountsResponse> getAllUserWithAccounts(){
         List<User> users = userRepository.findAllWithAccounts();
         return users
@@ -91,11 +120,11 @@ public class UserService {
                 .toList();
     }
 
-    public UserWithAccountsResponse getUserById(String id){
-        User user = userRepository.findById(id)
+    public UserFullResponse getUserById(String id){
+        User user = userRepository.findByIdFullInfo(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toUserWithAccountsResponse(user);
+        return userMapper.toUserFullResponse(user);
     }
 
     public UserResponse getMyUserInfo(){
@@ -234,7 +263,7 @@ public class UserService {
         Car car = carRepository.findById(request.getCarId())
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
         if(car.getStatus() != CarStatus.USING.getCode()) {
-            throw new AppException(ErrorCode.DISABLED_CAR);
+            throw new AppException(ErrorCode.   DISABLED_CAR);
         }
         Set<Car> carSet = user.getCars();
         if(!carSet.contains(car)) {

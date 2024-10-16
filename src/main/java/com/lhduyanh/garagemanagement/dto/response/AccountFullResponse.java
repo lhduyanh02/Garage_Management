@@ -8,9 +8,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AccountResponse {
+public class AccountFullResponse {
     String id;
     String email;
     int status;
-    UserSimpleResponse user;
+    UserResponse user;
 }

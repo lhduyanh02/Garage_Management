@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.dto.request.UserCarMappingRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
+import com.lhduyanh.garagemanagement.dto.response.UserFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserResponse;
 import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
 import com.lhduyanh.garagemanagement.repository.AddressRepository;
@@ -42,8 +43,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<UserWithAccountsResponse> getUserById(@PathVariable String id) {
-        return ApiResponse.<UserWithAccountsResponse>builder()
+    public ApiResponse<UserFullResponse> getUserById(@PathVariable String id) {
+        return ApiResponse.<UserFullResponse>builder()
                 .code(1000)
                 .data(userService.getUserById(id))
                 .build();
@@ -55,6 +56,15 @@ public class UserController {
         return ApiResponse.<List<UserResponse>>builder()
                 .code(1000)
                 .data(userService.getAllActiveUser())
+                .build();
+    }
+
+    @GetMapping("/customers")
+//    @PreAuthorize("@securityExpression.hasPermission({'GET_ACCOUNT_LIST', 'GET_USER_LIST'})")
+    public ApiResponse<List<UserFullResponse>> getAllActiveCustomers() {
+        return ApiResponse.<List<UserFullResponse>>builder()
+                .code(1000)
+                .data(userService.getAllActiveCustomers())
                 .build();
     }
 

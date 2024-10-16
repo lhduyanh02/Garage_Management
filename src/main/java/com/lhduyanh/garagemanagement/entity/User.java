@@ -50,7 +50,7 @@ public class User {
     @Column(name = "telegram_id", nullable = true)
     Long telegramId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_car",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,8 +26,11 @@ public class History {
     @JoinColumn(name = "advisor_id", nullable = false)
     User advisor;
 
-    @Column(nullable = false)
-    long odo;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", nullable = true)
+    User customer;
+
+    Long odo;
 
     @Column(name ="service_date", nullable = false)
     LocalDateTime serviceDate;
@@ -36,13 +40,16 @@ public class History {
     String diagnose;
 
     @Column(nullable = false, name = "total_amount")
-    double totalAmount;
+    Double totalAmount;
 
     @Column(nullable = false)
-    float discount;
+    Float discount;
 
     @Column(name = "payable_amount", nullable = false)
-    double payableAmount;
+    Double payableAmount;
 
     int status;
+
+    @OneToMany(mappedBy = "history", fetch = FetchType.LAZY)
+    Set<DetailHistory> details;
 }

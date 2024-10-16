@@ -12,8 +12,8 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
 
-    @Query("SELECT a FROM Account a JOIN FETCH a.user u LEFT JOIN FETCH u.address WHERE a.id = :id")
-    Optional<Account> findByIdFetchAddress(@Param("id") String id);
+    @Query("SELECT a FROM Account a JOIN FETCH a.user u LEFT JOIN FETCH u.address LEFT JOIN FETCH u.cars WHERE a.id = :id")
+    Optional<Account> findByIdFetchAll(@Param("id") String id);
 
     @Query("SELECT COUNT(a) > 0 FROM Account a WHERE a.email = :email")
     boolean existsByEmail(@Param("email") String email);

@@ -16,8 +16,8 @@ public class AccountController {   // for design account controller api
     private AccountService accountService;
 
     @GetMapping("/{id}")
-    public ApiResponse<AccountResponse> getAccountById(@PathVariable String id) {
-        return ApiResponse.<AccountResponse>builder()
+    public ApiResponse<AccountFullResponse> getAccountById(@PathVariable String id) {
+        return ApiResponse.<AccountFullResponse>builder()
                 .code(1000)
                 .data(accountService.getAccountById(id))
                 .build();

@@ -54,6 +54,7 @@ function refreshToken() {
         },
         error: function(xhr, status, error) {
             console.error("Error refreshing token:", error);
+            console.log(xhr);
         }
     });
 }

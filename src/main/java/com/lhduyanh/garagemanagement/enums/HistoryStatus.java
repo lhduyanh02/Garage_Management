@@ -9,7 +9,7 @@ public enum HistoryStatus {
     DELETED(-2),
     CANCELED(-1),
     PROCEEDING(0),
-    DONE(1),
+    PAID(1),
     ;
 
     private int code;

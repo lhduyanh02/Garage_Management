@@ -1,10 +1,7 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.*;
-import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.AccountVerifyResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserRegisterResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.Account;
 import com.lhduyanh.garagemanagement.entity.Address;
 import com.lhduyanh.garagemanagement.entity.Role;
@@ -48,7 +45,7 @@ public class AccountService {
     AddressRepository addressRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-    private final OtpService otpService;
+    OtpService otpService;
 
     @NonFinal
     @Value("${app.admin-email}")
@@ -59,8 +56,8 @@ public class AccountService {
     String DEFAULT_PASSWORD;
 
 
-    public AccountResponse getAccountById(String id) {
-        return accountMapper.toAccountResponse(accountRepository.findByIdFetchAddress(id)
+    public AccountFullResponse getAccountById(String id) {
+        return accountMapper.toAccountFullResponse(accountRepository.findByIdFetchAll(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)));
     }
 
@@ -153,6 +150,8 @@ public class AccountService {
 
         if(user.getStatus() == 9999){
             throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        } else if (user.getStatus() != UserStatus.CONFIRMED.getCode()){
+            throw new AppException(ErrorCode.DISABLED_USER);
         }
 
         List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());

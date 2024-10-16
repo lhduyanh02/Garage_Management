@@ -67,6 +67,7 @@ $(document).ready(function () {
                             status: user.status,
                             address: user.address,
                             roles: user.roles,
+                            cars: user.cars
                         });
                     });
 
@@ -101,28 +102,38 @@ $(document).ready(function () {
             {
                 data: null,
                 render: function (data, type, row) {
-                    if (row.phone != null) {
-                        return (
-                            row.name +
-                            "<br><small><i>" +
-                            row.phone +
-                            "</i></small>"
-                        );
-                    } else {
-                        return row.name;
+                    let html = row.name;
+                    if (row.gender == 0) {
+                        html += ' <span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span><br>';
+                    } else if (row.gender == 1) {
+                        html += ' <span class="badge badge-info"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span><br>';
+                    } else{
+                        html += ` <span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center><br>`
                     }
+                    if (row.phone != null) {
+                        html += `<small><i>${row.phone}</i></small>`;
+                    }
+                    return html;
                 },
             },
             {
-                data: "gender",
+                data: "cars",
                 render: function (data, type, row) {
-                    if (data == 0) {
-                        return '<center><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span></center>';
-                    } else if (data == 1) {
-                        return '<center><span class="badge badge-success"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span></center>';
-                    } else {
-                        return '<center><span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center>';
+                    if (data != null && Array.isArray(data)) {
+                        let html = "";
+                        $.each(data , function (idx, val) {
+                            if(val.status == 1){
+                                html+=` <span class="badge badge-light">&nbsp;${val.model.brand.brand} ${val.model.model}<br>${val.numPlate}</span><br>`
+                            }
+                            else if (val.status == 0){
+                                html+=` <span class="badge badge-danger">&nbsp;${val.model.brand.brand} ${val.model.model}<br>${val.numPlate}</span><br>`
+                            }
+                        });
+                        return (
+                            '<center>' + html + '</center>'
+                        );
                     }
+                    return "";
                 },
             },
             {
@@ -352,14 +363,14 @@ $("#data-table").on("click", "#editBtn", function () {
                 theme: "bootstrap",
                 // tokenSeparators: [",", " "],
                 closeOnSelect: true,
+                language: "vi",
             });
 
             $("#address-select").select2({
                 placeholder: "Chọn địa chỉ",
                 allowClear: true,
-                // dropdownParent: $('#modal_body'),
+                language: "vi",
                 theme: "bootstrap",
-                // tokenSeparators: [",", " "],
                 closeOnSelect: true,
                 minimumInputLength: 2, // Chỉ tìm kiếm khi có ít nhất 2 ký tự
                 ajax: {
@@ -392,6 +403,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 allowClear: false,
                 theme: "bootstrap",
                 closeOnSelect: false,
+                language: "vi",
             })
 
             $("#modal_name_input").val(res.data.name);
@@ -644,7 +656,7 @@ $("#new-user-btn").click(function () {
         <div class="form-group">
             <label>Giới tính</label>
             <div class="form-group">
-                <select id="gender-select" class="form-control select2bs4" style="width: 100%;">
+                <select id="gender-select" class="form-control select2bs4" style="width: 100%;" data-placeholder="Chọn giới tính">
                 <option disabled selected> Chọn giới tính </option>
                 <option value="-1"> Khác </option>
                 <option value="1"> Nam </option>
@@ -655,7 +667,7 @@ $("#new-user-btn").click(function () {
 
         <div class="form-group">
             <label>Địa chỉ</label>
-            <select id="address-select" class="form-control select2bs4" style="width: 100%;">
+            <select id="address-select" class="form-control select2bs4" style="width: 100%;"  data-placeholder="Chọn địa chỉ">
             </select>
         </div>
 
@@ -691,12 +703,10 @@ $("#new-user-btn").click(function () {
         '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
         );
     $("#gender-select").select2({
-        placeholder: "Chọn giới tính",
         allowClear: true,
-        // dropdownParent: $('#modal_body'),
         theme: "bootstrap",
-        // tokenSeparators: [",", " "],
         closeOnSelect: true,
+        language: "vi",
     });
 
     $('#address-select').empty();
@@ -706,6 +716,7 @@ $("#new-user-btn").click(function () {
         theme: "bootstrap",
         closeOnSelect: true,
         minimumInputLength: 2,
+        language: "vi",
         ajax: {
             transport: function (params, success, failure) {
                 let results = [];
@@ -737,6 +748,7 @@ $("#new-user-btn").click(function () {
         allowClear: true,
         theme: "bootstrap",
         closeOnSelect: false,
+        language: "vi",
     })
 
     utils.set_char_count("#modal_name_input", "#modal_name_counter");

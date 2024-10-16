@@ -38,6 +38,7 @@ $(document).ready(function () {
             infoFiltered: "(Lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
+            loadingRecords: "Đang tải dữ liệu..."
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -301,6 +302,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 theme: "bootstrap",
                 closeOnSelect: true,
                 width: "100%",
+                language: "vi",
             });
 
             $("#modal_name_input").val(data.name);
@@ -368,6 +370,7 @@ $("#data-table").on("click", "#editBtn", function () {
                                 theme: "bootstrap",
                                 closeOnSelect: true,
                                 width: "100%",
+                                language: "vi",
                             });
 
                             var newSelect = $("#option-wrapper")
@@ -462,6 +465,7 @@ $("#data-table").on("click", "#editBtn", function () {
                     theme: "bootstrap",
                     closeOnSelect: true,
                     width: "100%",
+                    language: "vi",
                 });
 
                 // Thêm các option vào select mới và lọc các tùy chọn đã chọn
@@ -896,6 +900,7 @@ $("#new-service-btn").click(function () {
         theme: "bootstrap",
         closeOnSelect: true,
         width: "100%",
+        language: "vi",
     });
 
     $(".price-input").on("input", function () {
@@ -967,6 +972,7 @@ $("#new-service-btn").click(function () {
             theme: "bootstrap",
             closeOnSelect: true,
             width: "100%",
+            language: "vi",
         });
 
         $(".price-input").on("input", function () {
@@ -1283,6 +1289,7 @@ $("#copy-service-btn").click(function () {
                         theme: "bootstrap",
                         closeOnSelect: true,
                         width: "100%",
+                        language: "vi",
                     });
         
                     $("#modal_name_input").val(data.name + " copy");
@@ -1350,6 +1357,7 @@ $("#copy-service-btn").click(function () {
                                         theme: "bootstrap",
                                         closeOnSelect: true,
                                         width: "100%",
+                                        language: "vi",
                                     });
         
                                     var newSelect = $("#option-wrapper")
@@ -1444,6 +1452,7 @@ $("#copy-service-btn").click(function () {
                             theme: "bootstrap",
                             closeOnSelect: true,
                             width: "100%",
+                            language: "vi",
                         });
         
                         // Thêm các option vào select mới và lọc các tùy chọn đã chọn
@@ -1736,20 +1745,14 @@ function updateIsSelected(optionList) {
 }
 
 function formatCurrent(inputValue) {
-    console.log(inputValue);
-    
-    inputValue = inputValue.replace(/\s+/g, '');
+    // Xóa các ký tự không phải là số
+    inputValue = inputValue.replace(/\D/g, '');
 
-    if (inputValue.trim().endsWith('.')) {
-        return; 
-    }
+    // Xóa các số 0 đứng đầu trừ khi số là 0 duy nhất
+    inputValue = inputValue.replace(/^0+(?=\d)/, '');
 
-    let parts = inputValue.split('.');
+    // Thêm dấu cách giữa các nhóm 3 chữ số
+    let formattedValue = inputValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-    let beforeDecimal = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-
-    let afterDecimal = parts[1] ? parts[1].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : '';
-
-    let formattedValue = afterDecimal ? `${beforeDecimal}.${afterDecimal}` : beforeDecimal;
     return formattedValue;
 }

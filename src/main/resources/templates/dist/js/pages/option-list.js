@@ -269,6 +269,7 @@ $("#data-table").on("click", "#editBtn", function () {
                             allowClear: false,
                             theme: "bootstrap",
                             closeOnSelect: true,
+                            language: "vi",
                             minimumInputLength: 2,
                             data: userList.map(function (option) {
                                 const phone = option.phone ? ` - ${option.phone}` : "";

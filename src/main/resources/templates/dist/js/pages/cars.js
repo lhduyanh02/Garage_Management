@@ -385,6 +385,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn loại biển kiểm soát",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true
             });
         
@@ -392,6 +393,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn hãng xe",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true,
             });
         
@@ -399,6 +401,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn mẫu xe",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true
             });
         
@@ -673,7 +676,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Loại biển kiểm soát <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;">
+                    <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;" data-placeholder="Chọn loại biển kiểm soát">
                     </select>
                 </div>
             </div>
@@ -681,7 +684,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Hãng xe <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="brand-select" class="form-control select2bs4" required style="width: 100%;">
+                    <select id="brand-select" class="form-control select2bs4" required style="width: 100%;" data-placeholder="Chọn hãng xe">
                         <option disabled selected> Chọn hãng xe </option>
                     </select>
                 </div>
@@ -690,7 +693,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Mẫu xe <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="model-select" class="form-control select2bs4" required style="width: 100%;">
+                    <select id="model-select" class="form-control select2bs4" required style="width: 100%;" data-placeholder="Chọn mẫu xe">
                     </select>
                 </div>
             </div>
@@ -787,24 +790,10 @@ $("#new-car-btn").click(function () {
         }
     });
 
-    $('#plate-type-select').select2({
-        placeholder: "Chọn loại biển kiểm soát",
+    $('.select2bs4').select2({
         allowClear: true,
         theme: "bootstrap",
-        closeOnSelect: true
-    });
-
-    $('#brand-select').select2({
-        placeholder: "Chọn hãng xe",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-
-    $('#model-select').select2({
-        placeholder: "Chọn mẫu xe",
-        allowClear: true,
-        theme: "bootstrap",
+        language: "vi",
         closeOnSelect: true
     });
 
@@ -925,6 +914,8 @@ $("#user-mapping-btn").click(function () {
         $("#data-table tbody").on("click", "tr", function () {
             var rowData = $('#data-table').DataTable().row(this).data();
             var carId = rowData.id;
+            var carPlate = rowData.numPlate;
+            var carModel = rowData.model.model;
 
             $("#user-mapping-btn").removeClass("btn-danger").addClass("btn-info").html(`
                 <i class="fa-solid fa-key mr-1"></i> Đăng ký sở hữu
@@ -957,12 +948,15 @@ $("#user-mapping-btn").click(function () {
                                 <div class="form-group">
                                     <label>Tìm hồ sơ</label>
                                     <div class="input-group">
-                                        <input id="search-input" type="text" class="form-control form-control-sm" placeholder="Tìm kiếm hồ sơ">
+                                        <input id="user-search-input" type="text" class="form-control form-control-sm" placeholder="Tìm kiếm hồ sơ">
                                         <div class="input-group-append">
                                             <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-md-6 d-flex">
+                                <button id="user-select-btn" type="button" class="btn btn-sm btn-outline-info ml-auto mt-auto mb-3 px-3">Chọn</button>
                             </div>
                         </div>
                         <table id="user-table" class="table table-bordered table-striped">
@@ -970,7 +964,7 @@ $("#user-mapping-btn").click(function () {
                                 <tr>
                                     <th scope="col" style="text-align: center" width="4%">#</th>
                                     <th scope="col" style="text-align: center" min-width="20%">Họ tên</th>
-                                    <th scope="col" style="text-align: center" min-width="30%">Thông tin</th>
+                                    <th scope="col" style="text-align: center" min-width="35%">Thông tin</th>
                                     <th scope="col" style="text-align: center" width="20%">Danh sách xe</th>
                                     <th scope="col" style="text-align: center" width="15%">Vai trò</th>
                                 </tr>
@@ -985,24 +979,16 @@ $("#user-mapping-btn").click(function () {
                         autoWidth: false,
                         buttons: false,
                         pageLength: 5,
-                        searching: false,
+                        searching: true,
                         select: true,
-                        language: {
-                            paginate: {
-                                next: "&raquo;",
-                                previous: "&laquo;"
-                            },
-                            lengthMenu: "Số dòng: _MENU_",
-                            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
-                            infoEmpty: "Không có dữ liệu để hiển thị",
-                            infoFiltered: "(Lọc từ _MAX_ mục)",
-                            emptyTable: "Không có dữ liệu",
-                            search: "Tìm kiếm:",
-                        },
+                        dom: 'lrtip', // (l: length, r: processing, t: table, i: information, p: pagination)
                         columnDefs: [
-                            { orderable: false, targets: 3 }, // Vô hiệu hóa sort cho cột Thao tác (index 6)
-                            { className: "text-center", targets: 0 },
-                        ],           
+                            { orderable: false, targets: 3 },
+                            {
+                                targets: '_all', // Áp dụng cho tất cả các cột
+                                className: 'text-center, targets: 0' // Căn giữa nội dung của tất cả các cột
+                            }
+                        ],
                         language: {
                             paginate: {
                                 next: "&raquo;",
@@ -1039,7 +1025,7 @@ $("#user-mapping-btn").click(function () {
                                     if (row.address) {
                                         html += `<i>ĐC: </i>${row.address.address}`;
                                     }
-                                    return html;
+                                    return `<small>${html}</small>`;
                                 }
                             },
                             { data: 'cars', 
@@ -1098,192 +1084,74 @@ $("#user-mapping-btn").click(function () {
                     });
 
                     $('#user-table tbody').on('click', 'tr', function() {
-                        // Xóa lớp selected khỏi tất cả hàng
-                        $('#user-table tbody tr').removeClass('selected');
-                        // Thêm lớp selected vào hàng được chọn
-                        $(this).toggleClass('selected');
+                        if ($(this).hasClass('selected')) {
+                            $(this).removeClass('selected');
+                        } else {
+                            $('#user-table tbody tr').removeClass('selected');
+                            $(this).addClass('selected');
+                        }
+                    });
+
+                    $("#user-search-input").on("keyup", function () {
+                        userTable.search(this.value.trim()).draw();
                     });
         
-                    // $(".select2bs4").select2({
-                    //     allowClear: true,
-                    //     theme: "bootstrap",
-                    //     closeOnSelect: true,
-                    //     width: "100%",
-                    // });
-        
-                    $("#modal_footer").append(
-                        '<i>Double-click để chọn hồ sơ</i>'
-                    );
-        
-                    $("#modal_id").modal("show");
-        
-                    $("#modal_submit_btn").click(function () {
-                        if (!$("#modal-form")[0].checkValidity()) {
-                            $("#modal-form")[0].reportValidity();
-                            return;
-                        }
-        
-                        let name = $("#modal_name_input").val().trim();
-                        let description = $("#modal_description_input").val().trim();
-                        let isApply = $("#is-enable-switch").is(":checked") ? 1 : 0;
-        
-                        if (name == "") {
-                            Toast.fire({
-                                icon: "warning",
-                                title: "Vui lòng điền tên dịch vụ",
-                            });
-                            return;
-                        }
-        
-                        var optionPrices = [];
-                        var hasError = false; // Biến cờ để theo dõi lỗi
-        
-                        // Duyệt qua từng phần tử trong #option-wrapper
-                        $("#option-wrapper .row").each(function () {
-                            var selectedOption = $(this).find(".option-select").val();
-                            var priceValue = $(this)
-                                .find('input[name="text[]"]')
-                                .val()
-                                .trim()
-                                .replace(/\s+/g, '');
-        
-                            if (selectedOption == null) {
-                                Toast.fire({
-                                    icon: "warning",
-                                    title: "Vui lòng chọn option",
-                                });
-                                hasError = true; // Đặt cờ lỗi
-                                return;
-                            }
-                            if (priceValue === "") {
-                                Toast.fire({
-                                    icon: "warning",
-                                    title: "Vui lòng điền giá cho option",
-                                });
-                                hasError = true; // Đặt cờ lỗi
-                                return;
-                            }
-        
-                            var isValidNumber = /^\d+(\.\d+)?$/.test(priceValue);
-        
-                            if (!isValidNumber) {
-                                Toast.fire({
-                                    icon: "warning",
-                                    title: "Giá hợp lệ chứa số 0-9 và dấu chấm thập phân",
-                                });
-                                hasError = true; // Đặt cờ lỗi
-                                return;
-                            }
-        
-                            // Kiểm tra giá trị nhập vào có phải là số hay không (double)
-                            var priceAsNumber = parseFloat(priceValue);
-        
-                            if (isNaN(priceAsNumber) || priceAsNumber < 0) {
-                                Toast.fire({
-                                    icon: "warning",
-                                    title: "Vui lòng nhập giá hợp lệ (không âm)",
-                                });
-                                hasError = true; // Đặt cờ lỗi
-                                return;
-                            }
-        
-                            // Thêm cặp giá trị vào mảng
-                            optionPrices.push({
-                                option: selectedOption,
-                                price: priceValue,
-                            });
-                        });
-        
-                        if (hasError) {
-                            return;
-                        }
-        
-                        $.ajax({
-                            type: "POST",
-                            url: "/api/services",
-                            headers: utils.defaultHeaders(),
-                            data: JSON.stringify({
-                                name: name,
-                                description: description,
-                                status: isApply,
-                                listOptionPrices: optionPrices.map(function (item) {
-                                    return {
-                                        optionId: item.option,
-                                        price: item.price,
-                                    };
-                                }),
-                            }),
-                            success: function (response) {
-                                if (response.code == 1000) {
-                                    Toast.fire({
-                                        icon: "success",
-                                        title: `Thêm thành công dịch vụ<br>${name}`,
-                                    });
-                                    $("#modal_id").modal("hide");
-                                    dataTable.ajax.reload();
-                                } else if (response.code == 1044) {
-                                    // Tham chiếu từ ErrorCode
-                                    Swal.fire({
-                                        title: `Tên dịch vụ này đã tồn tại, vẫn thêm mới dịch vụ<br>${name}?`,
-                                        showDenyButton: false,
-                                        showCancelButton: true,
-                                        confirmButtonText: "Đồng ý",
-                                        cancelButtonText: "Huỷ",
-                                    }).then((result) => {
-                                        /* Read more about isConfirmed, isDenied below */
-                                        if (result.isConfirmed) {
-                                            $.ajax({
-                                                type: "POST",
-                                                url: "/api/services/confirm",
-                                                headers: utils.defaultHeaders(),
-                                                data: JSON.stringify({
-                                                    name: name,
-                                                    description: description,
-                                                    status: isApply,
-                                                    listOptionPrices: optionPrices.map(
-                                                        function (item) {
-                                                            return {
-                                                                optionId: item.option,
-                                                                price: item.price,
-                                                            };
-                                                        }
-                                                    ),
-                                                }),
-                                                success: function (res) {
-                                                    if (res.code == 1000) {
-                                                        Toast.fire({
-                                                            icon: "success",
-                                                            title: `Thêm thành công dịch vụ<br>${name}`,
-                                                        });
-                                                    }
-                                                    $("#modal_id").modal("hide");
-                                                    dataTable.ajax.reload();
-                                                },
-                                                error: function (xhr, status, error) {
-                                                    Toast.fire({
-                                                        icon: "error",
-                                                        title: utils.getXHRInfo(xhr).message,
-                                                    });
-                                                },
-                                            });
+                    $("#user-select-btn").click(function (e) { 
+                        var selectedRow = $('#user-table tbody tr.selected');
+                        let userData = $('#user-table').DataTable().row(selectedRow).data();
+                        
+                        if (selectedRow.length > 0) {
+                            Swal.fire({
+                                title: `Xác nhận hồ sơ<br>${userData.name} quản lý xe<br>${carModel} ${carPlate}`,
+                                showDenyButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: "Xác nhận",
+                                cancelButtonText: `Hủy`
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: "/api/users/car-mapping",
+                                        headers: utils.defaultHeaders(),
+                                        data: JSON.stringify({
+                                            userId: userData.id,
+                                            carId: carId
+                                        }),
+                                        success: function (response) {
+                                            if(response.code == 1000 && response.data == true) {
+                                                Toast.fire({
+                                                    icon: "success",
+                                                    title: "Cập nhật thành công"
+                                                });
+                                                $("#modal_id").modal("hide");
+                                                dataTable.ajax.reload();
+                                            }
+                                            else {
+                                                Toast.fire({
+                                                    icon: "error",
+                                                    title: response.message
+                                                })
+                                            }
+                                        },
+                                        error: function(xhr, status, error) {
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: utils.getXHRInfo(xhr).message
+                                            })
                                         }
                                     });
-                                } else {
-                                    Toast.fire({
-                                        icon: "warning",
-                                        title: utils.getErrorMessage(response.code),
-                                    });
                                 }
-                            },
-                            error: function (xhr, status, error) {
-                                Toast.fire({
-                                    icon: "error",
-                                    title: utils.getXHRInfo(xhr).message,
-                                });
-                                dataTable.ajax.reload();
-                            },
-                        });
+                            });
+                        } else {
+                            Toast.fire({
+                                icon: "warning",
+                                title: "Hãy chọn 1 hồ sơ"
+                            })
+                        }
                     });
+        
+                    $("#modal_id").modal("show");
                 },
                 error: function (xhr, status, error) {
                     let response = utils.getXHRInfo(xhr);

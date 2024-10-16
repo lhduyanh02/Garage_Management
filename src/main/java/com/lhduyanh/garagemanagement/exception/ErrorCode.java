@@ -97,6 +97,23 @@ public enum ErrorCode {
     DISABLED_USER(1071, "This user was disabled", HttpStatus.BAD_REQUEST),
     DISABLED_CAR(1072, "This car was disabled", HttpStatus.BAD_REQUEST),
     ILLEGAL_NUM_PLATE(1073, "Illegal num plate", HttpStatus.BAD_REQUEST),
+    INVALID_SEARCH_CRITERIA(1074, "The search requires at least one criterion", HttpStatus.BAD_REQUEST),
+    NO_CARS_FOUND(1075, "No cars founded", HttpStatus.OK),
+    INVALID_ADVISOR(1076, "Advisor is invalid", HttpStatus.BAD_REQUEST),
+
+    CAR_IN_SERVICE(1077, "This vehicle is currently undergoing service", HttpStatus.BAD_REQUEST),
+    HISTORY_NOT_EXISTS(1078, "History does not exist", HttpStatus.NOT_FOUND),
+    BLANK_HISTORY(1079, "History can not be blank, please choose one", HttpStatus.BAD_REQUEST),
+    PAID_HISTORY(1080, "This invoice has already been paid, can not be modified", HttpStatus.BAD_REQUEST),
+    ASSIGN_MANAGER_WARNING(1081, "This action will automatically assign this user as the manager of the selected car", HttpStatus.OK),
+    BLANK_SERVICE(1082, "Service must not be blank", HttpStatus.BAD_REQUEST),
+    DISCOUNT_RANGE(1083, "Discount must be between 0% and 100%", HttpStatus.BAD_REQUEST),
+    QUANTITY_RANGE(1084, "Quantity must be at least 1", HttpStatus.BAD_REQUEST),
+    CANCELED_HISTORY(1085, "This invoice has already been canceled, can not be modified", HttpStatus.BAD_REQUEST),
+    SERVICE_NOT_IN_USE(1086, "This service is not in use", HttpStatus.BAD_REQUEST),
+    OPTION_NOT_IN_USE(1087, "This option is not in use", HttpStatus.BAD_REQUEST),
+    UPDATE_HISTORY_ERROR(1088, "Error in updating history", HttpStatus.INTERNAL_SERVER_ERROR),
+
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {
