@@ -5,10 +5,7 @@ import com.lhduyanh.garagemanagement.dto.request.HistoryCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
 import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
 import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
-import com.lhduyanh.garagemanagement.entity.Car;
-import com.lhduyanh.garagemanagement.entity.DetailHistory;
-import com.lhduyanh.garagemanagement.entity.History;
-import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.entity.*;
 import com.lhduyanh.garagemanagement.enums.HistoryStatus;
 import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -16,6 +13,7 @@ import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.HistoryMapper;
 import com.lhduyanh.garagemanagement.repository.CarRepository;
 import com.lhduyanh.garagemanagement.repository.HistoryRepository;
+import com.lhduyanh.garagemanagement.repository.PriceRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -36,12 +31,12 @@ import java.util.Set;
 @Slf4j
 public class HistoryService {
 
-    AuthenticationService authenticationService;
     SecurityExpression securityExpression;
 
     HistoryRepository historyRepository;
     CarRepository carRepository;
     UserRepository userRepository;
+    PriceRepository priceRepository;
 
     HistoryMapper historyMapper;
 
@@ -99,8 +94,10 @@ public class HistoryService {
         History history = historyRepository.findById(request.getHistoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
 
-        if (history.getStatus() == HistoryStatus.PAID.getCode()) {
-            throw new AppException(ErrorCode.PAID_HISTORY);
+        if (history.getStatus() == HistoryStatus.PAID.getCode() ||
+                history.getStatus() == HistoryStatus.CANCELED.getCode()) {
+            throw new AppException(history.getStatus() == HistoryStatus.PAID.getCode() ?
+                    ErrorCode.PAID_HISTORY : ErrorCode.CANCELED_HISTORY);
         }
 
         User newCustomer = userRepository.findById(request.getUserId())
@@ -140,13 +137,39 @@ public class HistoryService {
         }
 
         Double totalAmount = 0.0;
+        Set<DetailHistory> updatedDetails = new HashSet<>();
         for (DetailHistory detail : history.getDetails()) {
-            totalAmount += detail.getFinalPrice();
+            try {
+                detail.setServiceName(detail.getService().getName());
+                detail.setOptionName(detail.getOption().getName());
+
+                if (detail.getQuantity() < 1) throw new AppException(ErrorCode.QUANTITY_RANGE);
+
+                PriceId priceId = PriceId.builder()
+                        .serviceId(detail.getService().getId())
+                        .optionId(detail.getOption().getId())
+                        .build();
+                Price priceEntity = priceRepository.findById(priceId)
+                        .orElseThrow(() -> new AppException(ErrorCode.PRICE_NOT_EXIST));
+
+                Double price = priceEntity.getPrice();
+                detail.setPrice(price);
+                Double finalPrice = (double) Math.round((price - (price * (detail.getDiscount() / 100))) * detail.getQuantity());
+                detail.setFinalPrice(finalPrice);
+
+                updatedDetails.add(detail);
+                totalAmount += detail.getFinalPrice();
+            } catch (AppException e) {
+                log.warn("SKIP 1 PRICE" +detail.getServiceName() +" - "+ detail.getOptionName());
+                continue;
+            }
         }
+        history.setDetails(updatedDetails);
         history.setTotalAmount(totalAmount);
 
         Double payableAmount = totalAmount - (totalAmount * (history.getDiscount() / 100));
         history.setPayableAmount(payableAmount);
-        return historyRepository.save(history) != null;
+        historyRepository.save(history);
+        return true;
     }
 }

@@ -23,6 +23,7 @@ import com.lhduyanh.garagemanagement.entity.Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -39,6 +40,7 @@ public class ServicesService {
     PriceRepository priceRepository;
 
     PriceService priceService;
+    private final Collator vietnameseCollator;
 
     public ServiceResponse getServiceById(String id) {
         return serviceMapper.toServiceResponse(
@@ -50,7 +52,16 @@ public class ServicesService {
         return serviceRepository.findAll()
                 .stream()
                 .map(serviceMapper::toServiceResponse)
-                .sorted(Comparator.comparing(ServiceResponse::getName).reversed())
+                .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
+                .toList();
+    }
+
+    public List<ServiceResponse> getAllEnableServicesWithPrice() {
+        return serviceRepository.findAll()
+                .stream()
+                .filter(s -> s.getStatus() == ServiceStatus.USING.getCode())
+                .map(serviceMapper::toServiceResponse)
+                .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
                 .toList();
     }
 
@@ -58,7 +69,7 @@ public class ServicesService {
         return serviceRepository.findAllEnableService()
                 .stream()
                 .map(serviceMapper::toSimpleResponse)
-                .sorted(Comparator.comparing(ServiceSimpleResponse::getName))
+                .sorted(Comparator.comparing(ServiceSimpleResponse::getName, vietnameseCollator))
                 .toList();
     }
 
@@ -66,7 +77,7 @@ public class ServicesService {
         return serviceRepository.findAll()
                 .stream()
                 .map(serviceMapper::toSimpleResponse)
-                .sorted(Comparator.comparing(ServiceSimpleResponse::getName))
+                .sorted(Comparator.comparing(ServiceSimpleResponse::getName, vietnameseCollator))
                 .toList();
     }
 
@@ -177,14 +188,10 @@ public class ServicesService {
         List<Price> prices = priceRepository.findAllByService(service);
 
         if(!prices.isEmpty()){
-//            priceRepository.deleteAll(prices);
-
             service.setStatus(ServiceStatus.DELETED.getCode());
             serviceRepository.save(service);
             return;
         }
-
-        priceRepository.deleteAll(service.getPrices());
         serviceRepository.deleteById(id);
     }
 

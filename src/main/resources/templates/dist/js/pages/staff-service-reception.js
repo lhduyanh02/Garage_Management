@@ -30,6 +30,7 @@ var hash_invoice = "invoice";
 
 var historyTable;
 var plateTypeList = [];
+var serviceOptionList = [];
 var brandModelList = [];
 var selectedCar;
 var customerList = [];
@@ -38,10 +39,12 @@ var advisor;
 var selectedInvoice;
 
 var INVOICE_CARD = $("#invoice-card");
+var TABLE_DETAILS = $('#table-details');
     
 $(document).ready(function () {
     utils.set_char_count("#color_input", "#color_counter");
     utils.set_char_count("#description_input", "#description_counter");
+
     historyTable = $("#service-history-table").DataTable({
         responsive: true,
         pageLength: 4,
@@ -122,6 +125,67 @@ $(document).ready(function () {
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
         },
     });
+
+    
+    $(TABLE_DETAILS).DataTable({
+        dom: 't',  // Chỉ hiển thị nội dung bảng (không có thanh tìm kiếm, phân trang)
+        autoWidth: false,
+        paging: false,
+        ordering: false,
+        info: false,
+        searching: false,language: {
+            paginate: {
+                next: "&raquo;",
+                previous: "&laquo;"
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "",
+            infoFiltered: "(Lọc từ _MAX_ mục)",
+            emptyTable: "Không có dữ liệu",
+            search: "Tìm kiếm:",
+            loadingRecords: "Đang tải dữ liệu..."
+        },
+        columns: [
+            { data: "number", className: "text-center", width: "5%"},
+            {
+                data: "serviceName", className: "text-left", minWidth: "20%",
+                render: function (data, type, row) {
+                    let html = data + "<br>";
+                    html += `<small>${row.optionName}</small>`;
+                    return html;
+                },
+            },
+            {
+                data: "price", className: "text-right", width: "15%",
+                render: function (data, type, row) {
+                    return utils.formatVNDCurrency(data);
+                },
+            },
+            {
+                data: "quantity", className: "text-center", width: "10%",
+                render: function (data, type, row) {
+                    return data;
+                },
+            },
+            {
+                data: "discount", className: "text-center", width: "15%",
+                render: function (data, type, row) {
+                    return `${data}%`
+                },
+            },
+            {
+                data: "finalPrice", className: "text-right", width: "15%",
+                render: function (data, type, row) {
+                    return utils.formatVNDCurrency(data);
+                }
+            }
+        ],
+        headerCallback: function (thead) {
+            $(thead).find('th').addClass('text-center'); // Thêm class 'text-center' cho header
+        }
+    });
+
     $.ajax({
         type: "GET",
         url: "/api/brands/fetch-model",
@@ -161,7 +225,26 @@ $(document).ready(function () {
                 $('#plate-type-select').val("").trigger("change");
             }
         },
+        error: function(xhr, status, error) {
+            console.error(utils.getXHRInfo(xhr));
+        }
     });
+
+    $.ajax({
+        type: "GET",
+        url: "/api/services/enable-with-price",
+        dataType: "json",
+        headers: utils.defaultHeaders(),
+        success: function (res) {
+            if(res.code == 1000 && res.data){
+                serviceOptionList = res.data;
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(utils.getXHRInfo(xhr));
+        }
+    });
+
     $(".select2").select2({
         allowClear: true,
         theme: "bootstrap",
@@ -400,7 +483,7 @@ function openCarSelectionTable() {
                 });
 
                 $("#car-search-input").on("keyup", function () {
-                    userTable.search(this.value.trim()).draw();
+                    carTable.search(this.value.trim()).draw();
                 });
     
                 $("#car-select-btn").click(function (e) { 
@@ -753,6 +836,9 @@ async function loadCarInfoHistoryListByID(id) {
                 $("#color_input").prop("disabled", false)
                 $("#description_input").val(selectedCar.carDetail);
                 $("#description_input").prop("disabled", false);
+                
+                utils.set_char_count("#color_input", "#color_counter");
+                utils.set_char_count("#description_input", "#description_counter");
 
                 $("#save-btn").data("state", "save");
                 $("#save-btn").text("Lưu");
@@ -819,6 +905,8 @@ function loadCarInfoByCar(car) {
     $("#color_input").prop("disabled", false)
     $("#description_input").val(selectedCar.carDetail);
     $("#description_input").prop("disabled", false);
+    utils.set_char_count("#color_input", "#color_counter");
+    utils.set_char_count("#description_input", "#description_counter");
 
     $("#save-btn").data("state", "save");
     $("#save-btn").text("Lưu");
@@ -856,7 +944,318 @@ $("#save-btn").click(function () {
         $("#color_input").prop("disabled", false)
         $("#description_input").prop("disabled", false);
     }
+    else if ($(this).data("state") == "save" && selectedCar !== null) { // update car info
+        let numPlate = $('#num-plate-search-input').val().replace(/\s+/g, '');
+        let plateType = $("#plate-type-select").val();
+        let model = $("#model-select").val();
+        let color = $("#color_input").val().trim();
+        let detail = $("#description_input").val().trim();
+
+        if(numPlate == null || numPlate == ""){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng điền biển kiểm soát"
+            });
+            return;
+        }
+
+        if(plateType == null){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn loại biển kiểm soát"
+            });
+            return;
+        }
+
+        if(model == null){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng chọn mẫu xe"
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: "Cập nhật thông tin xe?",
+            showDenyButton: false,
+            showCancelButton: true,
+            confirmButtonText: "Đồng ý",
+            cancelButtonText: `Hủy`
+          }).then((result) => {
+            /* Read more about isConfirmed, isDenied below */
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "PUT",
+                    url: "/api/cars/" + selectedCar.id,
+                    headers: utils.defaultHeaders(),
+                    data: JSON.stringify({
+                        numPlate: numPlate,
+                        color: color,
+                        carDetail: detail,
+                        plateType: plateType,
+                        model: model
+                    }),
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.code == 1000){
+                            selectedCar = res.data;
+                            loadCarInfoByCar(res.data);
+                            Swal.fire({
+                                title: "Cập nhật thành công",
+                                html: `Thông tin xe <b>${selectedCar.numPlate}</b> đã được cập nhật` ,
+                                icon: "success",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                backdrop: `
+                                    rgba(0,0,123,0.4)
+                                    url("https://sweetalert2.github.io/images/nyan-cat.gif")
+                                    left top
+                                    no-repeat
+                                `
+                            });
+                        }
+                        else {
+                            Toast.fire({
+                                icon: "error",
+                                title: utils.getErrorMessage(res.code)
+                            });
+                        }
+                    }, 
+                    error: function(xhr, status, error) {
+                        Toast.fire({
+                            icon: "error",
+                            title: utils.getXHRInfo(xhr).message
+                        })
+                    }
+                });
+            }
+          });
+
+    } else {
+        //                                                           register new car
+    }
     
+});
+
+// Hàm định dạng option với name bên trái và price bên phải
+function formatOption(state) {
+    if (!state.id) {
+        return state.text;
+    }
+    const price = $(state.element).data('price');
+    return $(
+        `<div class="d-flex justify-content-between">
+            <span>${state.text}</span>
+            <small class="align-text-bottomtext-muted">${price}</small>
+        </div>`
+    );
+}
+$('#add-detail-btn').click(function () { 
+    clear_modal();
+    $(".modal-dialog").addClass("modal-lg");
+    $("#modal_title").text("Thêm dịch vụ");
+    $("#modal_body").append(`
+        <form id="modal-form">
+            <div class="input_wrap form-group">
+                <label>Chọn dịch vụ - Option - Số lượng - Giảm giá (%)</label><br>
+                <span class="font-weight-light font-italic">*Mặc định số lượng là "1" và % giảm giá là "0"</span>
+                <div id="service-wrapper" class="mt-2">
+                    <div class="row my-2 pb-2 service-option-wrapper border-bottom">
+                        <div class="col-12 col-md-4 mb-1 mb-md-0">
+                            <select class="form-control select2bs4 modal-service-select" width="100%" data-placeholder="Chọn dịch vụ">
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 mb-1 mb-md-0">
+                            <select class="form-control select2bs4 modal-option-select" width="100%" data-placeholder="Chọn option">
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-2">
+                            <input type="text" name="text[]" required class="form-control select2-height modal-quantity-input"
+                            maxlength="4" placeholder="Số lượng">
+                        </div>
+
+                        <div class="col-6 col-md-2">
+                            <input type="text" name="text[]" required class="form-control select2-height modal-discount-input"
+                            maxlength="3" placeholder="Giảm giá %">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="add-service-btn" class="btn btn-sm btn-outline-success">Thêm dịch vụ</button>
+            </div>
+        </form>
+    `);
+
+    $(".select2bs4").select2({
+        allowClear: true,
+        theme: "bootstrap",
+        closeOnSelect: true,
+        width: "100%",
+        language: "vi",
+    });
+
+    $(".modal-quantity-input").on("input", function () {
+        const input = $(this).val().trim();
+
+        if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
+            $(this).val('');
+        }
+    });
+
+    $(".modal-discount-input").on("input", function () {
+        const input = $(this).val().trim();
+
+        if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
+            $(this).val('');
+            return;
+        }
+
+        if (parseInt(input) > 100) {
+            $(this).val(input.slice(0, -1));
+        }
+    });
+
+    $.each(serviceOptionList, function (idx, val) { 
+        $('.modal-service-select').append(`<option value="${val.id}">${val.name}</option>`);
+    });
+    $('.modal-service-select').val("").trigger("change");
+
+
+    $('.modal-service-select').on('change', function () {
+        let id = $(this).val();
+        const wrapper = $(this).closest('.service-option-wrapper'); // Tìm cha gần nhất
+        const $optionSelect = wrapper.find('.modal-option-select'); // Tìm select trong cùng cha
+        if (id == null) {
+            $optionSelect.empty();
+            return;
+        }
+    
+        const listOptionPrices = serviceOptionList.find(item => item.id == id);
+    
+        $.each(listOptionPrices.optionPrices, function (idx, val) {
+            const option = new Option(val.name, val.id, false, false);
+            $(option).attr('data-price', utils.formatVNDCurrency(val.price));
+            $optionSelect.append(option);
+        });
+        $optionSelect.val("").trigger("change");
+        
+        // Khởi tạo Select2 với tùy chỉnh template cho các option
+        $optionSelect.select2({
+            templateResult: formatOption,
+            templateSelection: formatOption,
+            width: '100%',
+            theme: 'bootstrap'
+        });
+    });
+    
+
+    $("#add-service-btn").click(function (e) {
+        const newRow = $(`
+            <div class="row my-2 pt-1 pb-2 border-bottom service-option-wrapper">
+                <div class="col-12 col-md-4 mb-1 mb-md-0">
+                    <select class="form-control select2bs4 modal-service-select" width="100%" data-placeholder="Chọn dịch vụ"></select>
+                </div>
+    
+                <div class="col-12 col-md-4 mb-1 mb-md-0">
+                    <select class="form-control select2bs4 modal-option-select" width="100%" data-placeholder="Chọn option"></select>
+                </div>
+    
+                <div class="col-6 col-md-2">
+                    <input type="text" name="text[]" required class="form-control select2-height modal-quantity-input"
+                    maxlength="4" placeholder="Số lượng">
+                </div>
+    
+                <div class="input-group col-6 col-md-2">
+                    <input type="text" name="text[]" required class="form-control select2-height modal-discount-input"
+                    maxlength="3" placeholder="% Giảm giá"
+                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div class="input-group-append select2-height">
+                        <a class="btn btn-sm btn-danger d-flex align-items-center remove-service-btn">
+                            <i class="fa-regular fa-circle-xmark fa-lg"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `);
+    
+        // Thêm hàng mới vào #service-wrapper
+        $("#service-wrapper").append(newRow);
+    
+        // Khởi tạo Select2 cho các phần tử trong hàng mới thêm
+        newRow.find(".select2bs4").select2({
+            allowClear: true,
+            theme: "bootstrap",
+            closeOnSelect: true,
+            width: "100%",
+            language: "vi",
+        });
+
+        const $serviceSelect = newRow.find(".modal-service-select");
+        $.each(serviceOptionList, function (idx, val) {
+            $serviceSelect.append(`<option value="${val.id}">${val.name}</option>`);
+        });
+        $serviceSelect.val("").trigger("change");
+    
+        // Thêm sự kiện chỉ cho input mới
+        newRow.find(".modal-quantity-input").on("input", function () {
+            const input = $(this).val().trim();
+            if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
+                $(this).val('');
+            }
+        });
+    
+        newRow.find(".modal-discount-input").on("input", function () {
+            const input = $(this).val().trim();
+            if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
+                $(this).val('');
+                return;
+            }
+            if (parseInt(input) > 100) {
+                $(this).val(input.slice(0, -1));
+            }
+        });
+    
+        // Thêm sự kiện cho service-select và xử lý option-select
+        newRow.find('.modal-service-select').on('change', function () {
+            let id = $(this).val();
+            const wrapper = $(this).closest('.service-option-wrapper');
+            const $optionSelect = wrapper.find('.modal-option-select');
+            if (id == null) {
+                $optionSelect.empty();
+                return;
+            }
+    
+            const listOptionPrices = serviceOptionList.find(item => item.id == id);
+            $optionSelect.empty(); // Đảm bảo xóa các option cũ
+    
+            $.each(listOptionPrices.optionPrices, function (idx, val) {
+                const option = new Option(val.name, val.id, false, false);
+                $(option).attr('data-price', utils.formatVNDCurrency(val.price));
+                $optionSelect.append(option);
+            });
+            $optionSelect.val("").trigger("change");
+    
+            // Khởi tạo Select2 với template tùy chỉnh cho option
+            $optionSelect.select2({
+                templateResult: formatOption,
+                templateSelection: formatOption,
+                width: '100%',
+                theme: 'bootstrap'
+            });
+        });
+    });
+
+    $('#modal_body').on("click", ".remove-service-btn", function () {
+        $(this).closest(".row").remove();
+    });
+    
+    $("#modal_footer").append(
+        '<button type="button" class="btn btn-primary" form="modal-form" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Thêm</button>'
+    );
+
+    $("#modal_id").modal("show");
 });
 
 $("#new-history-btn").click(function () { 
@@ -895,6 +1294,21 @@ $("#show-history-btn").click(function () {
     }
 });
 
+$('#save-invoice-info-btn').click(function () { 
+    
+});
+
+$('#table-details tbody').on('click', 'tr', function() {
+    if ($(this).find('td').hasClass('dataTables_empty')) return;
+
+    if ($(this).hasClass('selected')) {
+        $(this).removeClass('selected');
+    } else {
+        $('#table-details tbody tr').removeClass('selected');
+        $(this).addClass('selected');
+    }
+});
+
 async function loadInvoiceById(invoiceId) {
     try {
         INVOICE_CARD.prop("hidden", false);
@@ -911,27 +1325,7 @@ async function loadInvoiceById(invoiceId) {
         Swal.close();
 
         if (res.code == 1000 && res.data){
-            utils.setHashParam(hash_invoice, res.data.id);
-            selectedInvoice = res.data;
-            advisor = res.data.advisor;
-            customer = res.data.customer;
-            loadCustomerInfo();
-            loadAdvisorInfo();
-
-            let t = utils.getTimeAsJSON(res.data.serviceDate);
-            $('#invoice-id').html(res.data.id);
-            $('#history-date').text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
-            $('#odo-info').html(res.data.odo ? res.data.odo + " km" : "Không xác định");
-
-            let totalAmount = utils.formatVNDCurrency(res.data.totalAmount);
-            let payableAmount = utils.formatVNDCurrency(res.data.payableAmount);
-
-            $('#total-amount-info').text(totalAmount);
-            $('#discount-info').text(res.data.discount);
-            $('#payable-amount-info').text(payableAmount);
-
-            //                                                                       Load các chi tiết hóa đơn lên
-
+            loadInvoiceInfo(res.data);
         }
         else {
             Toast.fire({
@@ -939,11 +1333,9 @@ async function loadInvoiceById(invoiceId) {
                 title: res.message
             });
         }
-
-
-
     } catch (xhr) {
         console.log("Error in loading invoice");
+        console.log(xhr);
         Toast.fire({
             icon: "error",
             title: utils.getXHRInfo(xhr)
@@ -951,29 +1343,68 @@ async function loadInvoiceById(invoiceId) {
     }
 }
 
-function loadInvoiceInfo(invoice) { // chưa  hoàn thiện
+function loadListDetailsHistory(details) {
+    $(TABLE_DETAILS).DataTable().clear().draw();
+    if (details.length == 0){
+        return;
+    }
+
+    let data = [];
+    let counter = 1;
+    details.forEach(function (detail) {
+        data.push({
+            number: counter++, // Số thứ tự tự động tăng
+            id: detail.id,
+            service: detail.service,
+            serviceName: detail.serviceName,
+            option: detail.option,
+            optionName: detail.optionName,
+            price: detail.price,
+            discount: detail.discount,
+            quantity: detail.quantity,
+            finalPrice: detail.finalPrice,
+        });
+    });
+
+    $(TABLE_DETAILS).DataTable().clear().rows.add(data).draw();
+}
+
+function loadInvoiceInfo(invoice) {
     INVOICE_CARD.prop("hidden", false);
 
-    if (res.code == 1000 && res.data){
-        selectedInvoice = res.data;
-        customer = res.data.customer;
-        loadCustomerInfo();
+    utils.setHashParam(hash_invoice, invoice.id);
+    selectedInvoice = invoice;
+    advisor = invoice.advisor;
+    customer = invoice.customer;
+    loadCustomerInfo();
+    loadAdvisorInfo();
 
-        let t = utils.getTimeAsJSON(res.data.serviceDate);
-        $('#invoice-id').html(res.data.id);
-        $('#history-date').text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
-        $('#odo-info').html(res.data.odo ? res.data.odo + " km" : "Không xác định");
-
-        //                                                                       Load các chi tiết hóa đơn lên
-
+    let t = utils.getTimeAsJSON(invoice.serviceDate);
+    let invoiceIdHtml = "";
+    if (invoice.status == 0) {
+        invoiceIdHtml = `Order #${invoice.id}`;
+    } else if (invoice.status == 1){
+        invoiceIdHtml = `Invoice #${invoice.id}`;
     }
-    else {
-        Toast.fire({
-            icon: "error",
-            title: res.message
-        });
+    $('#invoice-id').html(invoiceIdHtml);
+    $('#history-date').text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
+    $('#odo-info').html(invoice.odo ? invoice.odo + " km" : "Không xác định");
+
+    let totalAmount = utils.formatVNDCurrency(invoice.totalAmount);
+    let payableAmount = utils.formatVNDCurrency(invoice.payableAmount);
+
+    $('#total-amount-info').text(totalAmount);
+    $('#discount-info').text(invoice.discount);
+    $('#payable-amount-info').text(payableAmount);
+
+    if (invoice.status == 0) {
+        $('#summary-input').val(invoice.summary);
+        $('#summary-input').prop("disabled", false);
+        $('#diagnose-input').val(invoice.diagnose);
+        $('#diagnose-input').prop("disabled", false);
     }
 
+    loadListDetailsHistory(invoice.details);
 }
 
 function loadCustomerInfo() {  // Load thông tin lên từ biến customer

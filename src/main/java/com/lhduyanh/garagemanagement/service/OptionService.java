@@ -13,26 +13,31 @@ import com.lhduyanh.garagemanagement.repository.OptionRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class OptionService {
 
     OptionRepository optionRepository;
     OptionMapper optionMapper;
     PriceService priceService;
+    private final Collator vietnameseCollator;
 
     public List<OptionSimpleResponse> getAllEnableOption() {
         return optionRepository.findAllByStatus(OptionStatus.USING.getCode())
                 .stream()
                 .map(optionMapper::toSimpleResponse)
-                .sorted(Comparator.comparing(OptionSimpleResponse::getName))
+                .sorted(Comparator.comparing(OptionSimpleResponse::getName, vietnameseCollator))
                 .toList();
     }
 
@@ -40,24 +45,29 @@ public class OptionService {
         return optionRepository.findAll()
                 .stream()
                 .map(optionMapper::toSimpleResponse)
-                .sorted(Comparator.comparing(OptionSimpleResponse::getName))
+                .sorted(Comparator.comparing(OptionSimpleResponse::getName, vietnameseCollator))
                 .toList();
     }
 
     public List<OptionFullResponse> getAllOptionWithPrice() {
-        return optionRepository.findAll()
-                .stream()
+        return optionRepository.findAll().stream()
                 .map(optionMapper::toOptionFullResponse)
+                .sorted(Comparator.comparing(OptionFullResponse::getName, vietnameseCollator))
                 .toList();
     }
 
     public OptionSimpleResponse newOption(OptionCreationRequest request) {
-        if (optionRepository.existsByName(request.getName())) {
+        List<Options> options = optionRepository.findAllByName(request.getName())
+                .stream()
+                .filter(o -> o.getStatus() != OptionStatus.DELETED.getCode())
+                .toList();
+        if (options.size() > 0) {
             throw new AppException(ErrorCode.OPTION_EXISTED);
         }
-        Options options = optionMapper.toOption(request);
+
+        Options option = optionMapper.toOption(request);
         return optionMapper.toSimpleResponse(
-                optionRepository.save(options)
+                optionRepository.save(option)
         );
     }
 
@@ -98,7 +108,8 @@ public class OptionService {
                 .orElseThrow(() -> new AppException(ErrorCode.OPTION_NOT_EXISTS));
 
         priceService.clearPriceByOption(option);
-        optionRepository.delete(option);
+        option.setStatus(OptionStatus.DELETED.getCode());
+        optionRepository.save(option);
         return true;
     }
 

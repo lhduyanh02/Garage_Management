@@ -123,6 +123,14 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PutMapping(("/reset-password/{id}"))
+    public ApiResponse<Boolean> resetPassword(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.resetPasswordById(id))
+                .build();
+    }
+
     @DeleteMapping("/hard/{id}")
     public ApiResponse<Boolean> hardDeleteAccount(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()

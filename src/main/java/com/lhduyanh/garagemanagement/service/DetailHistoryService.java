@@ -16,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @org.springframework.stereotype.Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -47,7 +49,7 @@ public class DetailHistoryService {
         }
         detailHistory.setQuantity(request.getQuantity());
 
-        History history = historyRepository.findById(request.getHistoryId())
+        History history = historyRepository.findByIdFetchDetails(request.getHistoryId())
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
 
@@ -57,6 +59,19 @@ public class DetailHistoryService {
             throw new AppException(ErrorCode.CANCELED_HISTORY);
         }
         detailHistory.setHistory(history);
+
+//         Kiểm tra trùng lặp service-option-discount -> gộp chung lại
+        for (DetailHistory d : history.getDetails()) {
+            if (d.getService().getId().equals(request.getServiceId()) &&
+                d.getOption().getId().equals(request.getOptionId()) &&
+                Objects.equals(d.getDiscount(), request.getDiscount()))
+            {
+                log.info("TRÙNG LẶP OPTION " + d.getServiceName() +" - "+ d.getOptionName());
+                detailHistory = d;
+                detailHistory.setQuantity(request.getQuantity() + d.getQuantity());
+                break;
+            }
+        }
 
         Service service = serviceRepository.findById(request.getServiceId())
                 .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
@@ -85,16 +100,18 @@ public class DetailHistoryService {
         Double price = priceEntity.getPrice();
         detailHistory.setPrice(price);
 
-        Double finalPrice = (double) Math.round((price - (price * (discount / 100))) * request.getQuantity());
+        Double finalPrice = (double) Math.round((price - (price * (discount / 100))) * detailHistory.getQuantity());
         detailHistory.setFinalPrice(finalPrice);
 
-        detailHistory = detailHistoryRepository.save(detailHistory);
+        var response = detailHistoryRepository.save(detailHistory);
+        history.getDetails().add(response);
+        historyRepository.save(history);
 
         if (!historyService.updateHistoryById(history.getId())) {
             throw new AppException(ErrorCode.UPDATE_HISTORY_ERROR);
         }
 
-        return detailHistoryMapper.toResponse(detailHistory);
+        return detailHistoryMapper.toResponse(response);
     }
 
 }

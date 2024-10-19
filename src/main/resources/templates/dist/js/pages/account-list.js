@@ -21,6 +21,8 @@ var dataTable;
 var dataTableCard = $("#data-table-card");
 var userList = [];
 
+var selectedRows = new Set();
+
 $("#tableCollapseBtn").click(function (e) {
     if (dataTableCard.hasClass("collapsed-card")) {
         dataTable.ajax.reload();
@@ -97,44 +99,41 @@ $(document).ready(function () {
             {
                 data: "user",
                 render: function (data, type, row) {
-                    let html="";
+                    let html = "";
                     html += `${data.name} `;
-                    if(data.gender==1){
-                        html += ` <small><span class="badge badge-info"><i class="fa-solid fa-child-dress"></i>&nbsp;Nam</span></small><br>`
-                    } else if(data.gender==0){
-                        html += ` <small><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span></small><br>`
+                    if (data.gender == 1) {
+                        html += ` <small><span class="badge badge-info"><i class="fa-solid fa-child-dress"></i>&nbsp;Nam</span></small><br>`;
+                    } else if (data.gender == 0) {
+                        html += ` <small><span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span></small><br>`;
                     } else {
-                        html += "<br>"
+                        html += "<br>";
                     }
 
-                    if(data.phone){
+                    if (data.phone) {
                         html += `<small><i>${data.phone}</i></small><br>`;
                     }
 
-                    if(data.address){
-                        html += `<small> ${data.address.address}</small><br>`; 
+                    if (data.address) {
+                        html += `<small> ${data.address.address}</small><br>`;
                     }
 
                     return html;
                 },
             },
-            { data: "email"},
+            { data: "email" },
             {
                 data: "user.roles",
                 render: function (data, type, row) {
                     if (data != null && Array.isArray(data)) {
                         let html = "";
-                        $.each(data , function (idx, val) {
-                            if(val.status == 1){
-                                html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
-                            }
-                            else if (val.status == 0){
-                                html+=` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`
+                        $.each(data, function (idx, val) {
+                            if (val.status == 1) {
+                                html += ` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`;
+                            } else if (val.status == 0) {
+                                html += ` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`;
                             }
                         });
-                        return (
-                            '<center>' + html + '</center>'
-                        );
+                        return "<center>" + html + "</center>";
                     }
                     return "";
                 },
@@ -202,14 +201,81 @@ $(document).ready(function () {
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (response) {
-            if(response.code == 1000) {
+            if (response.code == 1000) {
                 userList = response.data;
             }
-        }, 
-        error: function(xhr, status, error) {
+        },
+        error: function (xhr, status, error) {
             Toast.fire({
                 icon: "error",
-                title: utils.getXHRInfo(xhr).message
+                title: utils.getXHRInfo(xhr).message,
+            });
+        },
+    });
+});
+
+$("#data-table tbody").on("click", "tr", function () {
+    const data = dataTable.row(this).data();
+    const rowId = data.id;
+
+    if ($(this).hasClass("selected")) {
+        $(this).removeClass("selected");
+        selectedRows.delete(rowId);
+    } else {
+        $("#data-table tbody tr").removeClass("selected");
+        selectedRows = new Set();
+        $(this).addClass("selected");
+        selectedRows.add(rowId);
+    }
+
+    if (selectedRows.size > 0) {
+        $("#reset-password-btn").prop("disabled", false);
+    } else {
+        $("#reset-password-btn").prop("disabled", true);
+    }
+});
+
+// Draw table wwith selected rows in set selectedRows
+$(dataTable).on("draw", function () {
+    dataTable.rows().every(function () {
+        const data = this.data();
+        if (selectedRows.has(data.id)) {
+            $(this.node()).addClass("selected");
+        }
+    });
+});
+
+$("#reset-password-btn").click(function () {
+    let id = selectedRows.values().next().value;
+
+    Swal.fire({
+        title: `Đặt lại mật khẩu cho tài khoản đã chọn?`,
+        showDenyButton: false,
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Huỷ",
+    }).then((result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+            $.ajax({
+                type: "PUT",
+                url: "/api/accounts/reset-password/"+id,
+                headers: utils.defaultHeaders(),
+                dataType: "json",
+                success: function (response) {
+                    if(response.code==1000){
+                        Toast.fire({
+                            icon: "success",
+                            title: "Đặt lại mật khẩu thành công!"
+                        })
+                    }
+                },
+                error: function (xhr, status, error) {
+                    Toast.fire({
+                        icon: "error",
+                        title: utils.getXHRInfo(xhr).message,
+                    });
+                },
             });
         }
     });
@@ -228,10 +294,10 @@ $("#data-table").on("click", "#editBtn", function () {
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (res) {
-            if(res.code != 1000) {
+            if (res.code != 1000) {
                 Toast.fire({
                     icon: "error",
-                    title: "Không thể lấy dữ liệu tài khoản"
+                    title: "Không thể lấy dữ liệu tài khoản",
                 });
                 return;
             }
@@ -258,22 +324,31 @@ $("#data-table").on("click", "#editBtn", function () {
                 </div>
             `);
 
-            $('#user-select').empty();            
+            $("#user-select").empty();
             if (res.data.user) {
-                const phone = res.data.user.phone ? ` - ${res.data.user.phone}` : "";
-                $('#user-select').append('<option selected value="' + res.data.user.id + '">' + res.data.user.name
-                    + phone +'</option>');
+                const phone = res.data.user.phone
+                    ? ` - ${res.data.user.phone}`
+                    : "";
+                $("#user-select").append(
+                    '<option selected value="' +
+                        res.data.user.id +
+                        '">' +
+                        res.data.user.name +
+                        phone +
+                        "</option>"
+                );
             }
 
-            (function () { // Sử dụng hàm IIFE (Immediately Invoked Function Expression) để tránh truy cập list từ console
+            (function () {
+                // Sử dụng hàm IIFE (Immediately Invoked Function Expression) để tránh truy cập list từ console
                 $.ajax({
                     url: "/api/users/is-active",
                     type: "GET",
                     dataType: "json",
                     headers: utils.defaultHeaders(),
                     success: function (response) {
-                        let userList = response.data;  // Lưu userList trong closure, không phải biến toàn cục
-            
+                        let userList = response.data; // Lưu userList trong closure, không phải biến toàn cục
+
                         // Khởi tạo Select2 sau khi nhận được dữ liệu từ AJAX
                         $("#user-select").select2({
                             allowClear: false,
@@ -282,79 +357,85 @@ $("#data-table").on("click", "#editBtn", function () {
                             language: "vi",
                             minimumInputLength: 2,
                             data: userList.map(function (option) {
-                                const phone = option.phone ? ` - ${option.phone}` : "";
+                                const phone = option.phone
+                                    ? ` - ${option.phone}`
+                                    : "";
 
                                 return {
                                     id: option.id,
-                                    text: `${option.name}${phone}`
+                                    text: `${option.name}${phone}`,
                                 };
                             }),
                             matcher: function (params, data) {
-                                if ($.trim(params.term) === '') {
+                                if ($.trim(params.term) === "") {
                                     return data;
                                 }
-            
+
                                 const searchTerm = params.term.toLowerCase();
-            
-                                if (data.text.toLowerCase().indexOf(searchTerm) > -1) {
+
+                                if (
+                                    data.text
+                                        .toLowerCase()
+                                        .indexOf(searchTerm) > -1
+                                ) {
                                     return data;
                                 }
-            
+
                                 return null;
-                            }
+                            },
                         });
-                    }
+                    },
                 });
             })();
 
-
             $("#modal_footer").append(
                 '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
-              );
+            );
 
             $("#modal_email_input").val(res.data.email);
-            
+
             utils.set_char_count("#modal_email_input", "#modal_email_counter");
 
             $("#modal_id").modal("show");
 
-            $("#modal_submit_btn").click(function (){
+            $("#modal_submit_btn").click(function () {
                 let email = $("#modal_email_input").val().trim();
                 let user = $("#user-select").val();
 
-                if(user == null){
+                if (user == null) {
                     Toast.fire({
                         icon: "warning",
-                        title: "Vui lòng chọn hồ sơ"
+                        title: "Vui lòng chọn hồ sơ",
                     });
                     return;
                 }
 
-                if(email == ""){
+                if (email == "") {
                     Toast.fire({
                         icon: "warning",
-                        title: "Vui lòng điền email hợp lệ"
+                        title: "Vui lòng điền email hợp lệ",
                     });
                     return;
                 }
 
                 $.ajax({
                     type: "PUT",
-                    url: "/api/accounts/"+id,
+                    url: "/api/accounts/" + id,
                     headers: utils.defaultHeaders(),
                     data: JSON.stringify({
                         email: email,
-                        userId: user
+                        userId: user,
                     }),
                     success: function (response) {
-                        if(response.code == 1000){
+                        if (response.code == 1000) {
                             Toast.fire({
-                                icon: "success", 
-                                title: "Cập nhật tài khoản thành công"
+                                icon: "success",
+                                title: "Cập nhật tài khoản thành công",
                             });
                             $("#modal_id").modal("hide");
                             dataTable.ajax.reload();
-                        } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
+                        } else if (response.code == 1067) {
+                            // Tham chiếu từ ErrorCode
                             Swal.fire({
                                 title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
                                 showDenyButton: false,
@@ -366,17 +447,17 @@ $("#data-table").on("click", "#editBtn", function () {
                                 if (result.isConfirmed) {
                                     $.ajax({
                                         type: "PUT",
-                                        url: "/api/accounts/confirm/"+id,
+                                        url: "/api/accounts/confirm/" + id,
                                         headers: utils.defaultHeaders(),
                                         data: JSON.stringify({
                                             email: email,
-                                            userId: user
+                                            userId: user,
                                         }),
                                         success: function (res) {
                                             if (res.code == 1000) {
                                                 Toast.fire({
-                                                    icon: "success", 
-                                                    title: "Cập nhật tài khoản thành công"
+                                                    icon: "success",
+                                                    title: "Cập nhật tài khoản thành công",
                                                 });
                                             }
                                             $("#modal_id").modal("hide");
@@ -385,39 +466,38 @@ $("#data-table").on("click", "#editBtn", function () {
                                         error: function (xhr, status, error) {
                                             Toast.fire({
                                                 icon: "error",
-                                                title: utils.getXHRInfo(xhr).message,
+                                                title: utils.getXHRInfo(xhr)
+                                                    .message,
                                             });
                                         },
                                     });
                                 }
                             });
-                        } 
-                        else {
+                        } else {
                             Toast.fire({
                                 icon: "warning",
-                                title: utils.getErrorMessage(response.code)
-                            })
+                                title: utils.getErrorMessage(response.code),
+                            });
                         }
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         Toast.fire({
                             icon: "error",
-                            title: utils.getXHRInfo(xhr).message
+                            title: utils.getXHRInfo(xhr).message,
                         });
                         dataTable.ajax.reload();
-                    }
+                    },
                 });
             });
-
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             let response = utils.getXHRInfo(xhr);
             Toast.fire({
                 icon: "error",
-                title: response.message
+                title: response.message,
             });
             $("#modal_id").modal("hide");
-        }
+        },
     });
 });
 
@@ -474,8 +554,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
     });
 });
 
-$("#data-table").on("click", "#disableBtn", function () {  
-
+$("#data-table").on("click", "#disableBtn", function () {
     let id = $(this).data("id");
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
@@ -497,22 +576,22 @@ $("#data-table").on("click", "#disableBtn", function () {
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
-                    if(res.code == 1000 && res.data == true) {
+                    if (res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã khóa tài khoản</br>" + email
+                            title: "Đã khóa tài khoản</br>" + email,
                         });
                         dataTable.ajax.reload();
                     }
                 },
-                error: function(xhr, status, error){
+                error: function (xhr, status, error) {
                     let response = utils.getXHRInfo(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message
+                        title: response.message,
                     });
                     dataTable.ajax.reload();
-                }
+                },
             });
         }
     });
@@ -527,13 +606,13 @@ $("#data-table").on("click", "#activateBtn", function () {
     let userId = rowData.user.id;
 
     var columnData = dataTable.column(1).data().toArray();
-    const count = columnData.filter(item => item.id === userId).length;
+    const count = columnData.filter((item) => item.id === userId).length;
 
     let question = "";
-    if(count > 1){
-        question = `Kích hoạt tài khoản ${email}<br> sẽ vô hiệu hóa các tài khoản khác liên kết đến cùng hồ sơ?`
+    if (count > 1) {
+        question = `Kích hoạt tài khoản ${email}<br> sẽ vô hiệu hóa các tài khoản khác liên kết đến cùng hồ sơ?`;
     } else {
-        question = `Kích hoạt tài khoản</br>${email}?`
+        question = `Kích hoạt tài khoản</br>${email}?`;
     }
 
     Swal.fire({
@@ -551,28 +630,28 @@ $("#data-table").on("click", "#activateBtn", function () {
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
-                    if(res.code == 1000 && res.data == true) {
+                    if (res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã kích hoạt tài khoản</br>" + email
+                            title: "Đã kích hoạt tài khoản</br>" + email,
                         });
                         dataTable.ajax.reload();
                     }
                 },
-                error: function(xhr, status, error){
+                error: function (xhr, status, error) {
                     let response = utils.getXHRInfo(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message
+                        title: response.message,
                     });
                     dataTable.ajax.reload();
-                }
+                },
             });
         }
     });
 });
 
-$("#new-account-btn").click(function () { 
+$("#new-account-btn").click(function () {
     clear_modal();
     $("#modal_title").text("Thêm tài khoản");
     $("#modal_body").append(`
@@ -617,35 +696,35 @@ $("#new-account-btn").click(function () {
         </div>
     `);
 
-    $('#user-type-select').select2({
+    $("#user-type-select").select2({
         placeholder: "Chọn phân loại hồ sơ",
         allowClear: true,
         theme: "bootstrap",
         language: "vi",
-        closeOnSelect: true
+        closeOnSelect: true,
     });
 
-    $('#user-type-select').on('change', function () {
+    $("#user-type-select").on("change", function () {
         let selectedValue = $(this).val();
 
-        let filteredUserList = userList.filter(user => {
+        let filteredUserList = userList.filter((user) => {
             switch (selectedValue) {
-                case 'default':
+                case "default":
                     return user.status === 1 && user.accounts.length === 0;
-                case 'activated':
+                case "activated":
                     return user.status === 1;
-                case 'not-active':
+                case "not-active":
                     return user.status === 0;
-                case 'have-no-account':
+                case "have-no-account":
                     return user.accounts.length === 0;
-                case 'all':
+                case "all":
                     return true; // Lấy tất cả người dùng
                 default:
                     return true; // Mặc định lấy tất cả
             }
         });
 
-        $('#user-select').empty();
+        $("#user-select").empty();
         $("#user-select").select2({
             placeholder: "Tìm kiếm hồ sơ",
             allowClear: true,
@@ -656,62 +735,64 @@ $("#new-account-btn").click(function () {
             ajax: {
                 transport: function (params, success, failure) {
                     let results = [];
-    
+
                     // Lấy từ khóa tìm kiếm
-                    let term = params.data.q || '';
-    
+                    let term = params.data.q || "";
+
                     // Lọc userList theo cả name và phone
-                    let filteredUsers = filteredUserList.filter(user => {
-                        let nameMatch = user.name.toLowerCase().includes(term.toLowerCase());
-                        let phoneMatch = user.phone && user.phone.includes(term);
+                    let filteredUsers = filteredUserList.filter((user) => {
+                        let nameMatch = user.name
+                            .toLowerCase()
+                            .includes(term.toLowerCase());
+                        let phoneMatch =
+                            user.phone && user.phone.includes(term);
                         return nameMatch || phoneMatch;
                     });
-    
+
                     // Map kết quả vào định dạng mà Select2 yêu cầu
-                    results = filteredUsers.map(user => {
+                    results = filteredUsers.map((user) => {
                         return {
                             id: user.id,
                             text: user.name, // Chỉ sử dụng tên ở đây
                             phone: user.phone,
-                            accountCount: user.accounts.length // Số lượng tài khoản
+                            accountCount: user.accounts.length, // Số lượng tài khoản
                         };
                     });
-    
+
                     // Trả về kết quả
                     success({
-                        results: results
+                        results: results,
                     });
                 },
                 delay: 250,
-                cache: false
+                cache: false,
             },
             escapeMarkup: function (markup) {
                 return markup; // Allow HTML in text
             },
             templateResult: function (data) {
-    
                 let result = `${data.text}`;
-                if (data.phone != null){
-                    result +=  ` - ${data.phone}`;
+                if (data.phone != null) {
+                    result += ` - ${data.phone}`;
                 }
-                
+
                 if (data.accountCount != null && data.accountCount != 0) {
-                    result += ` <small><span class="badge badge-info">${data.accountCount}</span></small>`
+                    result += ` <small><span class="badge badge-info">${data.accountCount}</span></small>`;
                 }
-                
+
                 return `<div>${result}</div>`;
             },
             templateSelection: function (data) {
                 let selection = `${data.text}`;
-                
+
                 if (data.phone != null) {
                     selection += ` - ${data.phone}`;
                 }
-                
+
                 if (data.accountCount != null && data.accountCount != 0) {
                     selection += ` <small><span class="badge badge-info">${data.accountCount}</span></small>`;
                 }
-                
+
                 return `<div>${selection}</div>`;
             },
             language: {
@@ -720,39 +801,38 @@ $("#new-account-btn").click(function () {
                 },
                 noResults: function () {
                     return "Không có kết quả";
-                }
-            }
+                },
+            },
         });
     });
 
-
-    $('#user-type-select').val('default').trigger('change');
+    $("#user-type-select").val("default").trigger("change");
 
     $("#modal_footer").append(
         '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Thêm</button>'
-        );
-    
+    );
+
     utils.set_char_count("#modal_email_input", "#modal_email_counter");
 
     $("#modal_id").modal("show");
 
-    $("#modal_submit_btn").click(function (){
+    $("#modal_submit_btn").click(function () {
         let email = $("#modal_email_input").val().trim();
         let user = $("#user-select").val();
-        let active = $('#is-active-switch').is(':checked') ? 1 : 0;
+        let active = $("#is-active-switch").is(":checked") ? 1 : 0;
 
-        if(email == ""){
+        if (email == "") {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng điền email hợp lệ"
+                title: "Vui lòng điền email hợp lệ",
             });
             return;
         }
 
-        if(user == null){
+        if (user == null) {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn hồ sơ"
+                title: "Vui lòng chọn hồ sơ",
             });
             return;
         }
@@ -764,17 +844,18 @@ $("#new-account-btn").click(function () {
             data: JSON.stringify({
                 email: email,
                 userId: user,
-                status: active
+                status: active,
             }),
             success: function (response) {
-                if(response.code == 1000){
+                if (response.code == 1000) {
                     Toast.fire({
-                        icon: "success", 
-                        title: "Thêm tài khoản thành công"
+                        icon: "success",
+                        title: "Thêm tài khoản thành công",
                     });
                     $("#modal_id").modal("hide");
                     dataTable.ajax.reload();
-                } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
+                } else if (response.code == 1067) {
+                    // Tham chiếu từ ErrorCode
                     Swal.fire({
                         title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
                         showDenyButton: false,
@@ -791,13 +872,13 @@ $("#new-account-btn").click(function () {
                                 data: JSON.stringify({
                                     email: email,
                                     userId: user,
-                                    status: active
+                                    status: active,
                                 }),
                                 success: function (res) {
                                     if (res.code == 1000) {
                                         Toast.fire({
-                                            icon: "success", 
-                                            title: "Thêm tài khoản thành công"
+                                            icon: "success",
+                                            title: "Thêm tài khoản thành công",
                                         });
                                     }
                                     $("#modal_id").modal("hide");
@@ -812,22 +893,20 @@ $("#new-account-btn").click(function () {
                             });
                         }
                     });
-                } 
-                else {
+                } else {
                     Toast.fire({
                         icon: "warning",
-                        title: utils.getErrorMessage(response.code)
-                    })
+                        title: utils.getErrorMessage(response.code),
+                    });
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 Toast.fire({
                     icon: "error",
-                    title: utils.getXHRInfo(xhr).message
+                    title: utils.getXHRInfo(xhr).message,
                 });
                 dataTable.ajax.reload();
-            }
+            },
         });
     });
 });
-

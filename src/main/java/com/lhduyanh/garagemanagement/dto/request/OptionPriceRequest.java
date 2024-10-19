@@ -19,6 +19,4 @@ public class OptionPriceRequest {
 
     @Min(value = 0, message = "NEGATIVE_PRICE")
     double price;
-
-    int status;
 }

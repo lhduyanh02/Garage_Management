@@ -54,7 +54,7 @@ public enum ErrorCode {
     BRAND_NOT_EXISTS(1035, "Car brand does not exist", HttpStatus.NOT_FOUND),
 
     MODEL_NAME_LENGTH(1036, "Car model name up to {max} characters", HttpStatus.BAD_REQUEST),
-    MODEL_NAME_EXISTED(1037, "Car model name already existed", HttpStatus.BAD_REQUEST),
+    MODEL_NAME_EXISTED(1037, "Model name of this brand already existed", HttpStatus.BAD_REQUEST),
     MODEL_NOT_EXISTS(1038, "Car model does not exist", HttpStatus.NOT_FOUND),
 
     PLATE_TYPE_SIZE(1039, "Plate type up to {max} characters", HttpStatus.BAD_REQUEST),

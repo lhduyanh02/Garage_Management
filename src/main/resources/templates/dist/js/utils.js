@@ -1,46 +1,5 @@
 import ErrorCode from "/dist/js/ErrorCode.js";
 
-export function redirect_page(url) {
-    // Lấy token từ localStorage
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        alert("token not founded");
-        window.location.href("/login");
-        return;
-    }
-
-    // Gọi API để lấy trang HTML với Bearer Token
-    fetch(url, {
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "text/html",
-        },
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("Failed to fetch the page");
-            }
-            return response.text(); // Nhận HTML dưới dạng text
-        })
-        .then((html) => {
-            const contentDiv = document.getElementById("content"); // Thay thế nội dung bằng HTML mới
-            contentDiv.innerHTML = html;
-
-            // Re-execute any scripts included in the fetched HTML
-            const scripts = contentDiv.querySelectorAll("script");
-            scripts.forEach((script) => {
-                const newScript = document.createElement("script");
-                newScript.src = script.src;
-                document.body.appendChild(newScript);
-            });
-        })
-        .catch((error) => {
-            console.error("Error fetching the HTML page:", error);
-        });
-}
-
 export const getCookie = (name) => {
     const cookieString = document.cookie;
     const cookies = cookieString.split("; ");
@@ -56,6 +15,46 @@ export const getCookie = (name) => {
 export const deleteCookie = (name) => {
     document.cookie = name + "=; Max-Age=-99999999; path=/";
 };
+
+// Hàm lưu Object vào localStorage
+export function setLocalStorageObject(key, value) {
+    if (!key) {
+      console.error('Key không hợp lệ!');
+      return;
+    }
+  
+    try {
+      if (value === null) {
+        if (localStorage.getItem(key) !== null) {
+          localStorage.removeItem(key);
+        }
+      } else {
+        const jsonValue = JSON.stringify(value);
+        localStorage.setItem(key, jsonValue);
+      }
+    } catch (error) {
+      console.error('Local storage - set object error:', error);
+    }
+}
+  
+// Hàm lấy Object từ localStorage
+export function getLocalStorageObject(key) {
+    if (!key) {
+      console.error('Local storage: Invalid key!');
+      return null;
+    }
+  
+    try {
+      const jsonValue = localStorage.getItem(key);
+      if (jsonValue === null) {
+        return null;
+      }
+      return JSON.parse(jsonValue);
+    } catch (error) {
+      console.error('Local storage - get object error:', error);
+      return null;
+    }
+}
 
 export function introspect(bool) {
     // Hàm kiểm tra token có hợp lệ hay không, nếu không thì trả về trang index

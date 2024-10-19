@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class BrandService {
 
     BrandRepository brandRepository;
     BrandMapper brandMapper;
+    private final Collator vietnameseCollator;
 
     public List<BrandSimpleResponse> getAllBrand() {
         return brandRepository.findAll()
@@ -35,7 +37,7 @@ public class BrandService {
         List<Brand> brands = brandRepository.findAllBrandModel();
         var response = brands.stream()
                 .map(brandMapper::toBrandModelResponse)
-                .sorted(Comparator.comparing(BrandModelResponse::getBrand))
+                .sorted(Comparator.comparing(BrandModelResponse::getBrand, vietnameseCollator))
                 .toList();
 
         response.forEach(res -> {

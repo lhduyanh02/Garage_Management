@@ -59,6 +59,14 @@ public class ServiceController {
                 .build();
     }
 
+    @GetMapping("/enable-with-price")
+    public ApiResponse<List<ServiceResponse>> getAllEnableServicesWithPrice() {
+        return ApiResponse.<List<ServiceResponse>>builder()
+                .code(1000)
+                .data(servicesService.getAllEnableServicesWithPrice())
+                .build();
+    }
+
     @PostMapping
     public ApiResponse<ServiceResponse> newService(@RequestBody @Valid ServiceCreationRequest request) {
         return ApiResponse.<ServiceResponse>builder()

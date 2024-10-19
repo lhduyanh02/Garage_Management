@@ -15,7 +15,7 @@ public class UserFullResponse {
     String id;
     String name;
     String phone;
-    long telegramId;
+    Long telegramId;
     int gender;
     int status;
     AddressResponse address;

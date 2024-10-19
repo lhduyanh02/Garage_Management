@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface OptionRepository extends JpaRepository<Options, String> {
 
-    boolean existsByName(String name);
+    List<Options> findAllByName(String name);
 
     List<Options> findAllByStatus(int status);
 }

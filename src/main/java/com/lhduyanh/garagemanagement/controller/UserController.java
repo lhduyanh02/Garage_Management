@@ -77,9 +77,9 @@ public class UserController {
     }
 
     @PreAuthorize("@securityExpression.hasPermission({'GET_USER_LIST'})")
-    @GetMapping("/getMyInfo")
-    public ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.<UserResponse>builder()
+    @GetMapping("/get-my-info")
+    public ApiResponse<UserFullResponse> getMyInfo() {
+        return ApiResponse.<UserFullResponse>builder()
                 .code(1000)
                 .data(userService.getMyUserInfo())
                 .build();

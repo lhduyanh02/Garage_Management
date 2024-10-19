@@ -33,7 +33,7 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="include/customize.css">
+  <link rel="stylesheet" href="/include/customize.css">
   <style>
     /* Thêm margin và căn giữa cho pagination của bảng service-history-table */
     #service-history-table_paginate {
@@ -49,6 +49,10 @@
         text-align: left;
     }
 
+    .select2-height {
+      height: 34px !important;
+    }
+
     #service-history-table {
         margin: 0px 0px !important;
     }
@@ -62,6 +66,12 @@
     }
     #car-info-card .select2-selection__placeholder {
         font-size: 1rem !important;
+    }
+    table tbody tr {
+        cursor: pointer;
+    }
+    .select2-results__option--highlighted small {
+        color: white !important; /* Giá cũng đổi thành trắng */
     }
   </style>
 </head>
@@ -220,7 +230,11 @@
                   <div class="col-md-6 d-flex flex-column" rowspan="4">
                     <div class="card">
                       <div class="card-header py-2">
-                        <label class="card-title">Lịch sử dịch vụ</label>
+                        <div class=" d-flex justify-content-between align-items-center">
+                          <label class="card-title">Lịch sử dịch vụ</label>
+                          <span class="font-weight-light font-italic">*Chọn để xem chi tiết</span>
+                        </div>
+                        
                       </div>
                       <!-- /.card-header -->
                       <div class="card-body p-0">
@@ -258,11 +272,15 @@
             <!-- Main content -->
             <div id="invoice-card" class="invoice p-3 mb-3" hidden>
               <!-- title row -->
-              <div class="row">
-                <div class="col-12">
+              <div class="row mb-1 no-print">
+                <div class="col-12 col-sm-6">
                   <h4>
                     <i class="fas fa-globe"></i> Spring Detailing
                   </h4>
+                </div>
+                <div class="col-12 col-sm-6 d-flex align-items-center align-items-sm-start">
+                  <button type="button" class="btn btn-outline-info py-1 ml-sm-auto" id="add-detail-btn"><i class="fa-regular fa-square-plus"></i> Add</button>
+                  <button type="button" class="btn btn-outline-warning py-1 ml-2" id="edit-detail-btn"><i class="fa-solid fa-pen"></i> Edit</button>
                 </div>
                 <!-- /.col -->
               </div>
@@ -290,7 +308,7 @@
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-4 invoice-col">
-                  <b>Invoice #<span id="invoice-id"></span></b><br>
+                  <b><span id="invoice-id"></span></b><br>
                   <b>Service Date: </b><span id="history-date"></span><br>
                   <b>Odo:</b> <span id="odo-info">Không xác định</span><br>
                   <span id="advisor-name">Advisor: </span><br>
@@ -303,15 +321,15 @@
               <!-- Table row -->
               <div class="row">
                 <div class="col-12 table-responsive">
-                  <table class="table table-striped">
+                  <table id="table-details" class="table table-striped" width="100%">
                     <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Service</th>
-                      <th>Unit Price</th>
-                      <th>Discount (%)</th>
-                      <th>Qty</th>
-                      <th>Total Price</th>
+                      <th width="5%">#</th>
+                      <th min-width="20%">Service</th>
+                      <th width="15%">Unit Price</th>
+                      <th width="10%">Qty</th>
+                      <th width="15%">Discount (%)</th>
+                      <th width="15%">Total Price</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -324,21 +342,28 @@
 
               <div class="row">
                 <!-- accepted payments column -->
-                <div class="col-12 col-lg-6">
-                  <p class="lead">Payment Methods:</p>
-                  <img src="../../dist/img/credit/visa.png" alt="Visa">
-                  <img src="../../dist/img/credit/mastercard.png" alt="Mastercard">
-                  <img src="../../dist/img/credit/american-express.png" alt="American Express">
-                  <img src="../../dist/img/credit/paypal2.png" alt="Paypal">
-
-                  <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-                    Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya handango imeem
-                    plugg
-                    dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
-                  </p>
+                <div class="col-12 col-lg-4">
+                  <p class="lead">Summary:</p>
+                  <textarea wrap="soft" 
+                            class="form-control" 
+                            id="summary-input" 
+                            rows="5" maxlength="65000" 
+                            placeholder="Tóm tắt vấn đề"
+                  ></textarea>
                 </div>
                 <!-- /.col -->
-                <div class="col-12 col-lg-6">
+
+                <div class="col-12 col-lg-4">
+                  <p class="lead">Diagnose:</p>
+                  <textarea wrap="soft" 
+                            class="form-control" 
+                            id="diagnose-input" 
+                            rows="5" maxlength="65000" 
+                            placeholder="Chẩn đoán, đề xuất"
+                  ></textarea>
+                </div>
+
+                <div class="col-12 col-lg-4">
                   <p class="lead">Payment</p>
 
                   <div class="table-responsive">
@@ -380,16 +405,24 @@
 
               <!-- this row will not appear when printing -->
               <div class="row no-print">
-                <div class="col-12">
-                  <a href="invoice-print.html" rel="noopener" target="_blank" class="btn btn-default"><i class="fas fa-print"></i> Print</a>
-                  <button type="button" class="btn btn-success float-right"><i class="far fa-credit-card"></i> Submit
-                    Payment
+                <div class="col-12 col-md-6 d-flex justify-content-center justify-content-md-start mb-2 mb-md-0">
+                  <a id="save-invoice-info-btn" target="_blank" class="btn btn-outline-success mr-md-2 mr-auto">
+                    <i class="fa-regular fa-floppy-disk"></i> Save
+                  </a>
+                  <a href="invoice-print.html" rel="noopener" target="_blank" class="btn btn-default">
+                    <i class="fas fa-print"></i> Print
+                  </a>
+                </div>
+              
+                <div class="col-12 col-md-6 d-flex justify-content-center justify-content-md-end">
+                  <button type="button" class="btn btn-success mr-md-2 mr-auto">
+                    <i class="far fa-credit-card"></i> Submit Payment
                   </button>
-                  <button type="button" class="btn btn-primary float-right" style="margin-right: 5px;">
+                  <button type="button" class="btn btn-primary">
                     <i class="fas fa-download"></i> Generate PDF
                   </button>
                 </div>
-              </div>
+              </div>              
             </div>
             <!-- /.invoice -->
           </div><!-- /.col -->
@@ -424,8 +457,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/vi.js"></script>
 
-  <!-- Bootstrap -->
-  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- overlayScrollbars -->
   <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
   <!-- DataTables  & Plugins -->
@@ -450,6 +481,8 @@
   <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
   <!-- ChartJS -->
   <script src="plugins/chart.js/Chart.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 
   <script src="/dist/js/services/refreshTokenService.js"></script>
 

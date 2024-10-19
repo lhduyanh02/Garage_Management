@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,6 +47,7 @@ public class AccountService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     OtpService otpService;
+    private final Collator vietnameseCollator;
 
     @NonFinal
     @Value("${app.admin-email}")
@@ -65,7 +67,7 @@ public class AccountService {
         return accountRepository.findAll()
                 .stream()
                 .map(accountMapper::toAccountResponse)
-                .sorted(Comparator.comparing(AccountResponse::getEmail))
+                .sorted(Comparator.comparing(AccountResponse::getEmail, vietnameseCollator))
                 .toList();
     }
 
@@ -73,7 +75,7 @@ public class AccountService {
         return accountRepository.findAllByStatus(AccountStatus.CONFIRMED.getCode())
                 .stream()
                 .map(accountMapper::toAccountResponse)
-                .sorted(Comparator.comparing(AccountResponse::getEmail))
+                .sorted(Comparator.comparing(AccountResponse::getEmail, vietnameseCollator))
                 .toList();
     }
 
@@ -333,6 +335,14 @@ public class AccountService {
             account.setUser(user);
         }
         return accountMapper.toAccountResponse(accountRepository.save(account));
+    }
+
+    public Boolean resetPasswordById(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+        account.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+        accountRepository.save(account);
+        return true;
     }
 
     public boolean hardDeleteAccount(String id) {
