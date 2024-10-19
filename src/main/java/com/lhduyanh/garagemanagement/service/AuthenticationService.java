@@ -7,7 +7,11 @@ import com.lhduyanh.garagemanagement.dto.request.RefreshTokenRequest;
 import com.lhduyanh.garagemanagement.dto.response.AuthenticationResponse;
 import com.lhduyanh.garagemanagement.dto.response.IntrospectResponse;
 import com.lhduyanh.garagemanagement.entity.InvalidatedToken;
+import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
+import com.lhduyanh.garagemanagement.enums.RoleStatus;
+import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.AccountRepository;
@@ -32,9 +36,7 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +58,7 @@ public class AuthenticationService {
         var account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
-        if (account.getStatus() <= 0)
+        if (account.getStatus() <= AccountStatus.NOT_CONFIRM.getCode())
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(strength);
 
@@ -123,10 +125,21 @@ public class AuthenticationService {
     private String buildScope(String email){
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(user.getStatus() < UserStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        List<Role> roles = new ArrayList<>(user.getRoles())
+                .stream()
+                .filter(r -> r.getStatus() == RoleStatus.USING.getCode())
+                .toList();
         StringJoiner stringJoiner = new StringJoiner(" ");
 
-        if(!CollectionUtils.isEmpty(user.getRoles())){
-            user.getRoles().forEach(role -> stringJoiner.add(role.getRoleKey()));
+        if(!CollectionUtils.isEmpty(roles)){
+            roles.forEach(role -> stringJoiner.add(role.getRoleKey()));
+        }
+        else {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
         return stringJoiner.toString();
     }
@@ -135,11 +148,21 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        // Build UUID cho user có status >= 1
-        if (user.getStatus() >= 1)
-            return user.getId();
-        else
+        // Kiểm tra status > 1 và list role enabled not empty
+        if (user.getStatus() < UserStatus.CONFIRMED.getCode()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        List<Role> roles = new ArrayList<>(user.getRoles())
+                .stream()
+                .filter(r -> r.getStatus() == RoleStatus.USING.getCode())
+                .toList();
+        if(CollectionUtils.isEmpty(roles)){
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        return user.getId();
+
     }
 
     public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {
@@ -189,4 +212,5 @@ public class AuthenticationService {
                 .authenticated(true)
                 .build();
     }
+
 }

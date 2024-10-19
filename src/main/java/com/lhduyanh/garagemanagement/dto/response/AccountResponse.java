@@ -12,5 +12,5 @@ public class AccountResponse {
     String id;
     String email;
     int status;
-    UserResponse user;
+    UserSimpleResponse user;
 }

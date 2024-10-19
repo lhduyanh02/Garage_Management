@@ -103,24 +103,15 @@ $(document).ready(function () {
                     else {
                         let html = "";
                         $.each(data, function (idx, val) { 
-                            let priceStatus = "";
-                            if(val.priceStatus == 1) {
-                                priceStatus = `Đang áp dụng`;
-                            } else {
-                                priceStatus = `Ngưng áp dụng`;
-                            }
-
                             if(val.status == 1) {
                                 html += `
                                         <b>${val.name} <span class="badge badge-success"><i class="fa-solid fa-check"></i>&nbsp;Đang dùng</span><br></b>
                                         - Giá: ${val.price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}<br>
-                                        - Trạng thái: ${priceStatus}<br><br>
                                 `
                             } else {
                                 html += `
                                         <b>${val.name} <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Ngưng dùng</span><br></b>
                                         - Giá: ${val.price}<br>
-                                        - Trạng thái: ${priceStatus}<br><br>
                                 `
                             }
                         });
@@ -134,8 +125,12 @@ $(document).ready(function () {
                 render: function (data, type, row) {
                     if (data == 1) {
                         return '<center><span class="badge badge-success"><i class="fa-solid fa-check"></i>&nbsp;Đang sử dụng</span></center>';
-                    } else {
+                    } 
+                    else if (data == 0) {
                         return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Ngưng sử dụng</span></center>';
+                    }
+                    else if (data == -1) {
+                        return '<center><span class="badge badge-secondary"><i class="fa-solid fa-xmark"></i>&nbsp;Đã xóa</span></center>';
                     }
                 },
             },
@@ -143,15 +138,18 @@ $(document).ready(function () {
                 data: "id",
                 render: function (data, type, row) {
                     let html = `<a class="btn btn-info btn-sm" id="editBtn" data-id="${data}">
-                        <i class="fas fa-pencil-alt"></i></a>
-                        <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
-                            <i class="fas fa-trash"></i></a>`;
+                        <i class="fas fa-pencil-alt"></i></a>`;
 
                     if (row.status == 1) {
                         html += ` <a class="btn btn-warning btn-sm" style="padding: .25rem 0.4rem;" id="disableBtn" data-id="${data}">
                             <i class="fa-regular fa-circle-xmark fa-lg"></i></a>`;
-                    } else {
+                    } else if (row.status == 0) {
                         html += ` <a class="btn btn-success btn-sm" style="padding: .25rem 0.4rem;" id="enableBtn" data-id="${data}">
+                            <i class="fa-regular fa-circle-check fa-lg"></i></a>
+                        <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
+                            <i class="fas fa-trash"></i></a>`;
+                    } else if (row.status == -1) {
+                        html = `<a class="btn btn-success btn-sm" style="padding: .25rem 0.4rem;" id="enableBtn" data-id="${data}">
                             <i class="fa-regular fa-circle-check fa-lg"></i></a>`;
                     }
                     return "<center>" + html + "</center>";
@@ -173,6 +171,18 @@ $(document).ready(function () {
                 .buttons()
                 .container()
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
+            $('#data-table tbody').on('dblclick', 'td:nth-child(3)', function () {
+                var row = $(this).closest('tr');
+            
+                // Tìm tất cả các thẻ <details> trong hàng đó và chuyển đổi trạng thái mở/đóng
+                row.find('details').each(function () {
+                    if ($(this).attr('open')) {
+                        $(this).removeAttr('open');
+                    } else {
+                        $(this).attr('open', true);
+                    }
+                });
+            });
         },
     });
 
@@ -259,6 +269,7 @@ $("#data-table").on("click", "#editBtn", function () {
                             allowClear: false,
                             theme: "bootstrap",
                             closeOnSelect: true,
+                            language: "vi",
                             minimumInputLength: 2,
                             data: userList.map(function (option) {
                                 const phone = option.phone ? ` - ${option.phone}` : "";
@@ -411,10 +422,10 @@ $("#data-table").on("click", "#deleteBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
+    let name = rowData.name;
 
     Swal.fire({
-        title: `Xóa tài khoản</br>${email}?`,
+        title: `Xóa tùy chọn (option)</br>${name}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Xác nhận",
@@ -424,14 +435,14 @@ $("#data-table").on("click", "#deleteBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "DELETE",
-                url: "/api/accounts/hard/" + id,
+                url: "/api/options/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
-                    if (res.code == 1000) {
+                    if (res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: `Đã xóa ${email}`,
+                            title: `Đã xóa ${name}`,
                         });
                     } else {
                         Toast.fire({
@@ -459,10 +470,10 @@ $("#data-table").on("click", "#disableBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
+    let name = rowData.name;
 
     Swal.fire({
-        title: `Khóa tài khoản</br>${email}?`,
+        title: `Ngưng sử dụng option</br>${name}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Xác nhận",
@@ -472,14 +483,14 @@ $("#data-table").on("click", "#disableBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/accounts/disable/" + id,
+                url: "/api/options/disable/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã khóa tài khoản</br>" + email
+                            title: "Đã ngưng sử dụng</br>" + name
                         });
                         dataTable.ajax.reload();
                     }
@@ -502,38 +513,27 @@ $("#data-table").on("click", "#enableBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
-    let userId = rowData.user.id;
-
-    var columnData = dataTable.column(1).data().toArray();
-    const count = columnData.filter(item => item.id === userId).length;
-
-    let question = "";
-    if(count > 1){
-        question = `Kích hoạt tài khoản ${email}<br> sẽ vô hiệu hóa các tài khoản khác liên kết đến cùng hồ sơ?`
-    } else {
-        question = `Kích hoạt tài khoản</br>${email}?`
-    }
+    let name = rowData.name;
 
     Swal.fire({
-        title: question,
+        title: `Sử dụng option</br>${name}?`,
         showDenyButton: false,
         showCancelButton: true,
-        confirmButtonText: "Đồng ý",
+        confirmButtonText: "Xác nhận",
         cancelButtonText: "Huỷ",
     }).then((result) => {
         /* Read more about isConfirmed, isDenied below */
         if (result.isConfirmed) {
             $.ajax({
                 type: "PUT",
-                url: "/api/accounts/active/" + id,
+                url: "/api/options/enable/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if(res.code == 1000 && res.data == true) {
                         Toast.fire({
                             icon: "success",
-                            title: "Đã kích hoạt tài khoản</br>" + email
+                            title: "Đã bật sử dụng</br>" + name
                         });
                         dataTable.ajax.reload();
                     }
@@ -551,246 +551,67 @@ $("#data-table").on("click", "#enableBtn", function () {
     });
 });
 
-$("#new-account-btn").click(function () { 
+$("#new-option-btn").click(function () { 
     clear_modal();
-    $("#modal_title").text("Thêm tài khoản");
+    $("#modal_title").text("Thêm tùy chọn");
     $("#modal_body").append(`
-        <div class="form-group">
-            <div class="container mt-3 mb-0">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="mb-0" for="modal_email_input">Email</label>
-                    <kbd id="modal_email_counter" class="mb-0 small">0/256</kbd>
+        <form id="modal-form">
+            <div class="form-group">
+                <div class="container mt-3 mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_name_input">Tên tùy chọn</label>
+                        <kbd id="modal_name_counter" class="mb-0 small">0/100</kbd>
+                    </div>
+                </div>
+                <input type="text" class="form-control" id="modal_name_input" maxlength="100" placeholder="Nhập tên tùy chọn">
+            </div>
+
+            <div class="form-group">
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="is-apply-switch">
+                    <label class="custom-control-label" for="is-apply-switch">Sử dụng</label>
                 </div>
             </div>
-            <input type="text" class="form-control" id="modal_email_input" maxlength="255" placeholder="Nhập email">
-        </div>
-
-        <div class="form-group">
-            <label>Loại hồ sơ</label>
-            <div class="form-group">
-                <select id="user-type-select" class="form-control select2bs4" style="width: 100%;">
-                <option disabled selected> Chọn phân loại hồ sơ </option>
-                <option value="default"> Đang hoạt động, chưa có tài khoản </option>
-                <option value="activated"> Đang hoạt động </option>
-                <option value="not-active"> Chưa kích hoạt </option>
-                <option value="have-no-account"> Chưa có tài khoản </option>
-                <option value="all"> Tất cả hồ sơ </option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>Hồ sơ liên kết</label>
-            <div class="form-group">
-                <select id="user-select" class="form-control select2bs4" style="width: 100%;">
-                <option disabled> Chọn 1 hồ sơ liên kết </option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="is-active-switch">
-                <label class="custom-control-label" for="is-active-switch">Kích hoạt</label>
-            </div>
-        </div>
+        </form>
     `);
-
-    $('#user-type-select').select2({
-        placeholder: "Chọn phân loại hồ sơ",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true
-    });
-
-    $('#user-type-select').on('change', function () {
-        let selectedValue = $(this).val();
-
-        let filteredUserList = userList.filter(user => {
-            switch (selectedValue) {
-                case 'default':
-                    return user.status === 1 && user.accounts.length === 0;
-                case 'activated':
-                    return user.status === 1;
-                case 'not-active':
-                    return user.status === 0;
-                case 'have-no-account':
-                    return user.accounts.length === 0;
-                case 'all':
-                    return true; // Lấy tất cả người dùng
-                default:
-                    return true; // Mặc định lấy tất cả
-            }
-        });
-
-        $('#user-select').empty();
-        $("#user-select").select2({
-            placeholder: "Tìm kiếm hồ sơ",
-            allowClear: true,
-            theme: "bootstrap",
-            closeOnSelect: true,
-            minimumInputLength: 2,
-            ajax: {
-                transport: function (params, success, failure) {
-                    let results = [];
-    
-                    // Lấy từ khóa tìm kiếm
-                    let term = params.data.q || '';
-    
-                    // Lọc userList theo cả name và phone
-                    let filteredUsers = filteredUserList.filter(user => {
-                        let nameMatch = user.name.toLowerCase().includes(term.toLowerCase());
-                        let phoneMatch = user.phone && user.phone.includes(term);
-                        return nameMatch || phoneMatch;
-                    });
-    
-                    // Map kết quả vào định dạng mà Select2 yêu cầu
-                    results = filteredUsers.map(user => {
-                        return {
-                            id: user.id,
-                            text: user.name, // Chỉ sử dụng tên ở đây
-                            phone: user.phone,
-                            accountCount: user.accounts.length // Số lượng tài khoản
-                        };
-                    });
-    
-                    // Trả về kết quả
-                    success({
-                        results: results
-                    });
-                },
-                delay: 250,
-                cache: false
-            },
-            escapeMarkup: function (markup) {
-                return markup; // Allow HTML in text
-            },
-            templateResult: function (data) {
-    
-                let result = `${data.text}`;
-                if (data.phone != null){
-                    result +=  ` - ${data.phone}`;
-                }
-                
-                if (data.accountCount != null && data.accountCount != 0) {
-                    result += ` <small><span class="badge badge-info">${data.accountCount}</span></small>`
-                }
-                
-                return `<div>${result}</div>`;
-            },
-            templateSelection: function (data) {
-                let selection = `${data.text}`;
-                
-                if (data.phone != null) {
-                    selection += ` - ${data.phone}`;
-                }
-                
-                if (data.accountCount != null && data.accountCount != 0) {
-                    selection += ` <small><span class="badge badge-info">${data.accountCount}</span></small>`;
-                }
-                
-                return `<div>${selection}</div>`;
-            },
-            language: {
-                searching: function () {
-                    return "Đang tìm kiếm...";
-                },
-                noResults: function () {
-                    return "Không có kết quả";
-                }
-            }
-        });
-    });
-
-
-    $('#user-type-select').val('default').trigger('change');
 
     $("#modal_footer").append(
         '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Thêm</button>'
         );
     
-    utils.set_char_count("#modal_email_input", "#modal_email_counter");
+    utils.set_char_count("#modal_name_input", "#modal_name_counter");
 
     $("#modal_id").modal("show");
 
     $("#modal_submit_btn").click(function (){
-        let email = $("#modal_email_input").val().trim();
-        let user = $("#user-select").val();
-        let active = $('#is-active-switch').is(':checked') ? 1 : 0;
+        let name = $("#modal_name_input").val().trim();
+        let isApply = $('#is-apply-switch').is(':checked') ? 1 : 0;
 
-        if(email == ""){
+        if(name == ""){
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng điền email hợp lệ"
-            });
-            return;
-        }
-
-        if(user == null){
-            Toast.fire({
-                icon: "warning",
-                title: "Vui lòng chọn hồ sơ"
+                title: "Vui lòng điền tên option hợp lệ"
             });
             return;
         }
 
         $.ajax({
             type: "POST",
-            url: "/api/accounts/new-account",
+            url: "/api/options",
             headers: utils.defaultHeaders(),
             data: JSON.stringify({
-                email: email,
-                userId: user,
-                status: active
+                name: name,
+                status: isApply
             }),
             success: function (response) {
                 if(response.code == 1000){
                     Toast.fire({
                         icon: "success", 
-                        title: "Thêm tài khoản thành công"
+                        title: "Đã thêm tùy chọn<br>" + name
                     });
                     $("#modal_id").modal("hide");
                     dataTable.ajax.reload();
-                } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
-                    Swal.fire({
-                        title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
-                        showDenyButton: false,
-                        showCancelButton: true,
-                        confirmButtonText: "Đồng ý",
-                        cancelButtonText: "Huỷ",
-                    }).then((result) => {
-                        /* Read more about isConfirmed, isDenied below */
-                        if (result.isConfirmed) {
-                            $.ajax({
-                                type: "POST",
-                                url: "/api/accounts/new-account/confirm/",
-                                headers: utils.defaultHeaders(),
-                                data: JSON.stringify({
-                                    email: email,
-                                    userId: user,
-                                    status: active
-                                }),
-                                success: function (res) {
-                                    if (res.code == 1000) {
-                                        Toast.fire({
-                                            icon: "success", 
-                                            title: "Thêm tài khoản thành công"
-                                        });
-                                    }
-                                    $("#modal_id").modal("hide");
-                                    dataTable.ajax.reload();
-                                },
-                                error: function (xhr, status, error) {
-                                    Toast.fire({
-                                        icon: "error",
-                                        title: utils.getXHRInfo(xhr).message,
-                                    });
-                                },
-                            });
-                        }
-                    });
-                } 
-                else {
+                } else {
                     Toast.fire({
                         icon: "warning",
                         title: utils.getErrorMessage(response.code)

@@ -1,14 +1,13 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.*;
-import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.AccountVerifyResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserRegisterResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.Account;
 import com.lhduyanh.garagemanagement.entity.Address;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
+import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.AccountMapper;
@@ -27,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Collator;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -46,7 +46,8 @@ public class AccountService {
     AddressRepository addressRepository;
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
-    private final OtpService otpService;
+    OtpService otpService;
+    private final Collator vietnameseCollator;
 
     @NonFinal
     @Value("${app.admin-email}")
@@ -57,8 +58,8 @@ public class AccountService {
     String DEFAULT_PASSWORD;
 
 
-    public AccountResponse getAccountById(String id) {
-        return accountMapper.toAccountResponse(accountRepository.findByIdFetchAddress(id)
+    public AccountFullResponse getAccountById(String id) {
+        return accountMapper.toAccountFullResponse(accountRepository.findByIdFetchAll(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED)));
     }
 
@@ -66,13 +67,15 @@ public class AccountService {
         return accountRepository.findAll()
                 .stream()
                 .map(accountMapper::toAccountResponse)
+                .sorted(Comparator.comparing(AccountResponse::getEmail, vietnameseCollator))
                 .toList();
     }
 
     public List<AccountResponse> getAllEnableAccounts() {
-        return accountRepository.findAllByStatus(1)
+        return accountRepository.findAllByStatus(AccountStatus.CONFIRMED.getCode())
                 .stream()
                 .map(accountMapper::toAccountResponse)
+                .sorted(Comparator.comparing(AccountResponse::getEmail, vietnameseCollator))
                 .toList();
     }
 
@@ -105,7 +108,7 @@ public class AccountService {
             roles = new HashSet<>(roleRepository.findAllById(userAccountCreationReq.getRoleIds()));
         }
         user.setRoles(roles);
-        user.setStatus(0);                                                                                            
+        user.setStatus(UserStatus.NOT_CONFIRM.getCode());
         try {
             user = userRepository.save(user);
         }
@@ -149,6 +152,8 @@ public class AccountService {
 
         if(user.getStatus() == 9999){
             throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        } else if (user.getStatus() != UserStatus.CONFIRMED.getCode()){
+            throw new AppException(ErrorCode.DISABLED_USER);
         }
 
         List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());
@@ -156,7 +161,7 @@ public class AccountService {
             if(!confirm) {
                 throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
             } else {
-                accounts.forEach(acc -> acc.setStatus(-1));
+                accounts.forEach(acc -> acc.setStatus(AccountStatus.BLOCKED.getCode()));
                 accountRepository.saveAll(accounts);
             }
         }
@@ -170,13 +175,13 @@ public class AccountService {
     public UserRegisterResponse accountRegister(UserRegisterRequest request){
         var acc = accountRepository.findByEmail(request.getEmail());
         if(acc.isPresent()) {
-            if (acc.get().getStatus() == 0) {
+            if (acc.get().getStatus() == AccountStatus.NOT_CONFIRM.getCode()) {
                 if (Duration.between(acc.get().getGeneratedAt(), LocalDateTime.now()).toMinutes() < 1){
                     throw new AppException(ErrorCode.OTP_SEND_TIMER);
                 }
                 accountRepository.delete(acc.get());
             }
-            else if (acc.get().getStatus() == 1){
+            else if (acc.get().getStatus() == AccountStatus.CONFIRMED.getCode()){
                 throw new AppException(ErrorCode.ACCOUNT_EXISTED);
             }
         }
@@ -196,7 +201,7 @@ public class AccountService {
         Set<Role> roles = new HashSet<>();
         roles.add(roleRepository.findByRoleKey("CUSTOMER").get());
         user.setRoles(roles);
-        user.setStatus(0);
+        user.setStatus(UserStatus.NOT_CONFIRM.getCode());
         try {
             user = userRepository.save(user);
         }
@@ -208,7 +213,7 @@ public class AccountService {
         Account account = accountMapper.toAccount(request);
         account.setUser(user);
         account.setPassword(passwordEncoder.encode(request.getPassword()));
-        account.setStatus(0);
+        account.setStatus(AccountStatus.NOT_CONFIRM.getCode());
 
         account = otpService.createSendOtpCode(account);
         account = accountRepository.save(account);
@@ -224,14 +229,14 @@ public class AccountService {
         if (result) {
             Account account = accountRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
-            if (account.getStatus() == 0) // Chỉ xác thực cho account có status = 0
-                account.setStatus(1);
+            if (account.getStatus() == AccountStatus.NOT_CONFIRM.getCode()) // Chỉ xác thực cho account có status = 0
+                account.setStatus(AccountStatus.CONFIRMED.getCode());
             accountRepository.save(account);
 
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if (user.getStatus() == 0) // Chỉ xác thực cho user có status = 0
-                user.setStatus(1);
+            if (user.getStatus() == UserStatus.NOT_CONFIRM.getCode()) // Chỉ xác thực cho user có status = 0
+                user.setStatus(UserStatus.CONFIRMED.getCode());
             userRepository.save(user);
             return AccountVerifyResponse.builder().result(true).build();
         }
@@ -243,7 +248,7 @@ public class AccountService {
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
 
         // Kiểm tra cách 1 phút kể từ lần gửi email trước
-        if((account.getStatus() >= 0) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 1)) {
+        if((account.getStatus() >= AccountStatus.NOT_CONFIRM.getCode()) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 1)) {
             otpService.createSendOtpCode(account);
         }
         else {
@@ -259,7 +264,7 @@ public class AccountService {
             throw new AppException(ErrorCode.CAN_NOT_DISABLE_ADMIN);
         }
 
-        account.setStatus(-1);
+        account.setStatus(AccountStatus.BLOCKED.getCode());
         accountRepository.save(account);
         return true;
     }
@@ -274,7 +279,7 @@ public class AccountService {
             accountRepository.saveAll(accounts);
         }
 
-        account.setStatus(1);
+        account.setStatus(AccountStatus.CONFIRMED.getCode());
         accountRepository.save(account);
         return true;
     }
@@ -322,7 +327,7 @@ public class AccountService {
                     if (!confirm){
                         throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
                     } else {
-                        accounts.forEach(acc -> acc.setStatus(-1));
+                        accounts.forEach(acc -> acc.setStatus(AccountStatus.BLOCKED.getCode()));
                         accountRepository.saveAll(accounts);
                     }
                 }
@@ -330,6 +335,14 @@ public class AccountService {
             account.setUser(user);
         }
         return accountMapper.toAccountResponse(accountRepository.save(account));
+    }
+
+    public Boolean resetPasswordById(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+        account.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+        accountRepository.save(account);
+        return true;
     }
 
     public boolean hardDeleteAccount(String id) {

@@ -12,6 +12,9 @@ var Toast = Swal.mixin({
 
 // Clear modal
 function clear_modal() {
+    if ($(".modal-dialog").hasClass("modal-lg")) {
+        $(".modal-dialog").removeClass("modal-lg");
+    }
     $("#modal_title").empty();
     $("#modal_body").empty();
     $("#modal_footer").empty();
@@ -138,7 +141,7 @@ $(document).ready(function () {
                         html += `<b>Ngày tạo:</b> ${utils.formatVNDate(row.createAt)}<br>`;
                     }
 
-                    if (data != null) {
+                    if (data != "") {
                         html += `<b>Nội dung: <br></b> ${data.replace(/\n/g, '<br>')}`;
                     }
                     return html;
@@ -159,17 +162,17 @@ $(document).ready(function () {
                 data: "id",
                 render: function (data, type, row) {
                     let html = `<a class="btn btn-info btn-sm" id="editBtn" data-id="${data}">
-                        <i class="fas fa-pencil-alt"></i></a> 
-                        <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
-                            <i class="fas fa-trash"></i></a>`;
+                        <i class="fas fa-pencil-alt"></i></a>`;
 
                     if (row.status == 1) {
                         html += ` <a class="btn btn-warning btn-sm" style="padding: .25rem 0.4rem;" id="disableBtn" data-id="${data}">
                             <i class="fa-regular fa-circle-xmark fa-lg"></i></a>`;
                     }
-                    if (row.status == -1) {
+                    if (row.status == 0) {
                         html += ` <a class="btn btn-success btn-sm" style="padding: .25rem 0.4rem;" id="enableBtn" data-id="${data}">
-                            <i class="fa-regular fa-circle-check fa-lg"></i></a>`;
+                            <i class="fa-regular fa-circle-check fa-lg"></i></a> 
+                        <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
+                            <i class="fas fa-trash"></i></a>`;
                     }
                     return "<center>" + html + "</center>";
                 },
@@ -382,6 +385,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn loại biển kiểm soát",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true
             });
         
@@ -389,6 +393,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn hãng xe",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true,
             });
         
@@ -396,6 +401,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 placeholder: "Chọn mẫu xe",
                 allowClear: true,
                 theme: "bootstrap",
+                language: "vi",
                 closeOnSelect: true
             });
         
@@ -522,10 +528,10 @@ $("#data-table").on("click", "#deleteBtn", function () {
     let row = $(this).closest("tr");
     let rowData = $("#data-table").DataTable().row(row).data();
     // Lấy tên từ dữ liệu của hàng
-    let email = rowData.email;
+    let numPlate = rowData.numPlate;
 
     Swal.fire({
-        title: `Xóa tài khoản</br>${email}?`,
+        title: `Xóa hồ sơ xe</br>${numPlate}?`,
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Xác nhận",
@@ -535,14 +541,14 @@ $("#data-table").on("click", "#deleteBtn", function () {
         if (result.isConfirmed) {
             $.ajax({
                 type: "DELETE",
-                url: "/api/accounts/hard/" + id,
+                url: "/api/cars/" + id,
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 success: function (res) {
                     if (res.code == 1000) {
                         Toast.fire({
                             icon: "success",
-                            title: `Đã xóa ${email}`,
+                            title: `Đã xóa ${numPlate}`,
                         });
                     } else {
                         Toast.fire({
@@ -670,7 +676,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Loại biển kiểm soát <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;">
+                    <select id="plate-type-select" required class="form-control select2bs4" style="width: 100%;" data-placeholder="Chọn loại biển kiểm soát">
                     </select>
                 </div>
             </div>
@@ -678,7 +684,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Hãng xe <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="brand-select" class="form-control select2bs4" required style="width: 100%;">
+                    <select id="brand-select" class="form-control select2bs4" required style="width: 100%;" data-placeholder="Chọn hãng xe">
                         <option disabled selected> Chọn hãng xe </option>
                     </select>
                 </div>
@@ -687,7 +693,7 @@ $("#new-car-btn").click(function () {
             <div class="form-group">
                 <label>Mẫu xe <span class="text-danger">*</span></label>
                 <div class="form-group">
-                    <select id="model-select" class="form-control select2bs4" required style="width: 100%;">
+                    <select id="model-select" class="form-control select2bs4" required style="width: 100%;" data-placeholder="Chọn mẫu xe">
                     </select>
                 </div>
             </div>
@@ -784,24 +790,10 @@ $("#new-car-btn").click(function () {
         }
     });
 
-    $('#plate-type-select').select2({
-        placeholder: "Chọn loại biển kiểm soát",
+    $('.select2bs4').select2({
         allowClear: true,
         theme: "bootstrap",
-        closeOnSelect: true
-    });
-
-    $('#brand-select').select2({
-        placeholder: "Chọn hãng xe",
-        allowClear: true,
-        theme: "bootstrap",
-        closeOnSelect: true,
-    });
-
-    $('#model-select').select2({
-        placeholder: "Chọn mẫu xe",
-        allowClear: true,
-        theme: "bootstrap",
+        language: "vi",
         closeOnSelect: true
     });
 
@@ -906,3 +898,280 @@ $("#new-car-btn").click(function () {
     });
 });
 
+$("#user-mapping-btn").click(function () { 
+    if ($(this).hasClass("btn-info")) {
+        Toast.fire({
+            icon: "info",
+            title: "Chọn xe cần đăng ký",
+        });
+        $("#data-table tbody tr").css("cursor", "pointer");
+
+        $(this).removeClass("btn-info").addClass("btn-danger").html(`
+            <i class="fa-regular fa-circle-xmark mr-1"></i> Hủy
+        `);
+
+        // Lắng nghe sự kiện click item trong bảng #data-table
+        $("#data-table tbody").on("click", "tr", function () {
+            var rowData = $('#data-table').DataTable().row(this).data();
+            var carId = rowData.id;
+            var carPlate = rowData.numPlate;
+            var carModel = rowData.model.model;
+
+            $("#user-mapping-btn").removeClass("btn-danger").addClass("btn-info").html(`
+                <i class="fa-solid fa-key mr-1"></i> Đăng ký sở hữu
+            `);
+            $("#data-table tbody tr").css("cursor", "default");
+            $("#data-table tbody").off("click", "tr");
+            
+            $.ajax({
+                type: "GET",
+                url: "/api/users/is-active",
+                dataType: "json",
+                headers: utils.defaultHeaders(),
+                beforeSend: function() {
+                    Swal.showLoading();
+                },
+                success: function (res) {
+                    if (res.code != 1000) {
+                        Toast.fire({
+                            icon: "error",
+                            title: "Không thể lấy danh sách hồ sơ",
+                        });
+                        return;
+                    }
+                    clear_modal();
+                    $("#modal_title").text("Chọn hồ sơ");
+                    $(".modal-dialog").addClass("modal-lg");
+                    $("#modal_body").append(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tìm hồ sơ</label>
+                                    <div class="input-group">
+                                        <input id="user-search-input" type="text" class="form-control form-control-sm" placeholder="Tìm kiếm hồ sơ">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex">
+                                <button id="user-select-btn" type="button" class="btn btn-sm btn-outline-info ml-auto mt-auto mb-3 px-3">Chọn</button>
+                            </div>
+                        </div>
+                        <table id="user-table" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="text-align: center" width="4%">#</th>
+                                    <th scope="col" style="text-align: center" min-width="20%">Họ tên</th>
+                                    <th scope="col" style="text-align: center" min-width="35%">Thông tin</th>
+                                    <th scope="col" style="text-align: center" width="20%">Danh sách xe</th>
+                                    <th scope="col" style="text-align: center" width="15%">Vai trò</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    `);
+
+                    let userTable = $("#user-table").DataTable({
+                        responsive: true,
+                        lengthChange: false,
+                        autoWidth: false,
+                        buttons: false,
+                        pageLength: 5,
+                        searching: true,
+                        select: true,
+                        dom: 'lrtip', // (l: length, r: processing, t: table, i: information, p: pagination)
+                        columnDefs: [
+                            { orderable: false, targets: 3 },
+                            {
+                                targets: '_all', // Áp dụng cho tất cả các cột
+                                className: 'text-center, targets: 0' // Căn giữa nội dung của tất cả các cột
+                            }
+                        ],
+                        language: {
+                            paginate: {
+                                next: "&raquo;",
+                                previous: "&laquo;"
+                            },
+                            lengthMenu: "Số dòng: _MENU_",
+                            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+                            infoEmpty: "Không có dữ liệu để hiển thị",
+                            infoFiltered: "(Lọc từ _MAX_ mục)",
+                            emptyTable: "Không có dữ liệu",
+                            search: "Tìm kiếm:",
+                        },
+                        data: res.data, 
+                        columns: [
+                            { title: '#', data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
+                            { data: 'name',
+                                render: function(data, type, row) {
+                                    let html = `${data} `;
+                                    if (row.gender == 0){
+                                        html += `<span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span>`;
+                                    }
+                                    else if (row.gender == 0){
+                                        html += `<span class="badge badge-info"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span>`;
+                                    }
+                                    return html;
+                                }
+                            },
+                            { data: 'phone', 
+                                render: function(data, type, row){
+                                    let html = "";
+                                    if (data != "") {
+                                        html += `<i>SĐT: </i>${data}<br>`;
+                                    }
+                                    if (row.address) {
+                                        html += `<i>ĐC: </i>${row.address.address}`;
+                                    }
+                                    return `<small>${html}</small>`;
+                                }
+                            },
+                            { data: 'cars', 
+                                render: function(data, type, row){
+                                    if (data != null && Array.isArray(data)) {
+                                        let html = "";
+                                        $.each(data , function (idx, val) {
+                                            if(val.status == 1){
+                                                html+=` <span class="badge badge-light">&nbsp;${val.numPlate}<br>${val.model.model}</span></br>`
+                                            }
+                                            else if (val.status == 0){
+                                                html+=` <span class="badge badge-danger">&nbsp;${val.numPlate}<br>${va.model.model}</span></br>`
+                                            }
+                                        });
+                
+                                        
+                                        return (
+                                            '<center>' + html + '</center>'
+                                        );
+                                    }
+                                    return "";
+                                }
+                            },
+                            { data: 'roles', 
+                                render: function(data, type, row){
+                                    if (data != null && Array.isArray(data)) {
+                                        let html = "";
+                                        $.each(data , function (idx, val) {
+                                            if(val.status == 1){
+                                                html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
+                                            }
+                                            else if (val.status == 0){
+                                                html+=` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`
+                                            }
+                                        });
+                
+                                        
+                                        return (
+                                            '<center>' + html + '</center>'
+                                        );
+                                    }
+                                    return "";
+                                }
+                            }
+                        ],
+                        drawCallback: function (settings) {
+                            // Số thứ tự không thay đổi khi sort hoặc paginations
+                            var api = this.api();
+                            var start = api.page.info().start;
+                            api.column(0, { page: "current" })
+                                .nodes()
+                                .each(function (cell, i) {
+                                    cell.innerHTML = start + i + 1;
+                                });
+                        },
+                    });
+
+                    $('#user-table tbody').on('click', 'tr', function() {
+                        if ($(this).hasClass('selected')) {
+                            $(this).removeClass('selected');
+                        } else {
+                            $('#user-table tbody tr').removeClass('selected');
+                            $(this).addClass('selected');
+                        }
+                    });
+
+                    $("#user-search-input").on("keyup", function () {
+                        userTable.search(this.value.trim()).draw();
+                    });
+        
+                    $("#user-select-btn").click(function (e) { 
+                        var selectedRow = $('#user-table tbody tr.selected');
+                        let userData = $('#user-table').DataTable().row(selectedRow).data();
+                        
+                        if (selectedRow.length > 0) {
+                            Swal.fire({
+                                title: `Xác nhận hồ sơ<br>${userData.name} quản lý xe<br>${carModel} ${carPlate}`,
+                                showDenyButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: "Xác nhận",
+                                cancelButtonText: `Hủy`
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: "/api/users/car-mapping",
+                                        headers: utils.defaultHeaders(),
+                                        data: JSON.stringify({
+                                            userId: userData.id,
+                                            carId: carId
+                                        }),
+                                        success: function (response) {
+                                            if(response.code == 1000 && response.data == true) {
+                                                Toast.fire({
+                                                    icon: "success",
+                                                    title: "Cập nhật thành công"
+                                                });
+                                                $("#modal_id").modal("hide");
+                                                dataTable.ajax.reload();
+                                            }
+                                            else {
+                                                Toast.fire({
+                                                    icon: "error",
+                                                    title: response.message
+                                                })
+                                            }
+                                        },
+                                        error: function(xhr, status, error) {
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: utils.getXHRInfo(xhr).message
+                                            })
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            Toast.fire({
+                                icon: "warning",
+                                title: "Hãy chọn 1 hồ sơ"
+                            })
+                        }
+                    });
+        
+                    $("#modal_id").modal("show");
+                },
+                error: function (xhr, status, error) {
+                    let response = utils.getXHRInfo(xhr);
+                    Toast.fire({
+                        icon: "error",
+                        title: response.message,
+                    });
+                    $("#modal_id").modal("hide");
+                },
+                complete: function() {
+                    Swal.close();
+                }
+            });
+        });
+    } else {
+        $(this).removeClass("btn-danger").addClass("btn-info").html(`
+            <i class="fa-solid fa-key mr-1"></i> Đăng ký sở hữu
+        `);
+
+        $("#data-table tbody tr").css("cursor", "default");
+        $("#data-table tbody").off("click", "tr");
+    }
+});

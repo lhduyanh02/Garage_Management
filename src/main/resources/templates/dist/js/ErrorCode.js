@@ -44,7 +44,7 @@ const ErrorCode = {
     PLATE_TYPE_NOT_EXISTS: { code: 1041, message: "Loại biển số không tồn tại", statusCode: 404 },
     NULL_PRICE_SERVICE: { code: 1042, message: "Giá không được để trống", statusCode: 400 },
     SERVICE_NOT_EXISTS: { code: 1043, message: "Dịch vụ không tồn tại", statusCode: 404 },
-    SERVICE_NAME_EXISTED: { code: 1044, message: "Tên dịch vụ đã tồn tại", statusCode: 400 },
+    SERVICE_NAME_EXISTED: { code: 1044, message: "Tên dịch vụ đã tồn tại", statusCode: 200 },
     OPTION_NOT_EXISTS: { code: 1045, message: "Tùy chọn không tồn tại", statusCode: 404 },
     OPTION_EXISTED: { code: 1046, message: "Tên tùy chọn đã tồn tại", statusCode: 400 },
     OPTION_NAME_LENGTH: { code: 1047, message: "Tên tùy chọn tối đa 100 ký tự", statusCode: 400 },
@@ -68,7 +68,20 @@ const ErrorCode = {
     BLANK_USER: { code: 1065, message: "Hồ sơ không được để trống", status: 400 },
     CAN_NOT_EDIT_ADMIN: { code: 1066, message: "Bạn không có quyền chỉnh sửa tài khoản quản trị viên này", status: 403 },
     DISABLE_ACCOUNT_WARNING: { code: 1067, message: "Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này", status: 200},
-    NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 }
+    NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 },
+    PRICE_NOT_EXIST: { code: 1069, message: "Không tìm thấy giá cho tùy chọn này", status: 404 },
+    BLANK_CAR: { code: 1070, message: "Xe không được để trống", status: 400 },
+    DISABLED_USER: { code: 1071, message: "Người dùng này đã bị vô hiệu hóa", status: 400 },
+    DISABLED_CAR: { code: 1072, message: "Xe này đã bị ngưng sử dụng", status: 400 },
+    ILLEGAL_NUM_PLATE: { code: 1073, message: "Biển số không hợp lệ", status: 400 },
+    INVALID_SEARCH_CRITERIA: { code: 1074, message: "Tìm kiếm cần ít nhất một tiêu chí", status: 400 },
+    NO_CARS_FOUND: { code: 1075, message: "Không tìm thấy xe nào", status: 200 },
+    INVALID_ADVISOR: { code: 1076, message: "Nhân viên cố vấn dịch vụ không hợp lệ", status: 400 },
+    CAR_IN_SERVICE: { code: 1077, message: "Xe đang trong quá trình thi công dịch vụ", status: 400 },
+    HISTORY_NOT_EXISTS: { code: 1078, message: "Hóa đơn này không tồn tại", status: 404 },
+    BLANK_HISTORY: { code: 1079, message: "Hóa đơn không được trống", status: 400 },
+    PAID_HISTORY: { code: 1080, message: "Hóa đơn này đã được thanh toán, không thể chỉnh sửa", status: 400 },
+    ASSIGN_MANAGER_WARNING: { code: 1081, message: "Thao tác này sẽ tự động gán người dùng đã chọn làm quản lý của xe này", status: 200 }
 };
 
 export default ErrorCode;

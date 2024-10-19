@@ -4,6 +4,7 @@ import com.lhduyanh.garagemanagement.entity.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -16,8 +17,10 @@ public class UserResponse {
     String id;
     String name;
     String phone;
+    long telegramId;
     int gender;
     int status;
     AddressResponse address;
     Set<RoleSimpleResponse> roles;
+    List<CarResponse> cars;
 }

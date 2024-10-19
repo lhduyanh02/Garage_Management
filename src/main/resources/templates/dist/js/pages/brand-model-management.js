@@ -21,6 +21,7 @@ function clear_modal() {
 
 var dataTable;
 var dataTableCard = $("#data-table-card");
+var listBrand = [];
 
 $(document).ready(function () {    
   dataTable = $("#data-table").DataTable({
@@ -122,6 +123,34 @@ $(document).ready(function () {
         .appendTo("#data-table_wrapper .col-md-6:eq(0)");
     },
   });
+
+  $.ajax({
+    type: "GET",
+    url: "/api/brands",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "",
+    },
+    success: function (res) {
+      if(res.code == 1000) {
+        listBrand = res.data;
+      }
+      else {
+        Toast.fire({
+          icon: "error",
+          title: utils.getErrorMessage(res.code)
+        })
+      }
+    },
+    error: function(xhr, status, error){
+      console.log(xhr);
+      
+      Toast.fire({
+          icon: "error",
+          title: utils.getXHRInfo(xhr)
+      });
+    }
+  });
 });
 
 $("#tableCollapseBtn").click(function (e) {
@@ -130,95 +159,138 @@ $("#tableCollapseBtn").click(function (e) {
   }
 });
 
-$("#data-table").on("click", "#editBtn", function () {
-  clear_modal();
+$("#data-table").on("click", "#editBtn", async function () {
+  let id = $(this).data("id");
+  let res;
+  try {
+    res = await $.ajax({
+      type: "GET",
+      url: "/api/models/"+id,
+      headers: utils.defaultHeaders(),
+      dataType: "json",
+    });
+  }
+  catch (e) {
+    console.log(e);
+    Toast.fire({
+      icon: "error",
+      title: utils.getXHRInfo(e).message
+    });
+    return;
+  }
 
-  $("#modal_title").text("Thêm chức năng");
+  if (res.code == 1000 && res.data){
+    clear_modal();
+    $("#modal_title").text("Chỉnh sửa mẫu xe");
 
-  $(
-    "#modal_body"
-  ).append(`<div class="form-group"><label for="modal_tenvaitro_input">Tên vai trò</label>
-    <input type="text" class="form-control" id="modal_tenvaitro_input" placeholder="Nhập tên vai trò"></div>
-    
-    <div class="form-group">
-        <label>Chức năng</label>
-        <div class="form-group">
-            <select id="select2-test" class="form-control select2bs4" style="width: 100%;">
-            </select>
+    $("#modal_body").append(`
+      <div class="form-group">
+          <label>Hãng xe</label>
+          <div class="form-group">
+              <select id="brand-select" class="form-control select2bs4" style="width: 100%;" data-placeholder="Chọn hãng xe">
+              </select>
+          </div>
+      </div>
+  
+      <div class="form-group">
+        <div class="container mt-3 mb-0">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="mb-0" for="modal_model_name_input">Tên mẫu xe</label>
+              <kbd id="char_count" class="mb-0 small">0/100</kbd>
+          </div>
         </div>
-    </div>`);
+        <input type="text" class="form-control" id="modal_model_name_input" maxlength="100" placeholder="Nhập tên mẫu xe">
+        <p class="font-weight-light pt-3">Lưu ý: Tên mẫu xe tối đa 100 ký tự và không trùng với mẫu đã có.</p>
+      </div>
+    `);
+    
+    $.each(listBrand, function (idx, val) { 
+      if(val.id == res.data.brand.id)
+        $('#brand-select').append(`<option selected value="${val.id}">${val.brand}</option>`);
+      else 
+        $('#brand-select').append(`<option value="${val.id}">${val.brand}</option>`);
+    });
 
-  $("#select2-test").append(
-    // '<option value="' + val.id + '">' + val.ten + "</option>"
-    `
-            <option selected="selected">Chọn đi</option>
-            <option>Alaska</option>
-            <option>California</option>
-            <option>Delaware</option>
-            <option>Tennessee</option>
-            <option>Texas</option>
-            <option>Washington</option>
-            `
-  );
-
-  $("#modal_footer").append(
-    '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
-  );
-  $("#modal_id").modal("show");
-
-  $(".select2bs4").select2({
-    placeholder: "",
-    allowClear: true,
-    // dropdownParent: $('#modal_body'),
-    theme: "bootstrap",
-    tokenSeparators: [",", " "],
-    closeOnSelect: false,
-  });
-
-  $("#select2-select2-test-container").css("font-size", "17px !important");
-  // Swal.fire({
-  //     title: "Xác nhận?" ,
-  //     showDenyButton: false,
-  //     showCancelButton: true,
-  //     confirmButtonText: "Đồng ý",
-  //     cancelButtonText: "Huỷ",
-  //   }).then((result) => {
-  //     /* Read more about isConfirmed, isDenied below */
-  //     if (result.isConfirmed) {
-  //       $.ajax({
-  //         type: "POST",
-  //         url: "/",
-  //         contentType: "application/json",
-  //         data: JSON.stringify({
-  //           ids: id,
-  //           trangthai: 1
-  //         }),
-  //         success: function (res) {
-  //           if(res.total==1){
-  //             Toast.fire({
-  //               icon: "success",
-  //               title: "Confirmed",
-  //             });
-  //             // Tải lại bảng bangdsyeucau
-  //             dataTable.ajax.reload();
-  //           }else{
-  //             Toast.fire({
-  //               icon: "warning",
-  //               title: "Error"
-  //             });
-  //             // Tải lại bảng bangdsyeucau
-  //             dataTable.ajax.reload();
-  //           }
-  //         },
-  //         error: function (xhr, status, error) {
-  //           Toast.fire({
-  //             icon: "error",
-  //             title: "Internal server error",
-  //           });
-  //         },
-  //       });
-  //     }
-  //   });
+    $('#modal_model_name_input').val(res.data.model);
+    
+    // Đếm số ký tự
+    utils.set_char_count("#modal_model_name_input", "#char_count")
+  
+    $("#modal_footer").append(
+      '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+    );
+    $("#modal_id").modal("show");
+  
+    $("#brand-select").select2({
+      allowClear: false,
+      theme: "bootstrap",
+      closeOnSelect: true,
+      language: "vi",
+    });
+  
+    $("#modal_submit_btn").click(function () {
+      let brand = $("#brand-select").val();
+      let model = $('#modal_model_name_input').val().trim();
+  
+      if(brand == null){
+        Toast.fire({
+          icon: "warning",
+          title: "Vui lòng chọn hãng xe!"
+        });
+        return;
+      } else if (model.length > 100) {
+        Toast.fire({
+          icon: "warning",
+          title: "Tên mẫu xe không được dài hơn 100 ký tự!"
+        });
+        return;
+      }
+       else {
+        $.ajax({
+          type: "PUT",
+          url: "/api/models/"+id,
+          headers: utils.defaultHeaders(),
+          contentType: "application/json",
+          data: JSON.stringify({
+            model: model,
+            brand: brand
+          }),
+          success: function (response) {
+            if(response.code==1000){
+              let val = response.data;
+              Toast.fire({
+                icon: "success",
+                title: "Đã cập nhật mẫu xe<br>" + val.brand.brand + " " + val.model ,
+              });
+              $("#modal_id").modal("hide");
+              // Tải lại bảng chức năng
+              dataTable.ajax.reload();
+            }
+            else {
+              Toast.fire({
+                icon: "error",
+                title: "Đã xảy ra lỗi, chi tiết:<br>" + response.message,
+              });
+            }
+          },
+          error: function(xhr, status, error){
+            Toast.fire({
+                icon: "error",
+                title: utils.getXHRInfo(xhr).message
+            });
+            dataTable.ajax.reload();
+          },
+        });
+      }
+    });
+  } 
+  else {
+    Toast.fire({
+      icon: "error",
+      title: utils.getErrorMessage(res.code)
+    });
+    return;
+  }
 });
 
 $("#newBrand_btn").on("click", function () {
@@ -252,15 +324,6 @@ $("#newBrand_btn").on("click", function () {
     '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
   );
   $("#modal_id").modal("show");
-
-  // $(".select2bs4").select2({
-  //   placeholder: "",
-  //   allowClear: true,
-  //   // dropdownParent: $('#modal_body'),
-  //   theme: "bootstrap",
-  //   tokenSeparators: [",", " "],
-  //   closeOnSelect: false,
-  // });
 
   $("#modal_submit_btn").click(function () {
     let ten = $("#modal_brand_name_input").val();
@@ -419,6 +482,7 @@ $("#newModel_btn").on("click", function () {
     theme: "bootstrap",
     // tokenSeparators: [",", " "],
     closeOnSelect: true,
+    language: "vi",
   });
 
 
@@ -587,6 +651,7 @@ $('#editBrand_btn').click(function () {
     theme: "bootstrap",
     // tokenSeparators: [",", " "],
     closeOnSelect: true,
+    language: "vi",
   });
 
   $("#modal_submit_btn").click(function () {

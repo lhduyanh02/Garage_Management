@@ -33,6 +33,7 @@ $(document).ready(function () {
         theme: "bootstrap",
         // tokenSeparators: [",", " "],
         closeOnSelect: true,
+        language: "vi",
     });
     
     $.ajax({
@@ -77,6 +78,7 @@ $(document).ready(function () {
         allowClear: true,
         // dropdownParent: $('#modal_body'),
         theme: "bootstrap",
+        language: "vi",
         // tokenSeparators: [",", " "],
         closeOnSelect: true,
         minimumInputLength: 2, // Chỉ tìm kiếm khi có ít nhất 2 ký tự

@@ -15,6 +15,7 @@ public class UserWithAccountsResponse {
     String id;
     String name;
     String phone;
+    long telegramId;
     int gender;
     int status;
     AddressResponse address;

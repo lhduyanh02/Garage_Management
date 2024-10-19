@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.configuration;
 
 import com.lhduyanh.garagemanagement.entity.Role;
+import com.lhduyanh.garagemanagement.enums.RoleStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,15 +48,46 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
 
         var roleIds = user.getRoles()
                 .stream()
+                .filter(r -> r.getStatus() == RoleStatus.USING.getCode())
                 .map(Role::getId)
                 .toList();
+
+        if(CollectionUtils.isEmpty(roleIds)){
+            return false;
+        }
 
         log.info("---LOG ROLE FROM SECURITY METHOD---");
         roleIds.forEach(roleId -> log.info("Role: " + roleId));
 
         // Kiểm tra nếu role có permission tương ứng
         return roleRepository.existByRoleIdsAndPermissionKeys(roleIds, permissionKeys);
+    }
 
+    public boolean hasPermission(String userId, List<String> permissionKeys) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(user.getStatus() == 9999)
+            return true;
+
+        if (user.getStatus() != 1)
+            return false;
+
+        var roleIds = user.getRoles()
+                .stream()
+                .filter(r -> r.getStatus() == RoleStatus.USING.getCode())
+                .map(Role::getId)
+                .toList();
+
+        if(CollectionUtils.isEmpty(roleIds)){
+            return false;
+        }
+
+        log.info("---LOG ROLE FROM SECURITY METHOD---");
+        roleIds.forEach(roleId -> log.info("Role: " + roleId));
+
+        // Kiểm tra nếu role có permission tương ứng
+        return roleRepository.existByRoleIdsAndPermissionKeys(roleIds, permissionKeys);
     }
 
 

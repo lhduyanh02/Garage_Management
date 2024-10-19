@@ -39,8 +39,13 @@ public class ModelService {
     }
 
     public ModelResponse newModel(ModelRequest request) {
-        if (modelRepository.existsByModel(request.getModel())){
-            throw new AppException(ErrorCode.MODEL_NAME_EXISTED);
+        List<Model> models = modelRepository.findByModel(request.getModel());
+        if (models.size() > 0) {
+            for (Model m : models) {
+                if (m.getModel().equalsIgnoreCase(request.getModel()) && m.getBrand().getId() == request.getBrand()) {
+                    throw new AppException(ErrorCode.MODEL_NAME_EXISTED);
+                }
+            }
         }
 
         if(request.getBrand() == 0)
@@ -55,13 +60,28 @@ public class ModelService {
     }
 
     public ModelResponse updateModel(int id, ModelRequest request) {
-        if (modelRepository.existsByModel(request.getModel())){
-            throw new AppException(ErrorCode.MODEL_NAME_EXISTED);
-        }
+        request.setModel(request.getModel().trim());
+
         Model model = modelRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.MODEL_NOT_EXISTS));
 
+        Brand brand = brandRepository.findById(request.getBrand())
+                .orElseThrow(() -> new AppException(ErrorCode.BRAND_NOT_EXISTS));
+
+        List<Model> models = modelRepository.findByModel(request.getModel())
+                .stream().filter(m -> m.getId() != model.getId())
+                .toList();
+
+        if (models.size() > 0) {
+            for (Model m : models) {
+                if (m.getModel().equalsIgnoreCase(request.getModel()) && m.getBrand().getId() == request.getBrand()) {
+                    throw new AppException(ErrorCode.MODEL_NAME_EXISTED);
+                }
+            }
+        }
+
         model.setModel(request.getModel());
+        model.setBrand(brand);
         return modelMapper.toModelResponse(modelRepository.save(model));
     }
 }

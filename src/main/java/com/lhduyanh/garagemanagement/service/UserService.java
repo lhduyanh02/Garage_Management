@@ -1,30 +1,31 @@
 package com.lhduyanh.garagemanagement.service;
 
+import com.lhduyanh.garagemanagement.dto.request.UserCarMappingRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
-import com.lhduyanh.garagemanagement.dto.response.UserResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
+import com.lhduyanh.garagemanagement.entity.Account;
+import com.lhduyanh.garagemanagement.entity.Car;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
+import com.lhduyanh.garagemanagement.enums.CarStatus;
+import com.lhduyanh.garagemanagement.enums.RoleStatus;
+import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.UserMapper;
-import com.lhduyanh.garagemanagement.repository.AccountRepository;
-import com.lhduyanh.garagemanagement.repository.AddressRepository;
-import com.lhduyanh.garagemanagement.repository.RoleRepository;
-import com.lhduyanh.garagemanagement.repository.UserRepository;
+import com.lhduyanh.garagemanagement.repository.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.text.Collator;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
@@ -41,18 +42,72 @@ public class UserService {
     AccountRepository accountRepository;
     RoleRepository roleRepository;
     UserMapper userMapper;
+    CarRepository carRepository;
+    private final Collator vietnameseCollator;
 
     public List<UserResponse> getAllUserWithAddress(){
-        List<User> users = userRepository.findAllWithAddress();
+        List<User> users = userRepository.findAllUserFullInfo();
         return users.stream()
-                .map(userMapper::toUserResponse)
+                .map(user -> {
+                    UserResponse response = userMapper.toUserResponse(user);
+
+                    // Lọc các cars trong UserResponse dựa trên trạng thái
+                    List<CarResponse> filteredCars = response.getCars().stream()
+                            .filter(car -> car.getStatus()!=CarStatus.DELETED.getCode())
+                            .collect(Collectors.toList());
+                    response.setCars(filteredCars);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(UserResponse::getName, vietnameseCollator))
                 .collect(Collectors.toList());
     };
 
     public List<UserResponse> getAllActiveUser(){
-        List<User> users = userRepository.findAllActiveUser();
+
+        List<User> users = userRepository.findAllActiveUserFetchCars();
         return users.stream()
-                .map(userMapper::toUserResponse)
+                .map(user -> {
+                    UserResponse response = userMapper.toUserResponse(user);
+
+                    // Lọc các cars trong UserResponse dựa trên trạng thái
+                    List<CarResponse> filteredCars = response.getCars().stream()
+                            .filter(car -> car.getStatus()!=CarStatus.DELETED.getCode())
+                            .collect(Collectors.toList());
+                    response.setCars(filteredCars);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(UserResponse::getName, vietnameseCollator))
+                .collect(Collectors.toList());
+    };
+
+    public List<UserFullResponse> getAllActiveCustomers(){
+        List<User> users = userRepository.findAllActiveCustomerFullInfo();
+        return users.stream()
+                .map(user -> {
+                    UserFullResponse response = userMapper.toUserFullResponse(user);
+                    Set<RoleSimpleResponse> roles = response.getRoles()
+                            .stream()
+                            .filter(role -> role.getStatus()== RoleStatus.USING.getCode())
+                            .collect(Collectors.toSet());
+                    response.setRoles(roles);
+
+                    List<CarResponse> cars = response.getCars().stream()
+                            .filter(car -> car.getStatus() == CarStatus.USING.getCode())
+                            .toList();
+                    response.setCars(cars);
+
+                    List<AccountSimpleResponse> accounts = response.getAccounts()
+                            .stream()
+                            .filter(account -> account.getStatus() >= AccountStatus.NOT_CONFIRM.getCode())
+                            .toList();
+                    response.setAccounts(accounts);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(UserFullResponse::getName))
+                .filter(user -> user.getRoles().size()>0)
                 .collect(Collectors.toList());
     };
 
@@ -61,21 +116,67 @@ public class UserService {
         return users
                 .stream().filter(user -> user.getStatus() != 9999)
                 .map(userMapper::toUserWithAccountsResponse)
+                .sorted(Comparator.comparing(UserWithAccountsResponse::getName, vietnameseCollator))
                 .toList();
     }
-@Transactional
-    public UserWithAccountsResponse getUserById(String id){
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        return userMapper.toUserWithAccountsResponse(user);
+    public UserFullResponse getUserById(String id){
+        return userRepository.findByIdFullInfo(id)
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .map(u -> {
+                    Set<Role> listRole = new HashSet<>();
+                    for(Role r : u.getRoles()){
+                        if(r.getStatus()==RoleStatus.USING.getCode()){
+                            listRole.add(r);
+                        }
+                    }
+                    u.setRoles(listRole);
+
+                    Set<Account> listAccount = new HashSet<>();
+                    for(Account a : u.getAccounts()){
+                        if(a.getStatus()==AccountStatus.CONFIRMED.getCode()){
+                            listAccount.add(a);
+                        }
+                    }
+                    u.setAccounts(listAccount);
+
+                    u.setCars(u.getCars().stream()
+                            .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                            .collect(Collectors.toSet()));
+
+                    return userMapper.toUserFullResponse(u);
+                })
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
     }
 
-    public UserResponse getMyUserInfo(){
+    public UserFullResponse getMyUserInfo(){
         var UUID = getUUIDFromJwt();
-        User user = userRepository.findById(UUID)
+        return userRepository.findByIdFullInfo(UUID)
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .map(u -> {
+                    Set<Role> listRole = new HashSet<>();
+                    for(Role r : u.getRoles()){
+                        if(r.getStatus()==RoleStatus.USING.getCode()){
+                            listRole.add(r);
+                        }
+                    }
+                    u.setRoles(listRole);
+
+                    Set<Account> listAccount = new HashSet<>();
+                    for(Account a : u.getAccounts()){
+                        if(a.getStatus()==AccountStatus.CONFIRMED.getCode()){
+                            listAccount.add(a);
+                        }
+                    }
+                    u.setAccounts(listAccount);
+
+                    u.setCars(u.getCars().stream()
+                            .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                            .collect(Collectors.toSet()));
+
+                    return userMapper.toUserFullResponse(u);
+                })
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        return userMapper.toUserResponse(user);
     }
 
     public UserResponse createUser(UserCreationRequest request){
@@ -132,14 +233,22 @@ public class UserService {
         }
         user.setRoles(roles);
 
-        return userMapper.toUserResponse(userRepository.save(user));
+        UserResponse response = userMapper.toUserResponse(userRepository.save(user));
+
+        // Lọc các cars trong UserResponse dựa trên trạng thái
+        List<CarResponse> filteredCars = response.getCars().stream()
+                .filter(car -> car.getStatus()!=CarStatus.DELETED.getCode())
+                .collect(Collectors.toList());
+        response.setCars(filteredCars);
+
+        return response;
     }
 
     public void deleteUserById(String id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (user.getStatus() != 0){
+        if (user.getStatus() != UserStatus.NOT_CONFIRM.getCode()){
             throw new AppException(ErrorCode.DELETE_ACTIVATED_USER);
         }
 
@@ -163,11 +272,11 @@ public class UserService {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (user.getStatus() != 1 && user.getStatus() != 0){
+        if (user.getStatus() != UserStatus.CONFIRMED.getCode() && user.getStatus() != UserStatus.NOT_CONFIRM.getCode()){
             throw new AppException(ErrorCode.DISABLE_ACTIVE_USER_ONLY);
         }
 
-        user.setStatus(-1);
+        user.setStatus(UserStatus.BLOCKED.getCode());
         userRepository.save(user);
     }
 
@@ -175,7 +284,29 @@ public class UserService {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        user.setStatus(1);
+        user.setStatus(UserStatus.CONFIRMED.getCode());
         userRepository.save(user);
+    }
+
+//    @Transactional
+    public boolean userCarMapping(UserCarMappingRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        if(user.getStatus() != UserStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.DISABLED_USER);
+        }
+
+        Car car = carRepository.findById(request.getCarId())
+                .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
+        if(car.getStatus() != CarStatus.USING.getCode()) {
+            throw new AppException(ErrorCode.   DISABLED_CAR);
+        }
+        Set<Car> carSet = user.getCars();
+        if(!carSet.contains(car)) {
+            carSet.add(car);
+            user.setCars(carSet);
+        }
+        userRepository.save(user);
+        return true;
     }
 }

@@ -30,8 +30,4 @@ public class Price {
     Options options;
 
     double price;
-
-    @Column(nullable = false)
-    int status;
-
 }

@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -45,4 +46,15 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     Set<Account> accounts;
+
+    @Column(name = "telegram_id", nullable = true)
+    Long telegramId;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_car",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "car_id")
+    )
+    Set<Car> cars;
 }

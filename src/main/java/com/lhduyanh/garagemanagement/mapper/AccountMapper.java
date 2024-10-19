@@ -2,10 +2,7 @@ package com.lhduyanh.garagemanagement.mapper;
 
 import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
 import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
-import com.lhduyanh.garagemanagement.dto.response.AccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.AccountSimpleResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserAccountResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserRegisterResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.Account;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,6 +13,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
     AccountResponse toAccountResponse(Account account);
+
+    AccountFullResponse toAccountFullResponse(Account account);
 
     AccountSimpleResponse toAccountSimpleResponse(Account account);
 

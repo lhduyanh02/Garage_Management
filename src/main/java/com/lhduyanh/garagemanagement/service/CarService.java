@@ -5,6 +5,8 @@ import com.lhduyanh.garagemanagement.dto.response.CarResponse;
 import com.lhduyanh.garagemanagement.entity.Car;
 import com.lhduyanh.garagemanagement.entity.Model;
 import com.lhduyanh.garagemanagement.entity.PlateType;
+import com.lhduyanh.garagemanagement.enums.CarStatus;
+import com.lhduyanh.garagemanagement.enums.PlateTypeStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.CarMapper;
@@ -14,15 +16,18 @@ import com.lhduyanh.garagemanagement.repository.PlateTypeRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class CarService {
 
     CarRepository carRepository;
@@ -39,22 +44,59 @@ public class CarService {
     public List<CarResponse> getAllCar() {
         return carRepository.findAll()
                 .stream()
+                .filter(car -> car.getStatus() == CarStatus.NOT_USE.getCode() || car.getStatus() == CarStatus.USING.getCode())
                 .map(carMapper::toCarResponse)
+                .sorted(Comparator.comparing(CarResponse::getCreateAt).reversed())
                 .toList();
     }
 
     public List<CarResponse> getAllEnableCar() {
-        return carRepository.findAllByStatus(1)
+        return carRepository.findAllByStatus(CarStatus.USING.getCode())
                 .stream()
                 .map(carMapper::toCarResponse)
                 .toList();
     }
 
     public List<CarResponse> getAllDeletedCar() {
-        return carRepository.findAllByStatus(-1)
+        return carRepository.findAllByStatus(CarStatus.DELETED.getCode())
                 .stream()
                 .map(carMapper::toCarResponse)
                 .toList();
+    }
+
+    public List<CarResponse> searchCars(String partialNumPlate, String plateTypeId, String brandId, String modelId) {
+        String numPlate = null;
+        if (partialNumPlate != null && !partialNumPlate.trim().isEmpty()) {
+            numPlate = partialNumPlate.trim().toUpperCase().replaceAll("[^A-Za-z0-9]", "");
+        }
+
+        Integer plateType = (plateTypeId != null && !plateTypeId.trim().isEmpty())
+                ? Integer.valueOf(plateTypeId.trim())
+                : null;
+
+        Integer brand = (brandId != null && !brandId.trim().isEmpty())
+                ? Integer.valueOf(brandId.trim())
+                : null;
+
+        Integer model = (modelId != null && !modelId.trim().isEmpty())
+                ? Integer.valueOf(modelId.trim())
+                : null;
+
+        // Kiểm tra nếu tất cả tham số đều null hoặc rỗng
+        if (numPlate == null && plateType == null && brand == null && model == null) {
+            throw new AppException(ErrorCode.INVALID_SEARCH_CRITERIA);
+        }
+
+        List<CarResponse> cars = carRepository.searchCars(numPlate, plateType, brand, model)
+                .stream()
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .map(carMapper::toCarResponse)
+                .toList();
+
+        if (cars.isEmpty()) {
+            throw new AppException(ErrorCode.NO_CARS_FOUND);
+        }
+        return cars;
     }
 
     public CarResponse newCar(CarRequest request) {
@@ -66,15 +108,23 @@ public class CarService {
             throw new AppException(ErrorCode.BLANK_MODEL);
         }
 
-        request.setNumPlate(request.getNumPlate().trim().toUpperCase());
-        if (carRepository.
-                existsByNumPlateAndPlateTypeId(request.getNumPlate(), request.getPlateType())){
+        if (request.getNumPlate().matches(".*[\\u00C0-\\u1EF9].*")) { // Kiểm tra ký tự tiếng Việt
+            throw new AppException(ErrorCode.ILLEGAL_NUM_PLATE);
+        }
+
+        request.setNumPlate(request.getNumPlate().trim().toUpperCase().replaceAll("[^A-Za-z0-9]", ""));
+
+        List<Car> checkCars = carRepository.findByNumPlateAndPlateTypeId(request.getNumPlate(), request.getPlateType())
+                .stream()
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .toList();
+        if (checkCars.size() > 0) {
             throw new AppException(ErrorCode.CAR_EXISTED);
         }
 
         PlateType plateType = plateTypeRepository.findById(request.getPlateType())
                 .orElseThrow(() -> new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS));
-        if (plateType.getStatus() == 0) {
+        if (plateType.getStatus() == PlateTypeStatus.NOT_USE.getCode()) {
             throw new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS);
         }
 
@@ -84,7 +134,7 @@ public class CarService {
         Car car = carMapper.toCar(request);
         car.setPlateType(plateType);
         car.setModel(model);
-        car.setStatus(1);
+        car.setStatus(CarStatus.USING.getCode());
         car.setCreateAt(LocalDateTime.now());
 
         return carMapper.toCarResponse(carRepository.save(car));
@@ -94,16 +144,23 @@ public class CarService {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
 
-        request.setNumPlate(request.getNumPlate().trim().toUpperCase());
+        if (request.getNumPlate().matches(".*[\\u00C0-\\u1EF9].*")) { // Kiểm tra ký tự tiếng Việt
+            throw new AppException(ErrorCode.ILLEGAL_NUM_PLATE);
+        }
 
-        Optional<Car> checkCar = carRepository.findByNumPlateAndPlateTypeId(request.getNumPlate(), request.getPlateType());
-        if (checkCar.isPresent() && !checkCar.get().getId().equals(car.getId())) {
+        request.setNumPlate(request.getNumPlate().trim().toUpperCase().replaceAll("[^A-Za-z0-9]", ""));
+
+        List<Car> checkCars = carRepository.findByNumPlateAndPlateTypeId(request.getNumPlate(), request.getPlateType())
+                .stream()
+                .filter(c -> (c.getStatus() != CarStatus.DELETED.getCode() && !c.getId().equals(car.getId())))
+                .toList();
+        if (checkCars.size() > 0) {
             throw new AppException(ErrorCode.CAR_EXISTED);
         }
 
         PlateType plateType = plateTypeRepository.findById(request.getPlateType())
                 .orElseThrow(() -> new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS));
-        if (plateType.getStatus() == 0) {
+        if (plateType.getStatus() == PlateTypeStatus.NOT_USE.getCode()) {
             throw new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS);
         }
         Model model = modelRepository.findById(request.getModel())
@@ -119,7 +176,7 @@ public class CarService {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
 
-        car.setStatus(-1);
+        car.setStatus(CarStatus.DELETED.getCode());
         carRepository.save(car);
     }
 
@@ -129,7 +186,7 @@ public class CarService {
 
         // check xe có đang làm dịch vụ hay không, nếu có 1 history đang có trạng thái là 0 thì từ chối
 
-        car.setStatus(-1);
+        car.setStatus(CarStatus.NOT_USE.getCode());
         carRepository.save(car);
         return true;
     }
@@ -138,7 +195,7 @@ public class CarService {
         Car car = carRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
 
-        car.setStatus(1);
+        car.setStatus(CarStatus.USING.getCode());
         carRepository.save(car);
         return true;
     }

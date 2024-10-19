@@ -52,6 +52,17 @@ public class CarController {
                 .build();
     }
 
+    @GetMapping("/search")
+    public ApiResponse<List<CarResponse>> searchCars(@RequestParam(required = false) String plate,
+                                                     @RequestParam(required = false) String plateType,
+                                                     @RequestParam(required = false) String brand,
+                                                     @RequestParam(required = false) String model) {
+        return ApiResponse.<List<CarResponse>>builder()
+                .code(1000)
+                .data(carService.searchCars(plate, plateType, brand, model))
+                .build();
+    }
+
     @PostMapping
     public ApiResponse<CarResponse> newCar(@RequestBody @Valid CarRequest carRequest) {
         return ApiResponse.<CarResponse>builder()

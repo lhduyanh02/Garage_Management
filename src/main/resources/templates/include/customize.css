@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@540&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Space+Grotesk:wght@300..700&display=swap');
+
 .select2-selection__rendered {
   background-color: #fff;
   border-radius: 4px;
@@ -13,4 +15,84 @@
 
 input.select2-search__field{
   width: 100% !important;
+}
+
+/* Tạo hiệu ứng cho dòng được chọn */
+table.dataTable tbody tr.selected {
+  background-color: #007bff !important; /* Màu nền khi chọn */
+  color: white; /* Màu chữ khi chọn */
+}
+
+.breadcrumb-item {
+  font-weight: bold;
+}
+
+.hover-underline:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  line-height: 1.2;
+}
+
+body {
+  font-family: "Nunito Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal; 
+}
+
+.font-space-grotesk {
+  font-family: "Space Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.font-nunito-sans {
+  font-family: "Nunito Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.table, p {
+    font-family: "Nunito Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "wdth" 100, "YTLC" 500;
+}
+
+.btn, a {
+    font-family: "Space Grotesk", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+table th {
+  font-family: "Baloo Da 2", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+table tr {
+  font-family: "Nunito Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.nav-link p {
+  font-family: "Space Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+h1, h2, h3, h4, h5{
+  font-family: "Baloo Da 2", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.card-title {
+  float: left;
+  font-size: 1.2em;
+  font-weight: 500;
+  margin: 0;
 }

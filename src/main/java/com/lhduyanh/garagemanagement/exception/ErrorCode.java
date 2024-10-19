@@ -54,7 +54,7 @@ public enum ErrorCode {
     BRAND_NOT_EXISTS(1035, "Car brand does not exist", HttpStatus.NOT_FOUND),
 
     MODEL_NAME_LENGTH(1036, "Car model name up to {max} characters", HttpStatus.BAD_REQUEST),
-    MODEL_NAME_EXISTED(1037, "Car model name already existed", HttpStatus.BAD_REQUEST),
+    MODEL_NAME_EXISTED(1037, "Model name of this brand already existed", HttpStatus.BAD_REQUEST),
     MODEL_NOT_EXISTS(1038, "Car model does not exist", HttpStatus.NOT_FOUND),
 
     PLATE_TYPE_SIZE(1039, "Plate type up to {max} characters", HttpStatus.BAD_REQUEST),
@@ -63,7 +63,7 @@ public enum ErrorCode {
 
     NULL_PRICE_SERVICE(1042, "Price must not be null", HttpStatus.BAD_REQUEST),
     SERVICE_NOT_EXISTS(1043, "Service does not exist", HttpStatus.NOT_FOUND),
-    SERVICE_NAME_EXISTED(1044, "Service name already existed", HttpStatus.BAD_REQUEST),
+    SERVICE_NAME_EXISTED(1044, "Service name already existed", HttpStatus.OK),
 
     OPTION_NOT_EXISTS(1045, "Option does not exist", HttpStatus.NOT_FOUND),
     OPTION_EXISTED(1046, "Option name already existed", HttpStatus.BAD_REQUEST),
@@ -93,6 +93,27 @@ public enum ErrorCode {
     DISABLE_ACCOUNT_WARNING(1067, "This action will disable all accounts link to this user", HttpStatus.OK),
     NO_CHANGE_UPDATE(1068, "No change update", HttpStatus.OK),
     PRICE_NOT_EXIST(1069, "Price does not exist", HttpStatus.NOT_FOUND),
+    BLANK_CAR(1070, "Car can not be blank", HttpStatus.BAD_REQUEST),
+    DISABLED_USER(1071, "This user was disabled", HttpStatus.BAD_REQUEST),
+    DISABLED_CAR(1072, "This car was disabled", HttpStatus.BAD_REQUEST),
+    ILLEGAL_NUM_PLATE(1073, "Illegal num plate", HttpStatus.BAD_REQUEST),
+    INVALID_SEARCH_CRITERIA(1074, "The search requires at least one criterion", HttpStatus.BAD_REQUEST),
+    NO_CARS_FOUND(1075, "No cars founded", HttpStatus.OK),
+    INVALID_ADVISOR(1076, "Advisor is invalid", HttpStatus.BAD_REQUEST),
+
+    CAR_IN_SERVICE(1077, "This vehicle is currently undergoing service", HttpStatus.BAD_REQUEST),
+    HISTORY_NOT_EXISTS(1078, "History does not exist", HttpStatus.NOT_FOUND),
+    BLANK_HISTORY(1079, "History can not be blank, please choose one", HttpStatus.BAD_REQUEST),
+    PAID_HISTORY(1080, "This invoice has already been paid, can not be modified", HttpStatus.BAD_REQUEST),
+    ASSIGN_MANAGER_WARNING(1081, "This action will automatically assign this user as the manager of the selected car", HttpStatus.OK),
+    BLANK_SERVICE(1082, "Service must not be blank", HttpStatus.BAD_REQUEST),
+    DISCOUNT_RANGE(1083, "Discount must be between 0% and 100%", HttpStatus.BAD_REQUEST),
+    QUANTITY_RANGE(1084, "Quantity must be at least 1", HttpStatus.BAD_REQUEST),
+    CANCELED_HISTORY(1085, "This invoice has already been canceled, can not be modified", HttpStatus.BAD_REQUEST),
+    SERVICE_NOT_IN_USE(1086, "This service is not in use", HttpStatus.BAD_REQUEST),
+    OPTION_NOT_IN_USE(1087, "This option is not in use", HttpStatus.BAD_REQUEST),
+    UPDATE_HISTORY_ERROR(1088, "Error in updating history", HttpStatus.INTERNAL_SERVER_ERROR),
+
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

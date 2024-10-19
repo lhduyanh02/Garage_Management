@@ -36,8 +36,8 @@ public class ModelController {
                 .build();
     }
     
-    @PutMapping
-    public ApiResponse<ModelResponse> updateModel(@RequestParam("id") int id, @RequestBody @Valid ModelRequest request) {
+    @PutMapping("/{id}")
+    public ApiResponse<ModelResponse> updateModel(@PathVariable("id") int id, @RequestBody @Valid ModelRequest request) {
         return ApiResponse.<ModelResponse>builder()
                 .code(1000)
                 .data(modelService.updateModel(id, request))

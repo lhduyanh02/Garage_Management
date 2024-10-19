@@ -16,6 +16,5 @@ public class OptionPriceResponse {
     String name; // Option name
     int status; // Option status
     double price;
-    int priceStatus;
 
 }

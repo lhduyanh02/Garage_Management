@@ -12,6 +12,7 @@ import java.io.Serializable;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class PriceId implements Serializable {
     String serviceId;
     String optionId;

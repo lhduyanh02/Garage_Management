@@ -13,7 +13,7 @@ public interface ServiceRepository extends JpaRepository<Service, String> {
 
     boolean existsByName(String name);
 
-    Optional<Service> findByName(String name);
+    List<Service> findByName(String name);
 
     @Query("SELECT s FROM Service s WHERE s.status = 1")
     List<Service> findAllEnableService();

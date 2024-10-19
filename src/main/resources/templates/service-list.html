@@ -7,7 +7,7 @@
   <title>Danh mục dịch vụ | Spring Detailing</title>
 
   <!-- jQuery -->
-  <script src="/plugins/jquery/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Google Font: Source Sans Pro -->
@@ -21,11 +21,8 @@
     <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
     <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
-  <!-- Select2 -->
-  <link
-    href="/plugins/select2/css/select2.min.css"
-    rel="stylesheet"
-  />
+  <!-- Select2 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
@@ -89,7 +86,7 @@
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Quản lý danh mục</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-dark">Quản lý danh mục</a></li>
                 <li class="breadcrumb-item active">Danh mục dịch vụ</li>
               </ol>
             </div>
@@ -111,9 +108,9 @@
                 <button class="btn btn-success btn-sm ms-auto ml-2" id="new-service-btn">
                   <i class="fa-solid fa-plus mr-1"></i> Thêm dịch vụ
                 </button>
-                <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="editBrand_btn">
-                  <i class="fa-solid fa-pencil mr-1"></i> Sửa tên hãng
-                </button> -->
+                <button class="btn btn-info btn-sm ms-auto ml-2" id="copy-service-btn">
+                  <i class="fa-regular fa-clone mr-1"></i> Copy dịch vụ
+                </button>
                 
                 <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
                   <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
@@ -131,10 +128,10 @@
                   <thead>
                     <tr>
                       <th scope="col" style="text-align: center" width="4%">#</th>
-                      <th scope="col" style="text-align: center" min-width="25%" width="40%">Dịch vụ</th>
+                      <th scope="col" style="text-align: center" min-width="30%" width="40%">Dịch vụ</th>
                       <th scope="col" style="text-align: center" min-width="25%">Tùy chọn (Option)</th>
-                      <th scope="col" style="text-align: center" width="10%">Trạng thái</th>
-                      <th scope="col" style="text-align: center" width="14%">Thao tác</th>
+                      <th scope="col" style="text-align: center" min-width="10%">Trạng thái</th>
+                      <th scope="col" style="text-align: center" max-width="14%">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -176,13 +173,6 @@
   </div>
   <!-- ./wrapper -->
 
-
-    <script
-      src="/plugins/select2/js/select2.min.js"
-      defer
-    ></script>
-  <!-- Bootstrap 4 -->
-  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- DataTables  & Plugins -->
   <script src="/plugins/datatables/jquery.dataTables.min.js"></script>
   <script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
@@ -197,6 +187,9 @@
   <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 
+  <!-- Select2 JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/vi.js"></script>
   <!-- overlayScrollbars -->
   <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
   <!-- PAGE PLUGINS -->
@@ -207,6 +200,8 @@
   <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
   <!-- ChartJS -->
   <script src="plugins/chart.js/Chart.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 
   <script src="/dist/js/services/refreshTokenService.js"></script>
 

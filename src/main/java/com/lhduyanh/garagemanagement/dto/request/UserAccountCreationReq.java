@@ -37,4 +37,6 @@ public class UserAccountCreationReq {
 
     @NotNull(message = "BLANK_STATUS")
     int status;
+
+    long telegramId;
 }

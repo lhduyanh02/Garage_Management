@@ -16,8 +16,8 @@ public class AccountController {   // for design account controller api
     private AccountService accountService;
 
     @GetMapping("/{id}")
-    public ApiResponse<AccountResponse> getAccountById(@PathVariable String id) {
-        return ApiResponse.<AccountResponse>builder()
+    public ApiResponse<AccountFullResponse> getAccountById(@PathVariable String id) {
+        return ApiResponse.<AccountFullResponse>builder()
                 .code(1000)
                 .data(accountService.getAccountById(id))
                 .build();
@@ -120,6 +120,14 @@ public class AccountController {   // for design account controller api
         return ApiResponse.<AccountResponse>builder()
                 .code(1000)
                 .data(accountService.updateAccount(id, request, true))
+                .build();
+    }
+
+    @PutMapping(("/reset-password/{id}"))
+    public ApiResponse<Boolean> resetPassword(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.resetPasswordById(id))
                 .build();
     }
 
