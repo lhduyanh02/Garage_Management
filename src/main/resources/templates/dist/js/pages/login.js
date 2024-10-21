@@ -1,5 +1,4 @@
 import * as utils from "/dist/js/utils.js";
-import * as refreshService from "/dist/js/services/refreshTokenService.js"
 
 var Toast = Swal.mixin({
   toast: true,
@@ -25,7 +24,10 @@ const getCookie = (name) => {
 function login() {
   let email = $("#email").val();
   let password = $("#password").val();
-  let path = window.location.href.split("#")[1] || null;
+  // Lấy redirect path
+  let url = window.location.href;
+  let hashIndex = url.indexOf("#");
+  let path = hashIndex !== -1 ? url.substring(hashIndex + 1) : null;
   $.ajax({
     url: "/api/auth/token",
     type: "POST",
@@ -49,20 +51,10 @@ function login() {
       }
     },
     error: function(xhr, status, error){    
-      var message = 'Lỗi không xác định, không có mã lỗi';
-      try {
-          var response = JSON.parse(xhr.responseText);
-          if (response.code) {
-              message = utils.getErrorMessage(response.code);
-          }
-      } catch (e) {
-          // Lỗi khi parse JSON
-          console.log("JSON parse error");
-          message = 'Lỗi không xác định, không có mã lỗi';
-      }
+      console.error(xhr);
       Toast.fire({
           icon: "error",
-          title: message
+          title: utils.getXHRInfo(xhr).message
       });
     }
   });

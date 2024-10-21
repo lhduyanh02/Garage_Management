@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.HistoryCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.HistoryInfoUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
@@ -54,5 +55,13 @@ public class HistoryController {
                 .build();
     }
 
+    @PutMapping("/update-info/{id}")
+    public ApiResponse<HistoryWithDetailsResponse> updateInfo(@PathVariable String id,
+                                                              @RequestBody @Valid HistoryInfoUpdateRequest request) {
+        return ApiResponse.<HistoryWithDetailsResponse>builder()
+                .code(1000)
+                .data(historyService.updateInvoiceInfo(id, request))
+                .build();
+    }
 
 }

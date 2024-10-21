@@ -43,21 +43,10 @@ $(function () {
       $("#user_quantity").text(res.data);
     },
     error: function(xhr, status, error){
-      var statusCode = xhr.status;
-      var message = 'Lỗi không xác định, không có mã lỗi';
-      try {
-          var response = JSON.parse(xhr.responseText);
-          if (response.code) {
-              message = utils.getErrorMessage(response.code);
-          }
-      } catch (e) {
-          // Lỗi khi parse JSON
-          console.log("JSON parse error");
-          message = 'Lỗi không xác định, không có mã lỗi';
-      }
+      console.error(xhr);
       Toast.fire({
           icon: "error",
-          title: message
+          title: utils.getXHRInfo(xhr).message
       });
     }
   });

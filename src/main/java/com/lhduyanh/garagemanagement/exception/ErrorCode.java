@@ -113,6 +113,9 @@ public enum ErrorCode {
     SERVICE_NOT_IN_USE(1086, "This service is not in use", HttpStatus.BAD_REQUEST),
     OPTION_NOT_IN_USE(1087, "This option is not in use", HttpStatus.BAD_REQUEST),
     UPDATE_HISTORY_ERROR(1088, "Error in updating history", HttpStatus.INTERNAL_SERVER_ERROR),
+    DETAIL_LIST_EMPTY(1089, "Request must have at least 1 service", HttpStatus.BAD_REQUEST),
+    HISTORY_ID_MISMATCH(1090, "History ID mismatch in the request details", HttpStatus.BAD_REQUEST),
+    TEXT_LENGTH(1091, "Maximum text length is 65000 characters", HttpStatus.BAD_REQUEST),
 
     ;
 

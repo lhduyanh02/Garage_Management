@@ -80,20 +80,10 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
-                var message = "Lỗi không xác định";
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = "Lỗi không xác định";
-                }
+                console.error(xhr);
                 Toast.fire({
                     icon: "error",
-                    title: message,
+                    title: utils.getXHRInfo(xhr).message
                 });
             },
         },
@@ -243,19 +233,10 @@ $(document).ready(function () {
             }
         },
         error: function(xhr, status, error){
-            var message = 'Mã lỗi không xác định, không thể tải địa chỉ';
-            try {
-                var response = JSON.parse(xhr.responseText);
-                if (response.code) {
-                    message = utils.getErrorMessage(response.code);
-                }
-            } catch (e) {
-                // Lỗi khi parse JSON
-                console.log("JSON parse error");
-            }
+            console.error(xhr);
             Toast.fire({
                 icon: "error",
-                title: message
+                title: utils.getXHRInfo(xhr).message
             });
         }
     });
@@ -457,6 +438,7 @@ $("#data-table").on("click", "#editBtn", function () {
                         }
                     },
                     error: function(xhr, status, error) {
+                        console.error(xhr);
                         Toast.fire({
                             icon: "error",
                             title: utils.getXHRInfo(xhr).message
@@ -468,10 +450,10 @@ $("#data-table").on("click", "#editBtn", function () {
 
         },
         error: function(xhr, status, error) {
-            let response = utils.getXHRInfo(xhr);
+            console.error(xhr);
             Toast.fire({
                 icon: "error",
-                title: response.message
+                title: utils.getXHRInfo(xhr).message
             });
             $("#modal_id").modal("hide");
         }
@@ -520,17 +502,10 @@ $("#data-table").on("click", "#deleteBtn", function () {
                     dataTable.ajax.reload();
                 },
                 error: function (xhr, status, error) {
-                    let message = "Mã lỗi không xắc định";
-
-                    try {
-                        let responseCode = JSON.parse(xhr.responseText).code;
-                        message = utils.getErrorMessage(responseCode);
-                    } catch (error) {
-                        console.log("JSON parse error");
-                    }
+                    console.error(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: message,
+                        title: utils.getXHRInfo(xhr).message
                     });
                     dataTable.ajax.reload();
                 },
@@ -570,10 +545,10 @@ $("#data-table").on("click", "#disableBtn", function () {
                     }
                 },
                 error: function(xhr, status, error){
-                    let response = utils.getXHRInfo(xhr);
+                    console.error(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message
+                        title: utils.getXHRInfo(xhr).message
                     });
                     dataTable.ajax.reload();
                 }
@@ -613,10 +588,10 @@ $("#data-table").on("click", "#activateBtn", function () {
                     }
                 },
                 error: function(xhr, status, error){
-                    let response = utils.getXHRInfo(xhr);
+                    console.error(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message
+                        title: utils.getXHRInfo(xhr).message
                     });
                     dataTable.ajax.reload();
                 }
@@ -807,6 +782,7 @@ $("#new-user-btn").click(function () {
                 }
             },
             error: function(xhr, status, error) {
+                console.error(xhr);
                 Toast.fire({
                     icon: "error",
                     title: utils.getXHRInfo(xhr).message

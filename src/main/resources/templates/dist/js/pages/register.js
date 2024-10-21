@@ -56,19 +56,10 @@ $(document).ready(function () {
             }
         },
         error: function(xhr, status, error){
-            var message = 'Mã lỗi không xác định, không thể tải địa chỉ';
-            try {
-                var response = JSON.parse(xhr.responseText);
-                if (response.code) {
-                    message = utils.getErrorMessage(response.code);
-                }
-            } catch (e) {
-                // Lỗi khi parse JSON
-                console.log("JSON parse error");
-            }
+            console.error(xhr);
             Toast.fire({
                 icon: "error",
-                title: message
+                title: utils.getXHRInfo(xhr).message
             });
         }
     });
@@ -224,21 +215,10 @@ var register = function () {
             }
         },
         error: function(xhr, status, error){
-            var statusCode = xhr.status;
-            var message = 'Lỗi không xác định, không có mã lỗi';
-            try {
-                var response = JSON.parse(xhr.responseText);
-                if (response.code) {
-                    message = utils.getErrorMessage(response.code);
-                }
-            } catch (e) {
-                // Lỗi khi parse JSON
-                console.log("JSON parse error");
-                message = 'Lỗi không xác định, không có mã lỗi';
-            }
+            console.error(xhr);
             Toast.fire({
                 icon: "error",
-                title: message
+                title: utils.getXHRInfo(xhr).message
             });
         }
     });
@@ -379,21 +359,10 @@ function OTPInput(email, passwd) {
                 }
             },
             error: function(xhr, status, error){
-                var statusCode = xhr.status;
-                var message = 'Lỗi không xác định, không có mã lỗi';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = 'Lỗi không xác định, không có mã lỗi';
-                }
+                console.error(xhr);
                 Toast.fire({
                     icon: "error",
-                    title: message
+                    title: utils.getXHRInfo(xhr).message
                 });
             }
         });
@@ -454,20 +423,10 @@ function OTPInput(email, passwd) {
                 }
             },
             error: function (xhr, status, error) {
-                var message = 'Lỗi không xác định, không có mã lỗi';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = 'Lỗi không xác định, không có mã lỗi';
-                }
+                console.error(xhr);
                 Toast.fire({
                     icon: "error",
-                    title: message
+                    title: utils.getXHRInfo(xhr).message
                 });
             }
         });
@@ -496,21 +455,10 @@ function login(loginEmail, loginPassword) {
         }
       },
       error: function(xhr, status, error){
-        var statusCode = xhr.status;
-        var message = 'Lỗi không xác định';
-        try {
-            var response = JSON.parse(xhr.responseText);
-            if (response.code) {
-                message = utils.getErrorMessage(response.code);
-            }
-        } catch (e) {
-            // Lỗi khi parse JSON
-            console.log("JSON parse error");
-            message = 'Lỗi không xác định';
-        }
+        console.error(xhr);
         Toast.fire({
             icon: "error",
-            title: message
+            title: utils.getXHRInfo(xhr).message
         });
       }
     });

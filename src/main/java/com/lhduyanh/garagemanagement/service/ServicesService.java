@@ -3,6 +3,7 @@ package com.lhduyanh.garagemanagement.service;
 import com.lhduyanh.garagemanagement.dto.request.OptionPriceRequest;
 import com.lhduyanh.garagemanagement.dto.request.ServiceCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.ServiceUpdateRequest;
+import com.lhduyanh.garagemanagement.dto.response.OptionPriceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Options;
@@ -60,7 +61,15 @@ public class ServicesService {
         return serviceRepository.findAll()
                 .stream()
                 .filter(s -> s.getStatus() == ServiceStatus.USING.getCode())
-                .map(serviceMapper::toServiceResponse)
+                .map(s -> {
+                    var res = serviceMapper.toServiceResponse(s);
+
+                    res.setOptionPrices(res.getOptionPrices().stream()
+                        .sorted(Comparator.comparing(OptionPriceResponse::getName, vietnameseCollator))
+                        .toList());
+
+                    return res;
+                })
                 .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
                 .toList();
     }

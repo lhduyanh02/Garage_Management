@@ -11,10 +11,7 @@ import org.hibernate.validator.constraints.Range;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DetailHistoryCreation {
-
-    @NotBlank(message = "BLANK_HISTORY")
-    String historyId;
+public class DetailHistoryRequest {
 
     @NotBlank(message = "BLANK_SERVICE")
     String serviceId;

@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.configuration.SecurityExpression;
 import com.lhduyanh.garagemanagement.dto.request.HistoryCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.HistoryInfoUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
 import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
 import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
@@ -125,7 +126,7 @@ public class HistoryService {
     }
 
     @Transactional
-    public Boolean updateHistoryById(String id) {
+    public HistoryWithDetailsResponse updateHistoryById(String id) {
         History history = historyRepository.findByIdFetchDetails(id)
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
@@ -170,6 +171,28 @@ public class HistoryService {
         Double payableAmount = totalAmount - (totalAmount * (history.getDiscount() / 100));
         history.setPayableAmount(payableAmount);
         historyRepository.save(history);
-        return true;
+        return historyMapper.toHistoryWithDetailsResponse(history);
+    }
+
+    @Transactional
+    public HistoryWithDetailsResponse updateInvoiceInfo(String historyId, HistoryInfoUpdateRequest request) {
+        if (historyId == null || historyId == "") {
+            throw new AppException(ErrorCode.BLANK_HISTORY);
+        }
+        History history = historyRepository.findById(historyId)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        if (request.getDiscount() == null) {
+            request.setDiscount(0.0f);
+        }
+        Float roundedDiscount = Math.round(request.getDiscount() * 100) / 100.0f;
+
+        history.setSummary(request.getSummary().trim());
+        history.setDiagnose(request.getDiagnose().trim());
+        history.setDiscount(roundedDiscount);
+        history.setOdo(request.getOdo());
+        historyRepository.save(history);
+        return updateHistoryById(history.getId());
     }
 }

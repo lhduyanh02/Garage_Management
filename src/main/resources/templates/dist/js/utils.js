@@ -56,6 +56,36 @@ export function getLocalStorageObject(key) {
     }
 }
 
+export function getUserInfo() {
+    if (getCookie("authToken") !== null) {
+        var userInfo = getLocalStorageObject("userInfo");
+        if (userInfo == null) {
+            $.ajax({
+                type: "GET",
+                url: "/api/users/get-my-info",
+                headers: defaultHeaders(),
+                dataType: "json",
+                success: function (res) {
+                    if(res.code == 1000){
+                        setLocalStorageObject('userInfo', res.data)
+                        return userInfo;
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr);
+                },
+            });
+        } else {
+            return userInfo;
+        }
+    }
+    else {
+        setLocalStorageObject('userInfo', null)
+        console.log("Token not found");
+        return null;
+    }
+}
+
 export function introspect(bool) {
     // Hàm kiểm tra token có hợp lệ hay không, nếu không thì trả về trang index
     let token = getCookie("authToken");
@@ -245,6 +275,9 @@ export function getTimeAsJSON(isoDate) {
 export function formatCurrent(inputValue) {
     if (!inputValue) {
         return "";
+    }
+    if (typeof inputValue !== 'string') {
+        inputValue = String(inputValue);
     }
     // Xóa các ký tự không phải là số
     inputValue = inputValue.replace(/\D/g, '');
