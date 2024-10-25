@@ -1,9 +1,6 @@
 package com.lhduyanh.garagemanagement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,13 +12,18 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @Builder
 public class CommonParameter {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    String name;
+    @Column(name = "param_key", unique = true, nullable = false)
+    String key;
 
+    @Column(nullable = false)
+    String description;
+
+    @Column(nullable = false)
     String value;
 
-    String status;
 }

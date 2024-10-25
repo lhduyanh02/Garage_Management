@@ -28,6 +28,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 @org.springframework.stereotype.Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -64,12 +65,15 @@ public class ServicesService {
                 .map(s -> {
                     var res = serviceMapper.toServiceResponse(s);
 
-                    res.setOptionPrices(res.getOptionPrices().stream()
+                    res.setOptionPrices(res.getOptionPrices()
+                        .stream()
+                        .filter(o -> o.getStatus() == OptionStatus.USING.getCode())
                         .sorted(Comparator.comparing(OptionPriceResponse::getName, vietnameseCollator))
                         .toList());
 
                     return res;
                 })
+                .filter(s -> s.getOptionPrices().size() > 0)
                 .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
                 .toList();
     }

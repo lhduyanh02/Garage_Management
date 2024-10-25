@@ -15,7 +15,7 @@ function clear_modal() {
     if ($(".modal-dialog").hasClass("modal-lg")) {
         $(".modal-dialog").removeClass("modal-lg");
     }
-    
+
     if ($(".modal-dialog").hasClass("modal-xl")) {
         $(".modal-dialog").removeClass("modal-xl");
     }
@@ -37,10 +37,22 @@ var customerList = [];
 var customer;
 var advisor;
 var selectedInvoice;
+var maxNumberOfImage;
+
+var COMPANY_NAME;
+var FACILITY_NAME;
+var FACILITY_PHONE;
+var FACILITY_EMAIL;
+var FACILITY_ADDRESS;
+
+// 2 mảng toàn cục chứa hình ảnh
+var preServiceImages = [];
+var postServiceImages = [];
 
 var INVOICE_CARD = $("#invoice-card");
-var TABLE_DETAILS = $('#table-details');
-    
+var IMAGE_CARDS = $("#service-image-cards")
+var TABLE_DETAILS = $("#table-details");
+
 $(document).ready(function () {
     ImgUpload();
     $('[data-toggle="tooltip"]').tooltip();
@@ -56,7 +68,7 @@ $(document).ready(function () {
         language: {
             paginate: {
                 next: "&raquo;",
-                previous: "&laquo;"
+                previous: "&laquo;",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -64,13 +76,13 @@ $(document).ready(function () {
             infoFiltered: "(Lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
-            loadingRecords: "Đang tải dữ liệu..."
+            loadingRecords: "Đang tải dữ liệu...",
         },
         buttons: false,
         columnDefs: [
             { orderable: false, targets: 0 },
-            { targets: 0, className: 'text-center' },
-            { targets: 1, className: 'text-center' },
+            { targets: 0, className: "text-center" },
+            { targets: 1, className: "text-center" },
         ],
         columns: [
             { data: "number" },
@@ -96,19 +108,20 @@ $(document).ready(function () {
                 },
             },
             {
-                data: "payableAmount", className: "text-right",
+                data: "payableAmount",
+                className: "text-right",
                 render: function (data, type, row) {
-                    if (type === 'display' || type === 'filter') {
+                    if (type === "display" || type === "filter") {
                         // Hiển thị số tiền theo định dạng tiền tệ VN
                         return data.toLocaleString("vi-VN", {
                             style: "currency",
-                            currency: "VND"
+                            currency: "VND",
                         });
                     }
                     // Trả về giá trị nguyên gốc cho sorting và searching
                     return data;
-                }
-            }
+                },
+            },
         ],
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
@@ -127,17 +140,18 @@ $(document).ready(function () {
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
         },
     });
-    
+
     $(TABLE_DETAILS).DataTable({
-        dom: 't',  // Chỉ hiển thị nội dung bảng (không có thanh tìm kiếm, phân trang)
+        dom: "t", // Chỉ hiển thị nội dung bảng (không có thanh tìm kiếm, phân trang)
         autoWidth: false,
         paging: false,
         ordering: false,
         info: false,
-        searching: false,language: {
+        searching: false,
+        language: {
             paginate: {
                 next: "&raquo;",
-                previous: "&laquo;"
+                previous: "&laquo;",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -145,12 +159,14 @@ $(document).ready(function () {
             infoFiltered: "(Lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
-            loadingRecords: "Đang tải dữ liệu..."
+            loadingRecords: "Đang tải dữ liệu...",
         },
         columns: [
-            { data: "number", className: "text-center", width: "5%"},
+            { data: "number", className: "text-center", width: "5%" },
             {
-                data: "serviceName", className: "text-left", minWidth: "20%",
+                data: "serviceName",
+                className: "text-left",
+                minWidth: "20%",
                 render: function (data, type, row) {
                     let html = data + "<br>";
                     html += `<small>${row.optionName}</small>`;
@@ -158,33 +174,41 @@ $(document).ready(function () {
                 },
             },
             {
-                data: "price", className: "text-right", width: "15%",
+                data: "price",
+                className: "text-right",
+                width: "15%",
                 render: function (data, type, row) {
                     return utils.formatVNDCurrency(data);
                 },
             },
             {
-                data: "quantity", className: "text-center", width: "10%",
+                data: "quantity",
+                className: "text-center",
+                width: "10%",
                 render: function (data, type, row) {
                     return data;
                 },
             },
             {
-                data: "discount", className: "text-center", width: "15%",
+                data: "discount",
+                className: "text-center",
+                width: "15%",
                 render: function (data, type, row) {
-                    return `${data}%`
+                    return `${data}%`;
                 },
             },
             {
-                data: "finalPrice", className: "text-right", width: "15%",
+                data: "finalPrice",
+                className: "text-right",
+                width: "15%",
                 render: function (data, type, row) {
                     return utils.formatVNDCurrency(data);
-                }
-            }
+                },
+            },
         ],
         headerCallback: function (thead) {
-            $(thead).find('th').addClass('text-center'); // Thêm class 'text-center' cho header
-        }
+            $(thead).find("th").addClass("text-center"); // Thêm class 'text-center' cho header
+        },
     });
 
     $.ajax({
@@ -192,18 +216,20 @@ $(document).ready(function () {
         url: "/api/brands/fetch-model",
         dataType: "json",
         headers: {
-            "Authorization": ""
+            Authorization: "",
         },
         success: function (res) {
-            if(res.code == 1000 && res.data){
+            if (res.code == 1000 && res.data) {
                 brandModelList = res.data;
 
                 $("#brand-select").empty();
                 $("#model-select").empty();
-                $.each(res.data, function (idx, val) { 
-                    $("#brand-select").append(`<option value = "${val.id}">${val.brand}</option>`);
+                $.each(res.data, function (idx, val) {
+                    $("#brand-select").append(
+                        `<option value = "${val.id}">${val.brand}</option>`
+                    );
                 });
-                $('#brand-select').val("").trigger("change");
+                $("#brand-select").val("").trigger("change");
             }
         },
     });
@@ -212,23 +238,25 @@ $(document).ready(function () {
         url: "/api/plate-types",
         dataType: "json",
         headers: {
-            "Authorization": ""
+            Authorization: "",
         },
         success: function (res) {
-            if(res.code == 1000 && res.data){
+            if (res.code == 1000 && res.data) {
                 plateTypeList = res.data;
 
                 $("#plate-type-select").empty();
-                $.each(res.data, function (idx, val) { 
-                    $("#plate-type-select").append(`<option value="${val.id}">${val.type}</option>`);
+                $.each(res.data, function (idx, val) {
+                    $("#plate-type-select").append(
+                        `<option value="${val.id}">${val.type}</option>`
+                    );
                 });
-                
-                $('#plate-type-select').val("").trigger("change");
+
+                $("#plate-type-select").val("").trigger("change");
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error(utils.getXHRInfo(xhr));
-        }
+        },
     });
 
     $.ajax({
@@ -237,13 +265,13 @@ $(document).ready(function () {
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (res) {
-            if(res.code == 1000 && res.data){
+            if (res.code == 1000 && res.data) {
                 serviceOptionList = res.data;
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error(utils.getXHRInfo(xhr));
-        }
+        },
     });
 
     $(".select2").select2({
@@ -251,60 +279,103 @@ $(document).ready(function () {
         theme: "bootstrap",
         closeOnSelect: true,
         width: "100%",
-        dropdownAutoWidth: true, 
-        language: "vi"
+        dropdownAutoWidth: true,
+        language: "vi",
     });
 
-    
     let carId = utils.getHashParam(hash_car);
-    if(carId){
+    if (carId) {
         loadCarInfoHistoryListByCarID(carId);
         let invoiceId = utils.getHashParam(hash_invoice);
         if (invoiceId) {
             loadInvoiceById(invoiceId);
         }
     }
+
+    $.ajax({
+        type: "POST",
+        url: "/api/common-param/list-param",
+        headers: utils.defaultHeaders(),
+        data: JSON.stringify([
+                "COMPANY_NAME",
+                "FACILITY_NAME",
+                "FACILITY_PHONE_NUMBER",
+                "FACILITY_ADDRESS",
+                "FACILITY_CONTACT_MAIL",
+                "NUMBER_OF_SERVICE_IMAGE"
+            ]
+        ),
+        dataType: "json",
+        success: function (res) {
+            if (res.code == 1000 && res.data) {
+                let data = res.data;
+                COMPANY_NAME = data[0].value;
+                FACILITY_NAME = data[1].value;
+                FACILITY_PHONE = data[2].value;
+                FACILITY_ADDRESS = data[3].value;
+                FACILITY_EMAIL = data[4].value;
+                maxNumberOfImage = parseInt(res.data[5].value);
+                
+                $('#facility-name').text(FACILITY_NAME);
+
+                $("#facility-info").html(`
+                    <strong id="company-name">${COMPANY_NAME}</strong><br>
+                    <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
+                    </span>
+                    Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+                    Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
+                `);
+                $('.upload__inputfile').data('max_length', maxNumberOfImage);
+                $('.number-of-image-warning').text(`Lưu ý: chỉ upload tối đa ${maxNumberOfImage} ảnh, không thể xóa ảnh của hóa đơn đã thanh toán hoặc đã hủy`);
+            }
+            else {
+                console.error(res);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr.responseJSON);
+        }
+    });
 });
 
-$('.discount-suggestion').on('click', function() {
-    const discountValue = $(this).text().replace('%', ''); // Loại bỏ dấu '%'
-    $('#discount-info').val(discountValue).trigger('input');
+$(".discount-suggestion").on("click", function () {
+    const discountValue = $(this).text().replace("%", ""); // Loại bỏ dấu '%'
+    $("#discount-info").val(discountValue).trigger("input");
 });
 
-$('#discount-info').on('input', function () {
+$("#discount-info").on("input", function () {
     const input = $(this).val();
-    if (input.startsWith('.')) {
-        $(this).val("0"+input);
+    if (input.startsWith(".")) {
+        $(this).val("0" + input);
     }
-    
+
     if (!/^\d*\.?\d*$/.test(input)) {
         $(this).val(input.slice(0, -1));
     } else {
         const parsedValue = parseFloat(input);
         if (parsedValue > 100) {
             $(this).val(input.slice(0, -1));
-        } else if (!input.includes('.') && parsedValue == 0) {
+        } else if (!input.includes(".") && parsedValue == 0) {
             $(this).val("0");
-            calculateAmountDue();   
-        }
-        else {
+            calculateAmountDue();
+        } else {
             calculateAmountDue();
         }
     }
-    $('.dropdown-menu').removeClass('show');
+    $(".dropdown-menu").removeClass("show");
 });
 
-$(document).on('input','#odo-info', function () {
-    let input = $(this).val().replace(/\D/g, ''); 
+$(document).on("input", "#odo-info", function () {
+    let input = $(this).val().replace(/\D/g, "");
     const formattedInput = utils.formatCurrent(input);
     $(this).val(formattedInput);
 });
 
-$('#discount-info').on('paste', function () {
+$("#discount-info").on("paste", function () {
     setTimeout(() => {
         const input = $(this).val();
 
-        if (input.startsWith('.')) {
+        if (input.startsWith(".")) {
             $(this).val("0" + input);
         }
         if (!/^\d*\.?\d*$/.test(input)) {
@@ -314,70 +385,77 @@ $('#discount-info').on('paste', function () {
             const parsedValue = parseFloat(input);
             if (parsedValue > 100) {
                 $(this).val(input.slice(0, -1));
-            } else if (!input.includes('.') && parsedValue == 0) {
+            } else if (!input.includes(".") && parsedValue == 0) {
                 $(this).val("0");
-            }
-            else {
+            } else {
                 calculateAmountDue();
             }
         }
-        
-        $('.dropdown-menu').removeClass('show');
+
+        $(".dropdown-menu").removeClass("show");
     }, 0);
 });
 
 function calculateAmountDue() {
     if (selectedInvoice.totalAmount > 0) {
-        const discountValue = $('#discount-info').val() == "" ? 0 : $('#discount-info').val();
+        const discountValue =
+            $("#discount-info").val() == "" ? 0 : $("#discount-info").val();
 
         const parsedDiscount = parseFloat(discountValue);
-        if (!isNaN(parsedDiscount) && parsedDiscount >= 0 && parsedDiscount <= 100) {
+        if (
+            !isNaN(parsedDiscount) &&
+            parsedDiscount >= 0 &&
+            parsedDiscount <= 100
+        ) {
             // Tính toán số tiền phải thanh toán
-            const discountAmount = (selectedInvoice.totalAmount * parsedDiscount) / 100;
+            const discountAmount =
+                (selectedInvoice.totalAmount * parsedDiscount) / 100;
             const amountDue = selectedInvoice.totalAmount - discountAmount;
 
             // Làm tròn
             const roundedAmountDue = Math.round(amountDue);
-            $('#payable-amount-info').text(utils.formatVNDCurrency(roundedAmountDue));
+            $("#payable-amount-info").text(
+                utils.formatVNDCurrency(roundedAmountDue)
+            );
         } else {
             Toast.fire({
                 icon: "warning",
-                title: "Giá trị của % giảm giá không hợp lệ"
+                title: "Giá trị của % giảm giá không hợp lệ",
             });
             return;
         }
     } else {
-        $('#payable-amount-info').text('0');
+        $("#payable-amount-info").text("0");
     }
 }
 
-$('#brand-select').on('change', function () {
+$("#brand-select").on("change", function () {
     let id = $(this).val();
-    if (id == ""){
+    if (id == "") {
         return;
     }
-    const brand = brandModelList.find(item => item.id == id);
-    
-    if(brand) {
-        $('#model-select').empty();
-        $.each(brand.models, function (idx, val) { 
-            $('#model-select').append(`<option value="${val.id}"> ${val.model} </option>`);
+    const brand = brandModelList.find((item) => item.id == id);
+
+    if (brand) {
+        $("#model-select").empty();
+        $.each(brand.models, function (idx, val) {
+            $("#model-select").append(
+                `<option value="${val.id}"> ${val.model} </option>`
+            );
         });
-        $('#model-select').val("").trigger("change");
+        $("#model-select").val("").trigger("change");
     } else {
         $("#model-select").empty();
     }
-    
 });
 
-$("#num-plate-search-input").keydown(function (e) { 
+$("#num-plate-search-input").keydown(function (e) {
     if (e.keyCode === 13) {
         openCarSelectionTable();
     }
-
 });
-  
-$("#num-plate-search-btn").click(function (e) { 
+
+$("#num-plate-search-btn").click(function (e) {
     openCarSelectionTable();
 });
 
@@ -394,9 +472,9 @@ function openCarSelectionTable() {
     if (numPlate == "" && plateType == null && brand == null && model == null) {
         Toast.fire({
             icon: "warning",
-            title: "Cần ít nhất một tiêu chí tìm kiếm"
+            title: "Cần ít nhất một tiêu chí tìm kiếm",
         });
-        
+
         $("#num-plate-search-input").css("border", "2px solid red");
 
         $("#plate-type-select, #brand-select, #model-select")
@@ -405,7 +483,7 @@ function openCarSelectionTable() {
             .css("border", "2px solid red");
         setTimeout(() => {
             $("#num-plate-search-input").css("border", "");
-    
+
             $("#plate-type-select, #brand-select, #model-select")
                 .next(".select2-container--bootstrap")
                 .find(".select2-selection")
@@ -417,11 +495,15 @@ function openCarSelectionTable() {
 
     $.ajax({
         type: "GET",
-        url: `/api/cars/search?`+ (numPlate ? `plate=${numPlate}` : ``) + (plateType ? `&plateType=${plateType}` : ``)
-        + (brand ? `&brand=${brand}` : ``) + (model ? `&model=${model}` : ``),
+        url:
+            `/api/cars/search?` +
+            (numPlate ? `plate=${numPlate}` : ``) +
+            (plateType ? `&plateType=${plateType}` : ``) +
+            (brand ? `&brand=${brand}` : ``) +
+            (model ? `&model=${model}` : ``),
         dataType: "json",
         headers: utils.defaultHeaders(),
-        beforeSend: function() {
+        beforeSend: function () {
             Swal.showLoading();
         },
         success: function (res) {
@@ -467,19 +549,19 @@ function openCarSelectionTable() {
                     buttons: false,
                     pageLength: 5,
                     searching: true,
-                    dom: 'lrtip', // (l: length, r: processing, t: table, i: information, p: pagination)
+                    dom: "lrtip", // (l: length, r: processing, t: table, i: information, p: pagination)
 
                     columnDefs: [
                         { orderable: false, targets: 0 },
                         {
-                            targets: '_all', // Áp dụng cho tất cả các cột
-                            className: 'text-center, targets: 0' // Căn giữa nội dung của tất cả các cột
-                        }
+                            targets: "_all", // Áp dụng cho tất cả các cột
+                            className: "text-center, targets: 0", // Căn giữa nội dung của tất cả các cột
+                        },
                     ],
                     language: {
                         paginate: {
                             next: "&raquo;",
-                            previous: "&laquo;"
+                            previous: "&laquo;",
                         },
                         lengthMenu: "Số dòng: _MENU_",
                         info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -488,47 +570,59 @@ function openCarSelectionTable() {
                         emptyTable: "Không có dữ liệu",
                         search: "Tìm kiếm:",
                     },
-                    data: res.data, 
+                    data: res.data,
                     columns: [
-                        { title: '#', data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
-                        { data: 'numPlate',
-                            render: function (data, type, row) {
-                                let html="";
-                                html += `<center>${data}<br> `;
-            
-                                if(row.plateType.type.includes('xanh')){
-                                    html += `<span class="badge badge-primary">&nbsp;${row.plateType.type}</span><br>`
-                                } else if(row.plateType.type.includes('trắng')) {
-                                    html += `<span class="badge badge-light">&nbsp;${row.plateType.type}</span><br>`
-                                } else if(row.plateType.type.includes('vàng')) {
-                                    html += `<span class="badge badge-warning">&nbsp;${row.plateType.type}</span><br>`
-                                } else if(row.plateType.type.includes('đỏ')) {
-                                    html += `<span class="badge badge-danger">&nbsp;${row.plateType.type}</span><br>`
-                                } else {
-                                    html += `<span class="badge badge-secondary">&nbsp;${row.plateType.type}</span><br>`
-                                }
-                                return html+'</center>';
-                            },
-                        },
-                        { data: "model", 
-                            render: function(data, type, row) {
-                                let html = `<center>${data.brand.brand}<br>${data.model}</center>`;
-                                return html;
-                            }
-                        },
-                        { data: "carDetail",
+                        { title: "#", data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
+                        {
+                            data: "numPlate",
                             render: function (data, type, row) {
                                 let html = "";
-                                if(row.color != null) {
+                                html += `<center>${data}<br> `;
+
+                                if (row.plateType.type.includes("xanh")) {
+                                    html += `<span class="badge badge-primary">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (
+                                    row.plateType.type.includes("trắng")
+                                ) {
+                                    html += `<span class="badge badge-light">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (
+                                    row.plateType.type.includes("vàng")
+                                ) {
+                                    html += `<span class="badge badge-warning">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (row.plateType.type.includes("đỏ")) {
+                                    html += `<span class="badge badge-danger">&nbsp;${row.plateType.type}</span><br>`;
+                                } else {
+                                    html += `<span class="badge badge-secondary">&nbsp;${row.plateType.type}</span><br>`;
+                                }
+                                return html + "</center>";
+                            },
+                        },
+                        {
+                            data: "model",
+                            render: function (data, type, row) {
+                                let html = `<center>${data.brand.brand}<br>${data.model}</center>`;
+                                return html;
+                            },
+                        },
+                        {
+                            data: "carDetail",
+                            render: function (data, type, row) {
+                                let html = "";
+                                if (row.color != null) {
                                     html += `<b>Màu:</b> ${row.color} | `;
                                 }
-            
-                                if(row.createAt != null) {
-                                    html += `<b>Khởi tạo:</b> ${utils.formatVNDate(row.createAt)}<br>`;
+
+                                if (row.createAt != null) {
+                                    html += `<b>Khởi tạo:</b> ${utils.formatVNDate(
+                                        row.createAt
+                                    )}<br>`;
                                 }
-            
+
                                 if (data != "") {
-                                    html += `<b>Ghi chú: <br></b> ${data.replace(/\n/g, '<br>')}`;
+                                    html += `<b>Ghi chú: <br></b> ${data.replace(
+                                        /\n/g,
+                                        "<br>"
+                                    )}`;
                                 }
                                 return html;
                             },
@@ -546,54 +640,55 @@ function openCarSelectionTable() {
                     },
                 });
 
-                $('#car-table tbody').on('click', 'tr', function() {
-                    if ($(this).find('td').hasClass('dataTables_empty')) return;
+                $("#car-table tbody").on("click", "tr", function () {
+                    if ($(this).find("td").hasClass("dataTables_empty")) return;
 
-                    if ($(this).hasClass('selected')) {
-                        $(this).removeClass('selected');
+                    if ($(this).hasClass("selected")) {
+                        $(this).removeClass("selected");
                     } else {
-                        $('#car-table tbody tr').removeClass('selected');
-                        $(this).addClass('selected');
+                        $("#car-table tbody tr").removeClass("selected");
+                        $(this).addClass("selected");
                     }
                 });
 
                 $("#car-search-input").on("keyup", function () {
                     carTable.search(this.value.trim()).draw();
                 });
-    
-                $("#car-select-btn").click(function (e) { 
-                    var selectedRow = $('#car-table tbody tr.selected');
-                    let carData = $('#car-table').DataTable().row(selectedRow).data();
-                    
+
+                $("#car-select-btn").click(function (e) {
+                    var selectedRow = $("#car-table tbody tr.selected");
+                    let carData = $("#car-table")
+                        .DataTable()
+                        .row(selectedRow)
+                        .data();
+
                     if (selectedRow.length > 0) {
                         loadCarInfoHistoryListByCarID(carData.id);
                         $("#modal_id").modal("hide");
                     } else {
                         Toast.fire({
                             icon: "warning",
-                            title: "Chọn 1 hồ sơ xe"
-                        })
+                            title: "Chọn 1 hồ sơ xe",
+                        });
                     }
                 });
-    
+
                 $("#modal_id").modal("show");
-                
-            }
-            else {
+            } else {
                 Swal.close();
                 Toast.fire({
                     icon: "warning",
                     title: utils.getErrorMessage(res.code),
-                })
+                });
             }
         },
-        error: function (xhr, status, error) {  
+        error: function (xhr, status, error) {
             Swal.close();
             console.log(xhr);
             Toast.fire({
                 icon: "error",
                 title: utils.getXHRInfo(xhr).message,
-            })
+            });
         },
     });
 }
@@ -606,20 +701,19 @@ async function openUserSelectionTable() {
                 url: "/api/users/customers",
                 headers: utils.defaultHeaders(),
                 dataType: "json",
-                beforeSend: function() {
+                beforeSend: function () {
                     Swal.showLoading();
-                }
+                },
             });
 
             Swal.close();
 
             if (res.code == 1000 && res.data) {
                 customerList = res.data;
-            }
-            else {
+            } else {
                 Toast.fire({
                     icon: "error",
-                    title: utils.getErrorMessage(res.code)
+                    title: utils.getErrorMessage(res.code),
                 });
                 return;
             }
@@ -666,20 +760,20 @@ async function openUserSelectionTable() {
             buttons: false,
             pageLength: 5,
             searching: true,
-            dom: 'lrtip', // (l: length, r: processing, t: table, i: information, p: pagination)
+            dom: "lrtip", // (l: length, r: processing, t: table, i: information, p: pagination)
 
             columnDefs: [
                 { orderable: false, targets: 0 },
                 { orderable: false, targets: 4 },
                 {
-                    targets: '_all', // Áp dụng cho tất cả các cột
-                    className: 'text-center, targets: 0' // Căn giữa nội dung của tất cả các cột
-                }
+                    targets: "_all", // Áp dụng cho tất cả các cột
+                    className: "text-center, targets: 0", // Căn giữa nội dung của tất cả các cột
+                },
             ],
             language: {
                 paginate: {
                     next: "&raquo;",
-                    previous: "&laquo;"
+                    previous: "&laquo;",
                 },
                 lengthMenu: "Số dòng: _MENU_",
                 info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -688,30 +782,34 @@ async function openUserSelectionTable() {
                 emptyTable: "Không có dữ liệu",
                 search: "Tìm kiếm:",
             },
-            data: customerList, 
+            data: customerList,
             columns: [
-                { title: '#', data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
-                { data: 'name',
+                { title: "#", data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
+                {
+                    data: "name",
                     render: function (data, type, row) {
-                        let html="";
+                        let html = "";
                         html += `${data}`;
 
                         if (row.gender == 0) {
-                            html += ' <span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span><br>';
+                            html +=
+                                ' <span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span><br>';
                         } else if (row.gender == 1) {
-                            html += ' <span class="badge badge-info"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span><br>';
-                        } else{
-                            html += ` <span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center><br>`
+                            html +=
+                                ' <span class="badge badge-info"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span><br>';
+                        } else {
+                            html += ` <span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center><br>`;
                         }
 
-                        if (row.accounts.length>0) {
+                        if (row.accounts.length > 0) {
                             html += `<small>${row.accounts[0].email}</small>`;
                         }
                         return html;
                     },
                 },
-                { data: "address",
-                    render: function(data, type, row) {
+                {
+                    data: "address",
+                    render: function (data, type, row) {
                         let html = "";
                         if (row.phone) {
                             html += `SĐT: ${row.phone}<br>`;
@@ -720,34 +818,33 @@ async function openUserSelectionTable() {
                             html += `ĐC: ${data.address}`;
                         }
                         return html;
-                    }
+                    },
                 },
-                { data: "cars", 
-                    render: function(data, type, row) {
+                {
+                    data: "cars",
+                    render: function (data, type, row) {
                         let html = `<center>`;
                         if (data.length > 0) {
-                            $.each(data, function (idx, val) { 
-                                html += `<span class="badge badge-light">&nbsp;${val.numPlate}<br>${val.model.brand.brand} ${val.model.model}</span><br><br>`
+                            $.each(data, function (idx, val) {
+                                html += `<span class="badge badge-light">&nbsp;${val.numPlate}<br>${val.model.brand.brand} ${val.model.model}</span><br><br>`;
                             });
                         }
                         return html + "</center>";
-                    }
+                    },
                 },
-                { data: "roles",
+                {
+                    data: "roles",
                     render: function (data, type, row) {
                         if (data != null && Array.isArray(data)) {
                             let html = "";
-                            $.each(data , function (idx, val) {
-                                if(val.status == 1){
-                                    html+=` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`
-                                }
-                                else if (val.status == 0){
-                                    html+=` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`
+                            $.each(data, function (idx, val) {
+                                if (val.status == 1) {
+                                    html += ` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`;
+                                } else if (val.status == 0) {
+                                    html += ` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`;
                                 }
                             });
-                            return (
-                                '<center>' + html + '</center>'
-                            );
+                            return "<center>" + html + "</center>";
                         }
                         return "";
                     },
@@ -765,14 +862,14 @@ async function openUserSelectionTable() {
             },
         });
 
-        $('#user-table tbody').on('click', 'tr', function() {
-            if ($(this).find('td').hasClass('dataTables_empty')) return;
+        $("#user-table tbody").on("click", "tr", function () {
+            if ($(this).find("td").hasClass("dataTables_empty")) return;
 
-            if ($(this).hasClass('selected')) {
-                $(this).removeClass('selected');
+            if ($(this).hasClass("selected")) {
+                $(this).removeClass("selected");
             } else {
-                $('#user-table tbody tr').removeClass('selected');
-                $(this).addClass('selected');
+                $("#user-table tbody tr").removeClass("selected");
+                $(this).addClass("selected");
             }
         });
 
@@ -780,16 +877,18 @@ async function openUserSelectionTable() {
             userTable.search(this.value.trim()).draw();
         });
 
-        $('#modal-clear-btn').click(function (e) { 
+        $("#modal-clear-btn").click(function (e) {
             $("#user-search-input").val("").trigger("input");
         });
 
-        $("#user-search-input").val(selectedCar ? selectedCar.numPlate : "").trigger("input");
+        $("#user-search-input")
+            .val(selectedCar ? selectedCar.numPlate : "")
+            .trigger("input");
 
-        $("#select-btn").click(function (e) { 
-            var selectedRow = $('#user-table tbody tr.selected');
-            let userData = $('#user-table').DataTable().row(selectedRow).data();
-            
+        $("#select-btn").click(function (e) {
+            var selectedRow = $("#user-table tbody tr.selected");
+            let userData = $("#user-table").DataTable().row(selectedRow).data();
+
             if (selectedRow.length > 0) {
                 $.ajax({
                     type: "PUT",
@@ -799,20 +898,19 @@ async function openUserSelectionTable() {
                     data: JSON.stringify({
                         historyId: selectedInvoice.id,
                         userId: userData.id,
-                        isConfirm: false
+                        isConfirm: false,
                     }),
                     success: function (res) {
                         if (res.code == 1000) {
                             Toast.fire({
                                 icon: "success",
-                                title: "Cập nhật khách hàng thành công"
+                                title: "Cập nhật khách hàng thành công",
                             });
                             advisor = res.data.advisor;
                             customer = res.data.customer;
                             loadAdvisorInfo();
                             loadCustomerInfo();
                             $("#modal_id").modal("hide");
-
                         } else if (res.code == 1081) {
                             Swal.fire({
                                 title: `Thao tác này sẽ tự động thêm người dùng đã chọn làm người quản lý của xe này?`,
@@ -831,30 +929,29 @@ async function openUserSelectionTable() {
                                         data: JSON.stringify({
                                             historyId: selectedInvoice.id,
                                             userId: userData.id,
-                                            isConfirm: true
+                                            isConfirm: true,
                                         }),
                                         success: function (resp) {
                                             if (resp.code == 1000) {
                                                 Toast.fire({
                                                     icon: "success",
-                                                    title: "Cập nhật khách hàng thành công"
+                                                    title: "Cập nhật khách hàng thành công",
                                                 });
                                                 advisor = resp.data.advisor;
                                                 customer = resp.data.customer;
                                                 loadCustomerInfo();
                                                 loadAdvisorInfo();
                                                 $("#modal_id").modal("hide");
-                                            }
-                                            else {
+                                            } else {
                                                 console.log(resp);
-                                                
                                             }
                                         },
                                         error: function (xhr, status, error) {
                                             console.log(xhr);
                                             Toast.fire({
                                                 icon: "error",
-                                                title: utils.getXHRInfo(xhr).message,
+                                                title: utils.getXHRInfo(xhr)
+                                                    .message,
                                             });
                                         },
                                     });
@@ -873,19 +970,18 @@ async function openUserSelectionTable() {
             } else {
                 Toast.fire({
                     icon: "warning",
-                    title: "Chọn 1 hồ sơ người dùng"
-                })
+                    title: "Chọn 1 hồ sơ người dùng",
+                });
             }
         });
 
         $("#modal_id").modal("show");
-        
     } catch (xhr) {
         Swal.close();
         console.log(xhr);
         Toast.fire({
             icon: "error",
-            title: utils.getXHRInfo(xhr).message
+            title: utils.getXHRInfo(xhr).message,
         });
         return;
     }
@@ -901,21 +997,23 @@ async function loadCarInfoHistoryListByCarID(id) {
             url: "/api/cars/" + id,
             headers: utils.defaultHeaders(),
             dataType: "json",
-            beforeSend: function() {
+            beforeSend: function () {
                 Swal.showLoading();
-            }
+            },
         });
         Swal.close();
-
     } catch (error) {
         Swal.close();
         console.log(error);
         Toast.fire({
             icon: "error",
-            title: utils.getXHRInfo(error).message
-        });      
-        return;  
+            title: utils.getXHRInfo(error).message,
+        });
+        return;
     }
+
+    Swal.close();
+    if (!res) return;
 
     if (res.code == 1000 && res.data) {
         loadCarInfoByCar(res.data);
@@ -923,13 +1021,14 @@ async function loadCarInfoHistoryListByCarID(id) {
         loadHistoryListByCarID(id);
 
         $("#reload-history-list-btn").prop("disabled", false);
-        $("#new-history-btn").prop("disabled", false); customer = null;
+        $("#new-history-btn").prop("disabled", false);
+        customer = null;
     } else {
         console.log(res);
         Toast.fire({
             icon: "error",
-            title: utils.getErrorMessage(res.code)
-        })
+            title: utils.getErrorMessage(res.code),
+        });
     }
 }
 
@@ -950,7 +1049,7 @@ function loadHistoryList(historyList) {
             totalAmount: invoice.totalAmount,
             discount: invoice.discount,
             payableAmount: invoice.payableAmount,
-            status: invoice.status
+            status: invoice.status,
         });
     });
 
@@ -959,9 +1058,10 @@ function loadHistoryList(historyList) {
     selectedInvoice = null;
     let hash_invoiceID = utils.getHashParam(hash_invoice);
 
-    if (hash_invoiceID != null){ // Kiểm tra invoice trên url có thuộc về xe hay không và load lên
+    if (hash_invoiceID != null) {
+        // Kiểm tra invoice trên url có thuộc về xe hay không và load lên
         let found = false;
-        $.each(historyList, function (idx, val) { 
+        $.each(historyList, function (idx, val) {
             if (val.id == hash_invoiceID) {
                 loadInvoiceById(hash_invoiceID);
                 found = true;
@@ -971,9 +1071,11 @@ function loadHistoryList(historyList) {
 
         if (!found) {
             clearInvoiceCard();
+            clearImageCard();
         }
     } else {
         clearInvoiceCard();
+        clearImageCard();
     }
 }
 
@@ -981,22 +1083,51 @@ function loadHistoryListByCarID(carId) {
     $.ajax({
         type: "GET",
         url: "/api/history/get-by-car/" + carId,
-        headers: utils.defaultHeaders(),     
+        headers: utils.defaultHeaders(),
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
             Swal.showLoading();
         },
         success: function (res) {
             Swal.close();
             loadHistoryList(res.data);
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             Swal.close();
             console.log(xhr);
             Toast.fire({
                 icon: "error",
-                title: utils.getXHRInfo(xhr).message
-            })
+                title: utils.getXHRInfo(xhr).message,
+            });
+        },
+    });
+    $.ajax({
+        type: "POST",
+        url: "/api/common-param/list-param",
+        headers: utils.defaultHeaders(),
+        data: JSON.stringify([
+            "COMPANY_NAME",
+            "FACILITY_NAME",
+            "FACILITY_PHONE_NUMBER",
+            "FACILITY_ADDRESS",
+            "FACILITY_CONTACT_MAIL"
+        ]),
+        dataType: "json",
+        success: function (res) {
+            if (res.code == 1000 && res.data) {
+                let data = res.data;
+                COMPANY_NAME = data[0].value;
+                FACILITY_NAME = data[1].value;
+                FACILITY_PHONE = data[2].value;
+                FACILITY_ADDRESS = data[3].value;
+                FACILITY_EMAIL = data[4].value;
+            }
+            else {
+                console.error(res);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr.responseJSON);
         }
     });
 }
@@ -1008,22 +1139,26 @@ function clearInvoiceCard() {
 
     $(TABLE_DETAILS).DataTable().clear().draw();
     INVOICE_CARD.prop("hidden", true);
-    $('#company-info').html(`
-        <strong>Spring, Inc.</strong><br>
-        Đồng Văn Cống, An Thới,<br>
-        Bình Thủy, Cần Thơ<br>
-        Phone: <a id="company-phone" href="tel:+84818700047" class="text-dark hover-underline">(+84) 81 8700047</a><br>
-        Email: <a id="company-email" href="mailto:lhduyanh2002@gmail.com" class="text-dark hover-underline">lhduyanh2002@gmail.com</a>
+    IMAGE_CARDS.prop("hidden", true);
+
+    $('#facility-name').text(FACILITY_NAME);
+
+    $("#facility-info").html(`
+        <strong id="company-name">${COMPANY_NAME}</strong><br>
+        <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
+        </span>
+        Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+        Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
     `);
 
-    $('#customer-info').html(`
+    $("#customer-info").html(`
         <strong><span id="customer-name">Khách vãng lai</span></strong><br>
         <span id="customer-address"><br></span>
         <span id="customer-phone"><br></span>
         <span id="customer-email"></span><br>
     `);
 
-    $('#advisor-invoice-info').html(`
+    $("#advisor-invoice-info").html(`
         <b><span id="invoice-id"></span></b><br>
         <b>Service Date: </b><span id="history-date"></span><br>
 
@@ -1037,12 +1172,26 @@ function clearInvoiceCard() {
         <span id="advisor-contact">Email: </span><br>
     `);
 
-    $('#summary-input').val("");
-    $('#diagnose-input').val("");
+    $("#summary-input").val("");
+    $("#diagnose-input").val("");
 
-    $('#total-amount-info').text("0");
-    $('#discount-info').val("0");
-    $('#payable-amount-info').text("0");
+    $("#total-amount-info").text("0");
+    $("#discount-info").val("0");
+    $("#payable-amount-info").text("0");
+}
+
+function clearImageCard () {
+    $('.upload__img-wrap').html('');
+    preServiceImages = [];
+    postServiceImages = [];
+    
+    $('#pre-service-image .upload__btn').prop('hidden', true);
+    $('#pre-service-image .btn-upload-submit').prop('hidden', true);
+    $('#pre-service-image .images-delete-btn').prop('hidden', true);
+    $('#post-service-image .upload__btn').prop('hidden', true);
+    $('#post-service-image .btn-upload-submit').prop('hidden', true);
+    $('#post-service-image .images-delete-btn').prop('hidden', true);
+
 }
 
 function loadCarInfoByCar(car) {
@@ -1054,9 +1203,9 @@ function loadCarInfoByCar(car) {
     $("#plate-type-select").val(selectedCar.plateType.id).trigger("change");
     $("#brand-select").val(selectedCar.model.brand.id).trigger("change");
     $("#model-select").val(selectedCar.model.id).trigger("change");
-    
+
     $("#color_input").val(selectedCar.color);
-    $("#color_input").prop("disabled", false)
+    $("#color_input").prop("disabled", false);
     $("#description_input").val(selectedCar.carDetail);
     $("#description_input").prop("disabled", false);
 
@@ -1065,7 +1214,7 @@ function loadCarInfoByCar(car) {
 
     $("#save-btn").data("state", "save");
     $("#save-btn").text("Lưu");
-    
+
     $("#show-history-btn").prop("hidden", true);
     $("#reload-history-list-btn").prop("disabled", false);
     $("#new-history-btn").prop("disabled", false);
@@ -1077,7 +1226,7 @@ $("#reset-btn").click(function (e) {
     $("#brand-select").val(null).trigger("change");
     $("#model-select").val(null).trigger("change");
     $("#color_input").val("");
-    $("#color_input").prop("disabled", true)
+    $("#color_input").prop("disabled", true);
     $("#description_input").val("");
     $("#description_input").prop("disabled", true);
 
@@ -1089,49 +1238,53 @@ $("#reset-btn").click(function (e) {
     $("#show-history-btn").prop("hidden", true);
 
     historyTable.clear().draw();
-    INVOICE_CARD.prop("hidden", true); 
+    clearInvoiceCard();
+    clearImageCard();
     advisor = null;
     customer = null;
     selectedCar = null;
     utils.setHashParam(hash_car, null);
     selectedInvoice = null;
     utils.setHashParam(hash_invoice, null);
-
 });
 
-$("#save-btn").click(function () { 
-    if ($(this).data("state") == "add" && $("#color_input").prop("disabled") == true && $("#description_input").prop("disabled") == true) {
-        $("#color_input").prop("disabled", false)
+$("#save-btn").click(function () {
+    if (
+        $(this).data("state") == "add" &&
+        $("#color_input").prop("disabled") == true &&
+        $("#description_input").prop("disabled") == true
+    ) {
+        $("#color_input").prop("disabled", false);
         $("#description_input").prop("disabled", false);
         return;
     }
-    if ($(this).data("state") == "add"){
-        let numPlate = $("#num-plate-search-input").val().replace(/\s+/g, '');
+    if ($(this).data("state") == "add") {
+        let numPlate = $("#num-plate-search-input").val().replace(/\s+/g, "");
         let plateType = $("#plate-type-select").val();
         let model = $("#model-select").val();
         let color = $("#color_input").val().trim();
         let detail = $("#description_input").val().trim();
-        
-        if(numPlate == null || numPlate == ""){
+
+        if (numPlate == null || numPlate == "") {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng điền biển kiểm soát"
+                title: "Vui lòng điền biển kiểm soát",
             });
             return;
         }
 
-        if(plateType == null){
+        if (plateType == null) {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn loại biển kiểm soát"
+                title: "Vui lòng chọn loại biển kiểm soát",
             });
             return;
         }
 
-        if(model == null){
+        if (model == null) {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn mẫu xe"
+                title: "Vui lòng chọn mẫu xe",
             });
             return;
         }
@@ -1145,17 +1298,17 @@ $("#save-btn").click(function () {
                 color: color,
                 carDetail: detail,
                 plateType: plateType,
-                model: model
+                model: model,
             }),
-            beforeSend: function() {
+            beforeSend: function () {
                 Swal.showLoading();
             },
             success: function (response) {
                 Swal.close();
-                if(response.code == 1000){
+                if (response.code == 1000) {
                     Swal.fire({
                         title: "Đã thêm mới xe",
-                        html: `Thêm thông tin xe <b>${numPlate}</b> thành công` ,
+                        html: `Thêm thông tin xe <b>${numPlate}</b> thành công`,
                         icon: "success",
                         showConfirmButton: false,
                         timer: 2000,
@@ -1164,58 +1317,54 @@ $("#save-btn").click(function () {
                             url("https://sweetalert2.github.io/images/nyan-cat.gif")
                             left top
                             no-repeat
-                        `
+                        `,
                     });
                     loadCarInfoByCar(response.data);
-                }
-                else {
+                } else {
                     console.log(response);
                     Toast.fire({
                         icon: "warning",
-                        title: utils.getErrorMessage(response.code)
+                        title: utils.getErrorMessage(response.code),
                     });
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 Swal.close();
                 console.log(xhr);
                 Toast.fire({
                     icon: "error",
-                    title: utils.getXHRInfo(xhr).message
+                    title: utils.getXHRInfo(xhr).message,
                 });
-            }
+            },
         });
-
-
-
-    }
-    else if ($(this).data("state") == "save" && selectedCar !== null) { // update car info
-        let numPlate = $('#num-plate-search-input').val().replace(/\s+/g, '');
+    } else if ($(this).data("state") == "save" && selectedCar !== null) {
+        // update car info
+        let numPlate = $("#num-plate-search-input").val().replace(/\s+/g, "");
         let plateType = $("#plate-type-select").val();
         let model = $("#model-select").val();
         let color = $("#color_input").val().trim();
         let detail = $("#description_input").val().trim();
 
-        if(numPlate == null || numPlate == ""){
+        if (numPlate == null || numPlate == "") {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng điền biển kiểm soát"
+                title: "Vui lòng điền biển kiểm soát",
             });
             return;
         }
 
-        if(plateType == null){
+        if (plateType == null) {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn loại biển kiểm soát"
+                title: "Vui lòng chọn loại biển kiểm soát",
             });
             return;
         }
 
-        if(model == null){
+        if (model == null) {
             Toast.fire({
                 icon: "warning",
-                title: "Vui lòng chọn mẫu xe"
+                title: "Vui lòng chọn mẫu xe",
             });
             return;
         }
@@ -1225,8 +1374,8 @@ $("#save-btn").click(function () {
             showDenyButton: false,
             showCancelButton: true,
             confirmButtonText: "Đồng ý",
-            cancelButtonText: `Hủy`
-          }).then((result) => {
+            cancelButtonText: `Hủy`,
+        }).then((result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
                 $.ajax({
@@ -1238,20 +1387,20 @@ $("#save-btn").click(function () {
                         color: color,
                         carDetail: detail,
                         plateType: plateType,
-                        model: model
+                        model: model,
                     }),
                     dataType: "json",
-                    beforeSend: function() {
+                    beforeSend: function () {
                         Swal.showLoading();
                     },
                     success: function (res) {
                         Swal.close();
-                        if (res.code == 1000){
+                        if (res.code == 1000) {
                             selectedCar = res.data;
                             loadCarInfoByCar(res.data);
                             Swal.fire({
                                 title: "Cập nhật thành công",
-                                html: `Thông tin xe <b>${selectedCar.numPlate}</b> đã được cập nhật` ,
+                                html: `Thông tin xe <b>${selectedCar.numPlate}</b> đã được cập nhật`,
                                 icon: "success",
                                 showConfirmButton: false,
                                 timer: 2000,
@@ -1260,24 +1409,23 @@ $("#save-btn").click(function () {
                                     url("https://sweetalert2.github.io/images/nyan-cat.gif")
                                     left top
                                     no-repeat
-                                `
+                                `,
                             });
-                        }
-                        else {
+                        } else {
                             Toast.fire({
                                 icon: "error",
-                                title: utils.getErrorMessage(res.code)
+                                title: utils.getErrorMessage(res.code),
                             });
                         }
-                    }, 
-                    error: function(xhr, status, error) {
+                    },
+                    error: function (xhr, status, error) {
                         Swal.close();
                         console.log(xhr);
                         Toast.fire({
                             icon: "error",
-                            title: utils.getXHRInfo(xhr).message
-                        })
-                    }
+                            title: utils.getXHRInfo(xhr).message,
+                        });
+                    },
                 });
             }
         });
@@ -1289,7 +1437,7 @@ function formatOption(state) {
     if (!state.id) {
         return state.text;
     }
-    const price = $(state.element).data('price');
+    const price = $(state.element).data("price");
     return $(
         `<div class="d-flex justify-content-between">
             <span>${state.text}</span>
@@ -1298,19 +1446,19 @@ function formatOption(state) {
     );
 }
 
-$('#add-detail-btn').click(async function () { 
+$("#add-detail-btn").click(async function () {
     if (selectedInvoice == null) {
         Swal.fire({
             icon: "error",
             title: "Chưa chọn đơn dịch vụ",
-            html: `Không thể lấy ID đơn dịch vụ, vui lòng chọn lại đơn cần chỉnh sửa`
+            html: `Không thể lấy ID đơn dịch vụ, vui lòng chọn lại đơn cần chỉnh sửa`,
         });
         return;
     } else if (selectedInvoice.status != 0) {
         Swal.fire({
-            icon: "error",
+            icon: "warning",
             title: `Chỉnh sửa không hợp lệ`,
-            html: `Chỉ được chỉnh sửa đơn dịch vụ có trạng thái <b>"đang thi công"</b>`
+            html: `Chỉ được chỉnh sửa đơn dịch vụ<br>có trạng thái <b>"Đang thi công"</b>`,
         });
         return;
     }
@@ -1322,29 +1470,27 @@ $('#add-detail-btn').click(async function () {
             url: "/api/history/" + selectedInvoice.id,
             headers: utils.defaultHeaders(),
             dataType: "json",
-            beforeSend: function(){
+            beforeSend: function () {
                 Swal.showLoading();
-            }
+            },
         });
         Swal.close();
     } catch (error) {
         console.log(error);
         Toast.fire({
             icon: "error",
-            title: utils.getXHRInfo(error).message
+            title: utils.getXHRInfo(error).message,
         });
         return;
     }
     if (res == null) return;
-    if (res.code == 1000 && res.data){
-        selectedInvoice = res.data;
+    if (res.code == 1000 && res.data) {
         clearInvoiceCard();
-        loadInvoiceInfo(selectedInvoice);
-    }
-    else {
+        loadInvoiceInfo(res.data);
+    } else {
         Toast.fire({
             icon: "error",
-            title: res.message
+            title: res.message,
         });
         return;
     }
@@ -1364,12 +1510,10 @@ $('#add-detail-btn').click(async function () {
                 <button type="button" id="add-service-btn" class="btn btn-sm btn-outline-success">Thêm dịch vụ</button>
             </div>
         </form>
-    `
-                        
-        );
+    `);
 
     if (selectedInvoice.details.length == 0) {
-        $('#service-wrapper').append(`
+        $("#service-wrapper").append(`
             <div class="row my-2 pb-2 service-option-wrapper border-bottom">
                 <div class="col-12 col-md-4 mb-1 mb-md-0">
                     <select class="form-control select2bs4 modal-service-select bigdrop" width="100%" data-placeholder="Chọn dịch vụ">
@@ -1401,63 +1545,68 @@ $('#add-detail-btn').click(async function () {
             language: "vi",
             dropdownAutoWidth: true,
         });
-    
+
         $(".modal-quantity-input").on("input", function () {
             const input = $(this).val().trim();
-    
+
             if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                $(this).val('');
+                $(this).val("");
             }
         });
-    
+
         $(".modal-discount-input").on("input", function () {
             const input = $(this).val().trim();
-    
+
             if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                $(this).val('');
+                $(this).val("");
                 return;
             }
-    
+
             if (parseInt(input) > 100) {
                 $(this).val(input.slice(0, -1));
             }
         });
-    
-        $.each(serviceOptionList, function (idx, val) { 
-            $('.modal-service-select').append(`<option value="${val.id}">${val.name}</option>`);
+
+        $.each(serviceOptionList, function (idx, val) {
+            $(".modal-service-select").append(
+                `<option value="${val.id}">${val.name}</option>`
+            );
         });
-        $('.modal-service-select').val("").trigger("change");
-    
-    
-        $('.modal-service-select').on('change', function () {
+        $(".modal-service-select").val("").trigger("change");
+
+        $(".modal-service-select").on("change", function () {
             let id = $(this).val();
-            const wrapper = $(this).closest('.service-option-wrapper'); // Tìm cha gần nhất
-            const $optionSelect = wrapper.find('.modal-option-select'); // Tìm select trong cùng cha
+            const wrapper = $(this).closest(".service-option-wrapper"); // Tìm cha gần nhất
+            const $optionSelect = wrapper.find(".modal-option-select"); // Tìm select trong cùng cha
             if (id == null) {
                 $optionSelect.empty();
                 return;
             }
-        
-            const listOptionPrices = serviceOptionList.find(item => item.id == id);
-        
+
+            const listOptionPrices = serviceOptionList.find(
+                (item) => item.id == id
+            );
+
             $.each(listOptionPrices.optionPrices, function (idx, val) {
                 const option = new Option(val.name, val.id, false, false);
-                $(option).attr('data-price', utils.formatVNDCurrency(val.price));
+                $(option).attr(
+                    "data-price",
+                    utils.formatVNDCurrency(val.price)
+                );
                 $optionSelect.append(option);
             });
             $optionSelect.val("").trigger("change");
-            
+
             // Khởi tạo Select2 với tùy chỉnh template cho các option
             $optionSelect.select2({
                 templateResult: formatOption,
                 templateSelection: formatOption,
-                width: '100%',
-                theme: 'bootstrap'
+                width: "100%",
+                theme: "bootstrap",
             });
         });
-    }
-    else {
-        $.each(selectedInvoice.details, function (idx, detail) { 
+    } else {
+        $.each(selectedInvoice.details, function (idx, detail) {
             const newRow = $(`
                 <div class="row my-2 pt-1 pb-2 border-bottom service-option-wrapper">
                     <div class="col-12 col-md-4 mb-1 mb-md-0">
@@ -1487,10 +1636,10 @@ $('#add-detail-btn').click(async function () {
                     </div>
                 </div>
             `);
-        
+
             // Thêm hàng mới vào #service-wrapper
             $("#service-wrapper").append(newRow);
-        
+
             // Khởi tạo Select2 cho các phần tử trong hàng mới thêm
             newRow.find(".select2bs4").select2({
                 allowClear: true,
@@ -1499,26 +1648,28 @@ $('#add-detail-btn').click(async function () {
                 width: "100%",
                 language: "vi",
             });
-    
+
             const $serviceSelect = newRow.find(".modal-service-select");
             const $optionSelect = newRow.find(".modal-option-select");
             $.each(serviceOptionList, function (idx, val) {
-                $serviceSelect.append(`<option value="${val.id}">${val.name}</option>`);
+                $serviceSelect.append(
+                    `<option value="${val.id}">${val.name}</option>`
+                );
             });
-        
+
             // Thêm sự kiện chỉ cho input mới
             newRow.find(".modal-quantity-input").on("input", function () {
                 const input = $(this).val().trim();
                 if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                    $(this).val('');
+                    $(this).val("");
                 }
             });
             newRow.find(".modal-quantity-input").val(detail.quantity);
-        
+
             newRow.find(".modal-discount-input").on("input", function () {
                 const input = $(this).val().trim();
                 if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                    $(this).val('');
+                    $(this).val("");
                     return;
                 }
                 if (parseInt(input) > 100) {
@@ -1526,36 +1677,41 @@ $('#add-detail-btn').click(async function () {
                 }
             });
             newRow.find(".modal-discount-input").val(detail.discount);
-        
+
             // Thêm sự kiện cho service-select và xử lý option-select
-            newRow.find('.modal-service-select').on('change', function () {
+            newRow.find(".modal-service-select").on("change", function () {
                 let id = $(this).val();
-                const wrapper = $(this).closest('.service-option-wrapper');
-                const $optionSelect = wrapper.find('.modal-option-select');
+                const wrapper = $(this).closest(".service-option-wrapper");
+                const $optionSelect = wrapper.find(".modal-option-select");
                 if (id == null) {
                     $optionSelect.empty();
                     return;
                 }
-        
-                const listOptionPrices = serviceOptionList.find(item => item.id == id);
+
+                const listOptionPrices = serviceOptionList.find(
+                    (item) => item.id == id
+                );
                 $optionSelect.empty(); // Đảm bảo xóa các option cũ
-        
+
                 $.each(listOptionPrices.optionPrices, function (idx, val) {
                     const option = new Option(val.name, val.id, false, false);
-                    $(option).attr('data-price', utils.formatVNDCurrency(val.price));
+                    $(option).attr(
+                        "data-price",
+                        utils.formatVNDCurrency(val.price)
+                    );
                     $optionSelect.append(option);
                 });
                 $optionSelect.val("").trigger("change");
-        
+
                 // Khởi tạo Select2 với template tùy chỉnh cho option
                 $optionSelect.select2({
                     templateResult: formatOption,
                     templateSelection: formatOption,
-                    width: '100%',
-                    theme: 'bootstrap'
+                    width: "100%",
+                    theme: "bootstrap",
                 });
             });
-            
+
             $serviceSelect.val(detail.service.id).trigger("change");
             $optionSelect.val(detail.option.id).trigger("change");
         });
@@ -1591,10 +1747,10 @@ $('#add-detail-btn').click(async function () {
                 </div>
             </div>
         `);
-    
+
         // Thêm hàng mới vào #service-wrapper
         $("#service-wrapper").append(newRow);
-    
+
         // Khởi tạo Select2 cho các phần tử trong hàng mới thêm
         newRow.find(".select2bs4").select2({
             allowClear: true,
@@ -1606,76 +1762,83 @@ $('#add-detail-btn').click(async function () {
 
         const $serviceSelect = newRow.find(".modal-service-select");
         $.each(serviceOptionList, function (idx, val) {
-            $serviceSelect.append(`<option value="${val.id}">${val.name}</option>`);
+            $serviceSelect.append(
+                `<option value="${val.id}">${val.name}</option>`
+            );
         });
         $serviceSelect.val("").trigger("change");
-    
+
         // Thêm sự kiện chỉ cho input mới
         newRow.find(".modal-quantity-input").on("input", function () {
             const input = $(this).val().trim();
             if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                $(this).val('');
+                $(this).val("");
             }
         });
-    
+
         newRow.find(".modal-discount-input").on("input", function () {
             const input = $(this).val().trim();
             if (!/^\d*$/.test(input) || isNaN(parseInt(input.slice(-1)))) {
-                $(this).val('');
+                $(this).val("");
                 return;
             }
             if (parseInt(input) > 100) {
                 $(this).val(input.slice(0, -1));
             }
         });
-    
+
         // Thêm sự kiện cho service-select và xử lý option-select
-        newRow.find('.modal-service-select').on('change', function () {
+        newRow.find(".modal-service-select").on("change", function () {
             let id = $(this).val();
-            const wrapper = $(this).closest('.service-option-wrapper');
-            const $optionSelect = wrapper.find('.modal-option-select');
+            const wrapper = $(this).closest(".service-option-wrapper");
+            const $optionSelect = wrapper.find(".modal-option-select");
             if (id == null) {
                 $optionSelect.empty();
                 return;
             }
-    
-            const listOptionPrices = serviceOptionList.find(item => item.id == id);
+
+            const listOptionPrices = serviceOptionList.find(
+                (item) => item.id == id
+            );
             $optionSelect.empty(); // Đảm bảo xóa các option cũ
-    
+
             $.each(listOptionPrices.optionPrices, function (idx, val) {
                 const option = new Option(val.name, val.id, false, false);
-                $(option).attr('data-price', utils.formatVNDCurrency(val.price));
+                $(option).attr(
+                    "data-price",
+                    utils.formatVNDCurrency(val.price)
+                );
                 $optionSelect.append(option);
             });
             $optionSelect.val("").trigger("change");
-    
+
             // Khởi tạo Select2 với template tùy chỉnh cho option
             $optionSelect.select2({
                 templateResult: formatOption,
                 templateSelection: formatOption,
-                width: '100%',
-                theme: 'bootstrap'
+                width: "100%",
+                theme: "bootstrap",
             });
         });
     });
 
-    $('#modal_body').on("click", ".remove-service-btn", function () {
+    $("#modal_body").on("click", ".remove-service-btn", function () {
         $(this).closest(".row").remove();
     });
-    
+
     $("#modal_footer").append(
         '<button type="button" class="btn btn-primary" form="modal-form" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
     );
 
     $("#modal_id").modal("show");
 
-    $('#modal_submit_btn').click( async function () { 
+    $("#modal_submit_btn").click(async function () {
         if (!$("#modal-form")[0].checkValidity()) {
             $("#modal-form")[0].reportValidity();
             return;
         }
 
-        let serviceOptions = [];;
+        let serviceOptions = [];
         var hasError = false; // Biến cờ để theo dõi lỗi
         var hasEmptyInput = false;
 
@@ -1684,8 +1847,14 @@ $('#add-detail-btn').click(async function () {
             var selectedService = $(this).find(".modal-service-select").val();
             var selectedOption = $(this).find(".modal-option-select").val();
 
-            var modalQuantity = $(this).find('input[name="modal-quantity"]').val().replace(/\s+/g, '');
-            var modalDiscount = $(this).find('input[name="modal-discount"]').val().replace(/\s+/g, '');
+            var modalQuantity = $(this)
+                .find('input[name="modal-quantity"]')
+                .val()
+                .replace(/\s+/g, "");
+            var modalDiscount = $(this)
+                .find('input[name="modal-discount"]')
+                .val()
+                .replace(/\s+/g, "");
 
             if (selectedService == null) {
                 Toast.fire({
@@ -1703,17 +1872,21 @@ $('#add-detail-btn').click(async function () {
                 hasError = true; // Đặt cờ lỗi
                 return;
             }
-            if (modalQuantity === null || modalDiscount === null || modalQuantity === "" || modalDiscount === "") {
+            if (
+                modalQuantity === null ||
+                modalDiscount === null ||
+                modalQuantity === "" ||
+                modalDiscount === ""
+            ) {
                 hasEmptyInput = true;
-                if(modalQuantity === null || modalQuantity === "") {
+                if (modalQuantity === null || modalQuantity === "") {
                     modalQuantity = 1;
                 }
-                if(modalDiscount === null || modalDiscount === "") {
+                if (modalDiscount === null || modalDiscount === "") {
                     modalDiscount = 0;
                 }
                 console.log(modalQuantity);
                 console.log(modalDiscount);
-                
             }
 
             var isValidNumber = /^\d+$/.test(modalQuantity);
@@ -1762,7 +1935,7 @@ $('#add-detail-btn').click(async function () {
                 serviceId: selectedService,
                 optionId: selectedOption,
                 discount: modalDiscountAsNumber,
-                quantity: modalQuantityAsNumber
+                quantity: modalQuantityAsNumber,
             });
         });
 
@@ -1778,16 +1951,16 @@ $('#add-detail-btn').click(async function () {
                 showConfirmButton: true,
                 showCancelButton: true,
                 confirmButtonText: "Đồng ý",
-                cancelButtonText: "Hủy"
+                cancelButtonText: "Hủy",
             });
 
-            if (warn.isConfirmed){
+            if (warn.isConfirmed) {
             } else {
                 return;
             }
         }
 
-        if (serviceOptions.length == 0){
+        if (serviceOptions.length == 0) {
             const warn = await Swal.fire({
                 icon: "question",
                 title: "Xóa tất cả dịch vụ?",
@@ -1795,16 +1968,16 @@ $('#add-detail-btn').click(async function () {
                 showCancelButton: true,
                 showConfirmButton: true,
                 confirmButtonText: "Đồng ý",
-                cancelButtonText: "Hủy"
+                cancelButtonText: "Hủy",
             });
             if (warn.isConfirmed) {
                 console.warn("Gọi ajax xóa hết chi tiết lịch sử");
                 $.ajax({
                     type: "PUT",
-                    url: "/api/detail/clear-details/"+selectedInvoice.id,
+                    url: "/api/detail/clear-details/" + selectedInvoice.id,
                     headers: utils.defaultHeaders(),
                     dataType: "json",
-                    beforeSend: function(){
+                    beforeSend: function () {
                         Swal.showLoading();
                     },
                     success: function (response) {
@@ -1831,25 +2004,24 @@ $('#add-detail-btn').click(async function () {
                             title: utils.getXHRInfo(xhr).message,
                         });
                     },
-                }); 
+                });
             } else {
                 return;
             }
-        }
-        else {
+        } else {
             $.ajax({
                 type: "POST",
                 url: "/api/detail/" + selectedInvoice.id,
                 headers: utils.defaultHeaders(),
                 data: JSON.stringify(
-                    serviceOptions.map(detail => ({
+                    serviceOptions.map((detail) => ({
                         serviceId: detail.serviceId,
                         optionId: detail.optionId,
                         discount: detail.discount,
-                        quantity: detail.quantity
-                    })),
+                        quantity: detail.quantity,
+                    }))
                 ),
-                beforeSend: function(){
+                beforeSend: function () {
                     Swal.showLoading();
                 },
                 success: function (response) {
@@ -1876,32 +2048,118 @@ $('#add-detail-btn').click(async function () {
                         title: utils.getXHRInfo(xhr).message,
                     });
                 },
-            }); 
+            });
         }
     });
 });
 
-$("#new-history-btn").click(async function () { 
+$('#delete-detail-btn').click(async function () { 
+    if (!selectedInvoice || !selectedInvoice.id) {
+        Swal.fire({
+            icon: "warning",
+            title: "Chưa chọn đơn dịch vụ",
+            html: `Không thể lấy ID đơn dịch vụ, vui lòng chọn lại đơn cần chỉnh sửa`,
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    var selectedRow = $("#table-details tbody tr.selected");
+    let detail = $("#table-details")
+        .DataTable()
+        .row(selectedRow)
+        .data();
+
+    if (!detail) {
+        Swal.fire({
+            icon: "warning",
+            title: "Chưa chọn dịch vụ",
+            html: `Vui lòng chọn dịch vụ cần xóa khỏi hóa đơn`,
+            showConfirmButton: false,
+            timer: 3000
+        });
+        return;
+    }
+
+    let warning = await Swal.fire({
+        title: "Xóa dịch vụ?",
+        text: "Hành động này sẽ xóa dịch vụ khỏi hóa đơn?",
+        icon: "warning",
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy",
+        reverseButtons: true
+    });
+    
+    if (!warning.isConfirmed) {
+        return;
+    }
+
+    await $.ajax({
+        type: "DELETE",
+        url: "/api/detail?history="+selectedInvoice.id +"&detail=" +detail.id,
+        headers: utils.defaultHeaders(),
+        dataType: "json",
+        beforeSend: function() {
+            Swal.showLoading();
+        },
+        success: function (res) {
+            Swal.close();
+            if (res.code == 1000 && res.data) {
+                loadInvoiceInfo(res.data);
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getErrorMessage(res.code),
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            Swal.close();
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                title: "Đã xảy ra lỗi",
+                text: utils.getXHRInfo(xhr).message,
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+});
+
+$("#new-history-btn").click(async function () {
     if ($(this).prop("disabled")) {
         return;
     }
     if (selectedCar == null) {
         Toast.fire({
             icon: "warning",
-            title: "Vui lòng chọn xe cần xem dịch vụ"
+            title: "Vui lòng chọn xe cần thêm đơn dịch vụ",
         });
         return;
     }
-    if (utils.getUserInfo() == null) {
+
+    let userInfo = await utils.getUserInfo();
+    if (userInfo == null) {
         Swal.fire({
             icon: "error",
             title: "Không thể lấy thông tin",
             text: "Không thể lấy thông tin cố vấn dịch vụ, vui lòng tải lại trang",
             showConfirmButton: false,
+            timer: 3000
         });
         return;
     }
     let res;
+
+    console.log(selectedCar.id, userInfo.id);
+    
 
     try {
         res = await $.ajax({
@@ -1910,12 +2168,12 @@ $("#new-history-btn").click(async function () {
             headers: utils.defaultHeaders(),
             data: JSON.stringify({
                 carId: selectedCar.id,
-                advisorId: utils.getUserInfo().id
+                advisorId: userInfo.id,
             }),
             dataType: "json",
-            beforeSend: function() {
+            beforeSend: function () {
                 Swal.showLoading();
-            }
+            },
         });
         Swal.close();
     } catch (error) {
@@ -1923,93 +2181,98 @@ $("#new-history-btn").click(async function () {
         console.log(error);
         Swal.fire({
             icon: "error",
-            title: utils.getXHRInfo(error).message,
+            title: "Đã xảy ra lỗi",
+            text: utils.getXHRInfo(error).message,
             showConfirmButton: false,
-            timer: 2000
+            timer: 2000,
         });
         return;
     }
     Swal.close();
+    if (!res) return;
     if (res.code == 1000 && res.data) {
-        loadHistoryListByCarID(res.data.car.id)
-        selectedInvoice = res.data;
+        loadHistoryListByCarID(res.data.car.id);
         clearInvoiceCard();
         loadInvoiceInfo(res.data);
-    }
-    else {
+    } else {
         INVOICE_CARD.prop("hidden", true);
+        IMAGE_CARDS.prop("hidden", true);
         clearInvoiceCard();
         Swal.fire({
             icon: "error",
             title: utils.getErrorMessage(res.code).message,
-            showConfirmButton: false
+            showConfirmButton: false,
         });
     }
 });
 
-$('#reload-history-list-btn').click(function () { 
+$("#reload-history-list-btn").click(function () {
     if (selectedCar == null) {
         Toast.fire({
             icon: "warning",
-            title: "Vui lòng chọn xe cần xem dịch vụ"
+            title: "Vui lòng chọn xe cần xem dịch vụ",
         });
         return;
     }
     loadHistoryListByCarID(selectedCar.id);
 });
 
-$('#service-history-table tbody').on('click', 'tr', function() {
-    if ($(this).find('td').hasClass('dataTables_empty')) return;
+$(document).on("click", "#service-history-table tbody tr", function () {
+    if ($(this).find("td").hasClass("dataTables_empty")) return;
 
-    if ($(this).hasClass('selected')) {
-        $(this).removeClass('selected');
+    if ($(this).hasClass("selected")) {
+        $(this).removeClass("selected");
         $("#show-history-btn").prop("hidden", true);
     } else {
-        $('#car-table tbody tr').removeClass('selected');
-        $(this).addClass('selected');
+        $("#service-history-table tbody tr").removeClass("selected");
+        $(this).addClass("selected");
         $("#show-history-btn").prop("hidden", false);
     }
 });
 
-$("#show-history-btn").click(function () { 
-    var selectedRow = $('#service-history-table tbody tr.selected');
-    let rowData = $('#service-history-table').DataTable().row(selectedRow).data();
-    
+$("#show-history-btn").click(function () {
+    var selectedRow = $("#service-history-table tbody tr.selected");
+    let rowData = $("#service-history-table")
+        .DataTable()
+        .row(selectedRow)
+        .data();
+
     if (selectedRow.length > 0) {
         loadInvoiceById(rowData.id);
     } else {
         Toast.fire({
             icon: "warning",
-            title: "Chọn 1 hồ sơ dịch vụ"
-        })
+            title: "Chọn 1 hồ sơ dịch vụ",
+        });
     }
 });
 
-$('#save-invoice-info-btn').click(function () { // Lưu odo, summary, diagnose, discount 
-    let summary = $('#summary-input').val().trim();
-    let diagnose = $('#diagnose-input').val().trim();
-    let discount = $('#discount-info').val();
-    let odo = $('#odo-info').val().trim();
+$("#save-invoice-info-btn").click(function () {
+    // Lưu odo, summary, diagnose, discount
+    let summary = $("#summary-input").val().trim();
+    let diagnose = $("#diagnose-input").val().trim();
+    let discount = $("#discount-info").val();
+    let odo = $("#odo-info").val().trim();
 
     if (odo != null && odo != "") {
-        odo = odo.replace(/\D/g, ''); 
+        odo = odo.replace(/\D/g, "");
     } else {
         odo = null;
     }
 
-    if (discount == null || discount == ""){
+    if (discount == null || discount == "") {
         discount = 0;
     }
 
     $.ajax({
         type: "PUT",
-        url: "/api/history/update-info/"+selectedInvoice.id,
+        url: "/api/history/update-info/" + selectedInvoice.id,
         headers: utils.defaultHeaders(),
         data: JSON.stringify({
             summary: summary,
             diagnose: diagnose,
             discount: discount,
-            odo: odo
+            odo: odo,
         }),
         dataType: "json",
         success: function (res) {
@@ -2019,37 +2282,76 @@ $('#save-invoice-info-btn').click(function () { // Lưu odo, summary, diagnose, 
                     title: "Cập nhật thành công",
                     html: "Cập nhật thành công thông tin tóm tắt, chẩn đoán và % giảm giá",
                     showConfirmButton: false,
-                    timer: 1500
+                    timer: 1500,
                 });
                 loadInvoiceInfo(res.data);
-            }
-            else {
+            } else {
                 Toast.fire({
                     icon: "error",
-                    title: utils.getErrorMessage(res.code)
+                    title: utils.getErrorMessage(res.code),
                 });
             }
         },
-        error: function(xhr, status, error){
+        error: function (xhr, status, error) {
             console.log(xhr);
             Toast.fire({
                 icon: "error",
-                title: utils.getXHRInfo(xhr).message
+                title: utils.getXHRInfo(xhr).message,
             });
-        }
+        },
     });
 });
 
-$('#table-details tbody').on('click', 'tr', function() {
-    if ($(this).find('td').hasClass('dataTables_empty')) return;
+$('#print-btn').click(async function () { 
+    if (!selectedInvoice || !selectedInvoice.id) {
+        Swal.fire({
+            icon: "warning",
+            title: "Vui lòng chọn lại đơn cần in",
+            showConfirmButton: false,
+            timer: 2000
+        });
+        return;
+    }
 
-    if ($(this).hasClass('selected')) {
-        $(this).removeClass('selected');
-        $('#delete-detail-btn').prop('hidden', true);
+    let confirm;
+    if (selectedInvoice.status == 1) {
+        confirm = await Swal.fire({
+            icon: "question",
+            title: "In hóa đơn?",
+            showConfirmButton: true,
+            confirmButtonText: "Đồng ý",
+            showCancelButton: true,
+            cancelButtonText: "Hủy",
+        });
     } else {
-        $('#table-details tbody tr').removeClass('selected');
-        $(this).addClass('selected');
-        $('#delete-detail-btn').prop('hidden', false);
+        confirm = await Swal.fire({
+            icon: "question",
+            title: "In tạm tính?",
+            showConfirmButton: true,
+            confirmButtonText: "Đồng ý",
+            showCancelButton: true,
+            cancelButtonText: "Hủy",
+        });
+    }
+
+    if (confirm.isConfirmed) {
+        window.open('/provisional-invoice-print#invoice=' + selectedInvoice.id, '_blank');
+    }
+    
+});
+
+$(document).on("click", "#table-details tbody tr", function () {
+    if ($(this).find("td").hasClass("dataTables_empty")) return;
+  
+    if ($(this).hasClass("selected")) {
+        $(this).removeClass("selected");
+        $("#delete-detail-btn").prop("hidden", true);
+    } else {
+        $("#table-details tbody tr").removeClass("selected");
+        $(this).addClass("selected");
+        if (selectedInvoice.status == 0) {
+            $("#delete-detail-btn").prop("hidden", false);
+        }
     }
 });
 
@@ -2060,20 +2362,19 @@ async function loadInvoiceById(invoiceId) {
             url: "/api/history/" + invoiceId,
             headers: utils.defaultHeaders(),
             dataType: "json",
-            beforeSend: function(){
+            beforeSend: function () {
                 Swal.showLoading();
-            }
+            },
         });
         Swal.close();
 
-        if (res.code == 1000 && res.data){
+        if (res.code == 1000 && res.data) {
             clearInvoiceCard();
             loadInvoiceInfo(res.data);
-        }
-        else {
+        } else {
             Toast.fire({
                 icon: "error",
-                title: res.message
+                title: res.message,
             });
         }
     } catch (xhr) {
@@ -2081,7 +2382,7 @@ async function loadInvoiceById(invoiceId) {
         console.log(xhr);
         Toast.fire({
             icon: "error",
-            title: utils.getXHRInfo(xhr).message
+            title: utils.getXHRInfo(xhr).message,
         });
         return;
     }
@@ -2089,10 +2390,10 @@ async function loadInvoiceById(invoiceId) {
 
 function loadListDetailsHistory(details) {
     $(TABLE_DETAILS).DataTable().clear().draw();
-    if(details == null) {
+    if (details == null) {
         return;
     }
-    if (details.length == 0){
+    if (details.length == 0) {
         return;
     }
 
@@ -2118,6 +2419,15 @@ function loadListDetailsHistory(details) {
 
 function loadInvoiceInfo(invoice) {
     INVOICE_CARD.prop("hidden", false);
+    IMAGE_CARDS.prop("hidden", false);
+
+    if (selectedInvoice) {
+        if (selectedInvoice.id !== invoice.id) {
+            clearImageCard();
+        }
+    } else {
+        clearImageCard();
+    }
 
     utils.setHashParam(hash_invoice, invoice.id);
     selectedInvoice = invoice;
@@ -2126,6 +2436,47 @@ function loadInvoiceInfo(invoice) {
     loadCustomerInfo();
     loadAdvisorInfo();
 
+    if (invoice.status == 0) {
+        $('#confirm-order-btn').prop('hidden', false);
+        $('#cancel-order-btn').prop('hidden', false);
+        $('#add-detail-btn').prop('hidden', false);
+    } else {
+        $('#confirm-order-btn').prop('hidden', true);
+        $('#cancel-order-btn').prop('hidden', true);
+        $('#add-detail-btn').prop('hidden', true);
+    }
+
+    // Tìm dòng chứa đơn này trong bảng danh sách đơn dịch vụ và highlight
+    (function selectRowByInvoice() {
+        // Kiểm tra nếu bảng rỗng        
+        let isEmpty = $("#service-history-table tbody tr").find("td.dataTables_empty").length > 0;
+        if (isEmpty) {
+            return;
+        }
+    
+        if (!selectedInvoice || !selectedInvoice.id) {
+            return;
+        }
+    
+        let dataTable = $("#service-history-table").DataTable();
+    
+        // Lặp qua tất cả các hàng của bảng
+        $("#service-history-table tbody tr").each(function () {
+            let row = $(this);
+    
+            // Lấy dữ liệu của hàng hiện tại
+            let rowData = dataTable.row(row).data();
+    
+            if (rowData && rowData.id === selectedInvoice.id) {
+                $("#service-history-table tbody tr").removeClass("selected"); 
+                row.addClass("selected");
+                return false; 
+            }
+        });
+    })();
+    
+
+
     let t = utils.getTimeAsJSON(invoice.serviceDate);
     let invoiceIdHtml = "";
     if (invoice.status == 1) {
@@ -2133,53 +2484,63 @@ function loadInvoiceInfo(invoice) {
     } else {
         invoiceIdHtml = `Order #${invoice.id}`;
     }
-    $('#invoice-id').html(invoiceIdHtml);
-    $('#history-date').text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
-    $('#odo-info').val(invoice.odo != null ? utils.formatCurrent(invoice.odo) : "");
+    $("#invoice-id").html(invoiceIdHtml);
+    $("#history-date").text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
+    $("#odo-info").val(
+        invoice.odo != null ? utils.formatCurrent(invoice.odo) : ""
+    );
 
     let totalAmount = utils.formatVNDCurrency(invoice.totalAmount);
     let payableAmount = utils.formatVNDCurrency(invoice.payableAmount);
 
-    $('#total-amount-info').text(totalAmount);
-    $('#discount-info').val(invoice.discount);
-    $('#payable-amount-info').text(payableAmount);
-    $('#summary-input').val(invoice.summary);
-    $('#diagnose-input').val(invoice.diagnose);
+    $("#total-amount-info").text(totalAmount);
+    $("#discount-info").val(invoice.discount);
+    $("#payable-amount-info").text(payableAmount);
+    $("#summary-input").val(invoice.summary);
+    $("#diagnose-input").val(invoice.diagnose);
 
     if (invoice.status == 0) {
-        $('#summary-input').prop("disabled", false);
-        $('#diagnose-input').prop("disabled", false);
+        $("#summary-input").prop("disabled", false);
+        $("#diagnose-input").prop("disabled", false);
     } else {
-        $('#summary-input').prop("disabled", true);
-        $('#diagnose-input').prop("disabled", true);
+        $("#summary-input").prop("disabled", true);
+        $("#diagnose-input").prop("disabled", true);
     }
 
     loadListDetailsHistory(invoice.details);
 }
 
-function loadCustomerInfo() {  // Load thông tin lên từ biến customer
+function loadCustomerInfo() {
+    // Load thông tin lên từ biến customer
     if (customer == null) {
         $("#customer-name").text("Khách vãng lai");
-        $('#customer-address').html("");
-        $('#customer-phone').html("");
-        $('#customer-email').html("");
+        $("#customer-address").html("");
+        $("#customer-phone").html("");
+        $("#customer-email").html("");
         return;
     }
 
-    let addressHtml = customer.address ? formatAddress(customer.address.address)+"<br>" : "";
-    let phoneHtml = customer.phone ? `Phone: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>` : "";
-    let mailHtml = customer.accounts[0] ? `Email: <a href="mailto:${customer.accounts[0].email}" class="text-dark hover-underline">${customer.accounts[0].email}</a>`: "";
+    let addressHtml = customer.address
+        ? formatAddress(customer.address.address) + "<br>"
+        : "";
+    let phoneHtml = customer.phone
+        ? `Phone: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>`
+        : "";
+    let mailHtml = customer.accounts[0]
+        ? `Email: <a href="mailto:${customer.accounts[0].email}" class="text-dark hover-underline">${customer.accounts[0].email}</a>`
+        : "";
 
     $("#customer-name").text(customer.name);
-    $('#customer-address').html(addressHtml);
-    $('#customer-phone').html(phoneHtml);
-    $('#customer-email').html(mailHtml);
+    $("#customer-address").html(addressHtml);
+    $("#customer-phone").html(phoneHtml);
+    $("#customer-email").html(mailHtml);
 }
 
-function loadAdvisorInfo() {  // Load thông tin lên từ biến advisor
+function loadAdvisorInfo() {
+    // Load thông tin lên từ biến advisor
     if (advisor == null) {
         $("#advisor-name").text("- Không xác định -");
-        $('#advisor-contact').html("");
+        $("#advisor-contact").html("");
         return;
     }
 
@@ -2188,13 +2549,13 @@ function loadAdvisorInfo() {  // Load thông tin lên từ biến advisor
 
     let contactHtml = `<b>Contact: </b>`;
     if (phone !== "") {
-        if(email !== ""){
+        if (email !== "") {
             contactHtml += phone + " - " + email;
         } else {
             contactHtml += phone;
         }
     } else {
-        if(email !== ""){
+        if (email !== "") {
             contactHtml += email;
         } else {
             contactHtml = "";
@@ -2202,108 +2563,834 @@ function loadAdvisorInfo() {  // Load thông tin lên từ biến advisor
     }
 
     $("#advisor-name").html(`<b>Advisor: </b>${advisor.name}`);
-    $('#advisor-contact').html(contactHtml);
+    $("#advisor-contact").html(contactHtml);
 }
 
 function formatAddress(address) {
-    const parts = address.split(',');
+    const parts = address.split(",");
     if (parts.length > 2) {
-        return `${parts.slice(0, 2).join(', ')},<br>${parts.slice(2).join(', ')}`;
+        return `${parts.slice(0, 2).join(", ")},<br>${parts
+            .slice(2)
+            .join(", ")}`;
     }
     return address;
 }
 
-$(document).on('click', '[data-toggle="lightbox"]', function(event) {
+$(document).on("click", '[data-toggle="lightbox"]', function (event) {
     event.preventDefault();
     $(this).ekkoLightbox();
 });
 
-
-
-
 function ImgUpload() {
-    var imgWrap = "";
-    var imgArray = [];
-  
-    $('.upload__inputfile').each(function () {
-      $(this).on('change', function (e) {
-        imgWrap = $(this).closest('.upload__box').find('.upload__img-wrap');
-        var maxLength = $(this).data('max_length');
-  
-        var files = e.target.files;        
-        var filesArr = Array.prototype.slice.call(files);
-        var iterator = 0;
+    $(".upload__inputfile").each(function () {
+        $(this).on("change", function (e) {
+            const parentCard = $(this).closest(".card").attr("id");
+            const imgWrap = $(this).closest(".upload__box").find(".upload__img-wrap");
+            const maxLength = $(this).data("max_length");
+            const files = e.target.files;
+            const filesArr = Array.prototype.slice.call(files);
 
-        if (imgArray.length + files.length > maxLength) {
+            // Xác định mảng tương ứng
+            const imgArray = parentCard === "pre-service-image"
+                ? preServiceImages
+                : postServiceImages;
+
+            const gallery = parentCard === "pre-service-image"
+                ? "gallery-pre-service"
+                : "gallery-post-service";
+            const count = $('#'+parentCard+' .upload__img-box').length;
+
+            if (count + files.length > maxLength) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Upload tối đa "+maxLength+" ảnh",
+                    showConfirmButton: false,
+                    timer: 2000,
+                });
+                return false;
+            }
+
+            filesArr.forEach(function (f) {
+                if (!f.type.match("image.*")) return;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const base64String = e.target.result.split(",")[1]; // Lấy phần sau dấu phẩy
+                    imgArray.push({ title: f.name, image: base64String });
+
+                    const imgSizeMB = (f.size / (1024 * 1024)).toFixed(2); // Tính kích thước ảnh (MB)
+                    const html = `
+                        <div class='upload__img-box'>
+                            <a href="${e.target.result}" data-toggle="lightbox" data-gallery="${gallery}" data-footer="${f.name} (${imgSizeMB}MB)">
+                                <div style='background-image: url(${e.target.result}); background-size: cover; background-position: center;' 
+                                    data-number='${$(".upload__img-close").length}' 
+                                    data-file='${f.name}' 
+                                    class='img-bg position-relative'>
+                                    <div class='upload__img-close'></div>
+                                    
+                                    <!-- Overlay -->
+                                    <div class='overlay d-flex justify-content-center align-items-center'>
+                                        <span class='img-size'>${imgSizeMB} MB</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    imgWrap.append(html);
+
+                    // Cập nhật lại mảng sau khi thêm
+                    updateImageArray(parentCard);
+                };
+                reader.readAsDataURL(f);
+            });
+        });
+    });
+
+    $("body").on("click", ".upload__img-close", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const parentCard = $(this).closest(".card").attr("id");
+
+        // Xóa ảnh khỏi giao diện
+        $(this).closest(".upload__img-box").remove();
+
+        console.log(`Ảnh đã xóa. Đang cập nhật lại danh sách cho ${parentCard}...`);
+
+        // Cập nhật lại mảng sau khi xóa
+        updateImageArray(parentCard);
+    });
+}
+
+// Hàm cập nhật mảng ảnh dựa trên giao diện hiện tại
+function updateImageArray(parentCard) {
+    const imgArray = parentCard === "pre-service-image" ? updatePreServiceImages() : updatePostServiceImages();
+}
+
+
+// send image
+$(".btn-upload-submit").on("click", function () {
+    const cardId = $(this).data("target");
+    handleUpload(cardId);
+});
+
+$('.reload-images-btn').click( async function () { 
+    let target = $(this).data('target');
+    
+    if (target === 'pre-service-image') {
+        await loadPreImageByHistoryId();
+    } else {
+        await loadPostImageByHistoryId();
+    }
+    Toast.fire({
+        icon: "success",
+        title: "Làm mới danh sách hình ảnh",
+        timer: 2000
+    });
+});
+
+$('.images-delete-btn').click(async function () { 
+    let target = $(this).data('target');
+
+    if (selectedInvoice.status != 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Không thể xóa ảnh!",
+            text: "Chỉ có thể xóa ảnh của hóa đơn đang thi công",
+            showConfirmButton: false,
+            timer: 2000
+        });
+        return;
+    }
+
+    const warning = await Swal.fire({
+        icon: 'warning',
+        title: 'Xóa danh sách hình<br>khỏi hệ thống?',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    });
+
+    if (!warning.isConfirmed) {
+        return;
+    }
+
+
+    const part = target === "pre-service-image" ? "pre-service/" : "post-service/"
+    $.ajax({
+        type: "DELETE",
+        url: "/api/service-images/" + part + selectedInvoice.id,
+        headers: utils.defaultHeaders(),
+        dataType: "json",
+        beforeSend: function() {
+            Swal.showLoading();
+        },
+        success: function (res) {
+            Swal.close();
             Swal.fire({
-                icon: "warning",
-                title: "Upload tối đa 5 ảnh",
+                icon: "success",
+                title: "Đã xóa",
+                text: "Xóa danh sách hình ảnh thành công!",
                 showConfirmButton: false,
                 timer: 2000
-            })
-            return false;
+            });
+            if (res.code == 1000 && res.data == true) {
+                if (target === "pre-service-image") {
+                    preServiceImages = [];
+                    loadPreServiceImage(preServiceImages);
+                    return;
+                } else {
+                    postServiceImages = [];
+                    loadPostServiceImage(postServiceImages);
+                    return;
+                }
+            } else {
+                console.error(res);
+                Toast.fire({
+                    icon: "error",
+                    title: utils.getErrorMessage(res.code)
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.close();
+            console.error(xhr);
+            Swal.fire({
+                icon: "error",
+                title: utils.getXHRInfo(xhr).message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    });
+});
+
+async function handleUpload(cardId) {
+    if (!selectedInvoice) {
+        Swal.fire({
+            icon: "error",
+            title: "Chưa chọn đơn dịch vụ",
+            html: `Không thể lấy ID đơn dịch vụ, vui lòng chọn lại đơn cần upload hình`,
+        })
+        return;
+    }
+
+    // Xác định mảng tương ứng với cardId
+    const imgArray = cardId === 'pre-service-image' ? preServiceImages : postServiceImages;
+    let type, url;
+    if (selectedInvoice.status == 0) {
+        type = 'PUT';
+        url = "/api/service-images" + (cardId === 'pre-service-image' ? "/update-pre-service/" : "/update-post-service/") + selectedInvoice.id;
+    } else {
+        type = 'POST';
+        url = "/api/service-images" + (cardId === 'pre-service-image' ? "/pre-service/" : "/post-service/") + selectedInvoice.id;
+    }
+
+    if (imgArray.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Vui lòng chọn ít nhất 1 ảnh",
+            timer: 2000,
+        });
+        return;
+    }
+
+    try {
+        const count = $('#'+cardId+' .upload__img-box').length;
+
+        if(count > maxNumberOfImage) {
+            Swal.fire({
+                icon: "warning",
+                title: "Upload tối đa "+maxNumberOfImage+" ảnh",
+                showConfirmButton: false,
+                timer: 2000,
+            });
+            return;
         }
 
-        filesArr.forEach(function (f, index) {  
-          if (!f.type.match('image.*')) {
-            return;
-          }
-  
-          if (imgArray.length > maxLength) {
+        Swal.showLoading();
+
+        const payload = JSON.stringify(
+            imgArray.map((image) => ({
+                title: image.title,
+                image: image.image,
+            }))
+        );
+
+        console.log(type);
+        console.log(url);
+        console.log(payload);
+        
+        const response = await $.ajax({
+            type: type,
+            url: url,
+            headers: utils.defaultHeaders(),
+            data: payload,
+            dataType: "json",
+        });
+
+        Swal.close();
+        if (response.code === 1000) {
             Swal.fire({
-                icon: "warning",
-                title: "Upload tối đa 5 ảnh",
+                icon: "success",
+                title: "Tải lên thành công",
+                text: "Upload thành công các hình ảnh lên hệ thống",
                 showConfirmButton: false,
-                timer: 2000
-            })
-            return false;
-          } else {
-            var len = 0;
-            for (var i = 0; i < imgArray.length; i++) {
-              if (imgArray[i] !== undefined) {
-                len++;
-              }
-            }
-            if (len > maxLength) {
-              return false;
+                timer: 2000,
+            });
+            cardId === 'pre-service-image' ? loadPreServiceImage(response.data) : loadPostServiceImage(response.data);
+        } else {
+            console.error(response);
+            Swal.fire({
+                icon: "error", 
+                title: "Có lỗi xảy ra",
+                text: utils.getErrorMessage(response.code),
+                showConfirmButton: false, 
+                timer: 2000 
+            });
+        }
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Swal.fire({ 
+            icon: "error", 
+            title: utils.getXHRInfo(error).message, 
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+}
+
+async function loadPreImageByHistoryId() {
+    if (!selectedInvoice) {
+        return;
+    }
+    let res;
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/service-images/pre-service/" + selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+        });
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Swal.fire({
+            icon: "error",
+            title: utils.getXHRInfo(error).message,
+            text: "Không thể lấy hình ảnh trước thi công!",
+            timer: 2000,
+            showConfirmButton: false,
+        });
+    }
+    
+    Swal.close();
+    if (!res) return;
+    if (res.code == 1000 && res.data) {
+        loadPreServiceImage(res.data);
+    } else {
+        console.error(res);
+        Swal.fire({
+            icon: "error",
+            title: utils.getErrorMessage(res.code),
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+}
+
+async function loadPostImageByHistoryId() {
+    if (!selectedInvoice) {
+        return;
+    }
+    let res;
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/service-images/post-service/" + selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+        });
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Swal.fire({
+            icon: "error",
+            title: utils.getXHRInfo(error).message,
+            text: "Không thể lấy hình ảnh sau thi công!",
+            timer: 2000,
+            showConfirmButton: false,
+        });
+    }
+    
+    Swal.close();
+    if (!res) return;
+    if (res.code == 1000 && res.data) {
+        loadPostServiceImage(res.data);
+    } else {
+        console.error(res);
+        Swal.fire({
+            icon: "error",
+            title: utils.getErrorMessage(res.code),
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+}
+
+function loadPreServiceImage(images) {
+    $('#pre-service-image .upload__btn').prop('hidden', false);
+    $('#pre-service-image .btn-upload-submit').prop('hidden', false);
+    if (selectedInvoice.status == 0) {
+        $('#pre-service-image .images-delete-btn').prop('hidden', false);
+    } else {
+        $('#pre-service-image .images-delete-btn').prop('hidden', true);
+    }
+
+    const imgWrap = $('#pre-service-image .upload__img-wrap');
+    imgWrap.html('');
+
+    if (images == null && images.length == 0) {
+        updatePreServiceImages();
+        return;
+    }
+
+    const isInitialImage = selectedInvoice.status !== 0; // Kiểm tra status 1 lần
+    const initialClass = isInitialImage ? 'initial-image' : ''; // Class cho ảnh ban đầu
+    const deleteButton = !isInitialImage ? `<div class='upload__img-close'></div>` : ''; // Nút xóa nếu cho phép
+
+    $.each(images, function (idx, val) {
+        const base64Image = `data:image/png;base64,${val.image}`;
+        const imgSizeMB = calculateImageSize(base64Image); // Hàm tính kích thước ảnh
+
+        const html = `
+            <div class='upload__img-box'>
+                <a href="${base64Image}" data-toggle="lightbox" data-gallery="gallery-pre-service" data-footer="${val.title} (${imgSizeMB}MB)">
+                    <div style='background-image: url(${base64Image}); background-size: cover; background-position: center;'
+                        data-number='${$(".upload__img-close").length}'
+                        data-file='${val.title}'
+                        class='img-bg position-relative ${initialClass}'>
+                        ${deleteButton}
+                        <div class='overlay d-flex justify-content-center align-items-center'>
+                            <span class='img-size'>${imgSizeMB} MB</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `;
+
+        imgWrap.append(html);
+    });
+    updatePreServiceImages();
+}
+
+function loadPostServiceImage(images) {
+    $('#post-service-image .upload__btn').prop('hidden', false);
+    $('#post-service-image .btn-upload-submit').prop('hidden', false);
+    if (selectedInvoice.status == 0) {
+        $('#post-service-image .images-delete-btn').prop('hidden', false);
+    } else {
+        $('#post-service-image .images-delete-btn').prop('hidden', true);
+    }
+
+    const imgWrap = $('#post-service-image .upload__img-wrap');
+    imgWrap.html(''); 
+
+    if (images == null && images.length == 0) {
+        updatePostServiceImages();
+        return;
+    }
+    const isInitialImage = selectedInvoice.status !== 0; // Kiểm tra status 1 lần
+    const initialClass = isInitialImage ? 'initial-image' : ''; // Class cho ảnh ban đầu
+    const deleteButton = !isInitialImage ? `<div class='upload__img-close'></div>` : ''; // Nút xóa nếu cho phép
+
+    $.each(images, function (idx, val) {
+        const base64Image = `data:image/png;base64,${val.image}`;
+        const imgSizeMB = calculateImageSize(base64Image); // Hàm tính kích thước ảnh
+
+        const html = `
+            <div class='upload__img-box'>
+                <a href="${base64Image}" data-toggle="lightbox" data-gallery="gallery-post-service" data-footer="${val.title} (${imgSizeMB}MB)">
+                    <div style='background-image: url(${base64Image}); background-size: cover; background-position: center;'
+                        data-number='${$(".upload__img-close").length}'
+                        data-file='${val.title}'
+                        class='img-bg position-relative ${initialClass}'>
+                        ${deleteButton}
+                        <div class='overlay d-flex justify-content-center align-items-center'>
+                            <span class='img-size'>${imgSizeMB} MB</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `;
+
+        imgWrap.append(html);
+    });
+    updatePostServiceImages();
+}
+
+function calculateImageSize(base64Image) {
+    const sizeInBytes = (base64Image.length * (3 / 4)) - 
+        (base64Image.endsWith('==') ? 2 : base64Image.endsWith('=') ? 1 : 0);
+    return (sizeInBytes / (1024 * 1024)).toFixed(2); // Trả về kích thước MB
+}
+
+function updatePreServiceImages() {
+    const updatedImages = [];
+
+    // Duyệt qua tất cả các ảnh trong pre-service-image
+    $('#pre-service-image .upload__img-box').each(function () {
+        const imgBg = $(this).find('.img-bg');
+        
+        // Kiểm tra xem có nút xóa và không có class init hay không        
+        if ($(this).find('.upload__img-close').length > 0 && !imgBg.hasClass('initial-image')) {
+            const title = imgBg.data('file'); // Lấy tên ảnh
+            const imageBase64 = $(this).find('a').attr('href').split(',')[1]; // Lấy base64 không đầu
+
+            updatedImages.push({ title: title, image: imageBase64 });
+        }
+    });
+
+    // Cập nhật lại mảng preServiceImages
+    preServiceImages = updatedImages;
+    console.log('Cập nhật preServiceImages:', preServiceImages);
+}
+
+function updatePostServiceImages() {
+    const updatedImages = [];
+
+    // Duyệt qua tất cả các ảnh trong post-service-image, bỏ qua ảnh ban đầu (initial-image)
+    $('#post-service-image .upload__img-box').each(function () {
+        const imgBg = $(this).find('.img-bg');
+        
+        // Kiểm tra xem có nút xóa và không có class init hay không        
+        if ($(this).find('.upload__img-close').length > 0 && !imgBg.hasClass('initial-image')) {
+            const title = imgBg.data('file'); // Lấy tên ảnh
+            const imageBase64 = $(this).find('a').attr('href').split(',')[1]; // Lấy base64 không đầu
+
+            updatedImages.push({ title: title, image: imageBase64 });
+        }
+    });
+
+    // Cập nhật lại mảng postServiceImages
+    postServiceImages = updatedImages;
+    console.log('Cập nhật postServiceImages:', postServiceImages);
+}
+
+// Handle paste event for pre-service and post-service images
+$("#pre-service-image, #post-service-image").on("paste", function(e) {
+    const parentCard = $(this).attr("id");
+    const items = e.originalEvent.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+
+        if (item.kind === 'file' && item.type.match('image.*')) {
+            const file = item.getAsFile();
+            const filesArr = [file]; // Create an array with the single file
+
+            // Call the existing upload logic
+            handleImageUpload(filesArr, parentCard);
+        }
+    }
+});
+
+// Function to handle image upload logic
+async function handleImageUpload(filesArr, parentCard) {
+
+    const imgWrap = $("#" + parentCard).find(".upload__img-wrap");
+    const maxLength = $("#" + parentCard + " .upload__inputfile").data("max_length");
+    const imgArray = parentCard === "pre-service-image" ? preServiceImages : postServiceImages;
+    const gallery = parentCard === "pre-service-image" ? "gallery-pre-service" : "gallery-post-service";
+    const count = $('#' + parentCard + ' .upload__img-box').length;
+
+    // Kiểm tra nếu nút upload__btn đang ẩn
+    const uploadBtn = $("#" + parentCard).find(".upload__btn");
+    if (uploadBtn.prop("hidden")) {
+        let warning = await Swal.fire({
+            icon: "warning",
+            title: "Chưa thể dán",
+            html: `Vui lòng <span class="font-weight-bolder" 
+            style="text-decoration: underline;">làm mới</span> trước khi tải lên ảnh`,
+            confirmButtonText: "Làm mới",
+            showConfirmButton: true,
+            cancelButtonText: "Hủy",
+            showCancelButton: true,
+        });
+
+        if (warning.isConfirmed) {
+            if (parentCard === 'pre-service-image') {
+                await loadPreImageByHistoryId();
             } else {
-              imgArray.push(f);
-  
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                var html = `
-                    <div class='upload__img-box'>
-                        <a href="${e.target.result}" data-toggle="lightbox" data-gallery="gallery" data-footer="${f.name}">
-                        <div style='background-image: url(${e.target.result})' 
+                await loadPostImageByHistoryId();
+            }
+        } else {
+            return;
+        }
+    }
+
+    if (count + filesArr.length > maxLength) {
+        Swal.fire({
+            icon: "warning",
+            title: "Upload tối đa "+maxLength+" ảnh",
+            showConfirmButton: false,
+            timer: 2000,
+        });
+        return false;
+    }
+
+    filesArr.forEach(function (f) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const base64String = e.target.result.split(",")[1];
+            imgArray.push({ title: f.name, image: base64String });
+
+            const imgSizeMB = (f.size / (1024 * 1024)).toFixed(2);
+            const html = `
+                <div class='upload__img-box'>
+                    <a href="${e.target.result}" data-toggle="lightbox" data-gallery="${gallery}" data-footer="${f.name} (${imgSizeMB}MB)">
+                        <div style='background-image: url(${e.target.result}); background-size: cover; background-position: center;' 
                             data-number='${$(".upload__img-close").length}' 
                             data-file='${f.name}' 
-                            class='img-bg'>
-                            <img src="${e.target.result}" class="img-fluid" style="display:none;"> 
+                            class='img-bg position-relative'>
                             <div class='upload__img-close'></div>
+                            <div class='overlay d-flex justify-content-center align-items-center'>
+                                <span class='img-size'>${imgSizeMB} MB</span>
+                            </div>
                         </div>
-                        </a>
-                    </div>
-                    `;
-                imgWrap.append(html);
-                iterator++;
+                    </a>
+                </div>
+            `;
+            imgWrap.append(html);
+            updateImageArray(parentCard);
+        };
+        reader.readAsDataURL(f);
+    });
+}
 
-                
-              }
-              reader.readAsDataURL(f);
-            }
-          }
+async function showConfirmOrderDialog() {
+    if (!selectedInvoice || !selectedInvoice.id) {
+        Swal.fire({
+            icon: "warning",
+            title: "Chưa chọn đơn dịch vụ",
+            html: `Không thể lấy ID đơn dịch vụ, vui lòng chọn lại đơn cần xác nhận`,
+            showCancelButton: false,
+            timer: 2000
         });
-      });
-    });
-  
-    $('body').on('click', ".upload__img-close", function (e) {
-        var file = $(this).parent().data("file");
-        for (var i = 0; i < imgArray.length; i++) {
-            if (imgArray[i].name === file) {
-            imgArray.splice(i, 1);
-            break;
-            }
+        return;
+    }
+
+    await loadInvoiceById(selectedInvoice.id);
+
+    if (selectedInvoice.status != 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Đơn dịch vụ đã đóng",
+            html: `Đơn dịch vụ này đã được đóng trước đó, vui lòng kiểm tra lại`,
+            showCancelButton: false,
+            timer: 2000
+        });
+        return;
+    }
+
+    clear_modal();
+    $("#modal_title").html(`<center>Xác nhận đơn dịch vụ</center>`);
+    $("#modal_body").append(`
+        <label>Thông tin khách hàng</label>
+        <div class="rounded border p-2" id="modal-customer-info">
+        </div>
+
+        <label class="mt-2">Tóm tắt vấn đề</label>
+        <p class="rounded border p-2" id="modal-summary">
+        </p>
+
+        <label>Chẩn đoán, đề xuất</label>
+        <p class="rounded border p-2" id="modal-diagnose">
+        </p>
+
+        <label>Thanh toán</label>
+        <div class="table-responsive">
+            <table class="table">
+            <tr class="row w-100">
+                <th class="col-6">Tổng cộng:</th>
+                <td class="col-6" id="modal-total-amount">${utils.formatVNDCurrency(selectedInvoice.totalAmount)}</td>
+            </tr>
+            <tr class="row w-100">
+                <th class="col-6">Giảm giá (%):</th>
+                <td class="col-6" id="modal-discount">${selectedInvoice.discount} %</td>
+            </tr>
+            <!-- <tr class="row w-100">
+                <th class="col-6">Thuế (%):</th>
+                <td class="col-6">0</td>
+            </tr> -->
+            <tr class="row w-100">
+                <th class="col-6">Tổng thanh toán:</th>
+                <td class="col-6" id="modal-payable-amount">${utils.formatVNDCurrency(selectedInvoice.payableAmount)}</td>
+            </tr>
+            </table>
+        </div>
+    `);
+
+    if (customer) {
+        let userHtml = `<b>- Họ tên: </b><span id="modal-customer-name">${customer.name}</span>`;
+        if (customer.address) {
+            userHtml += `<br><b>- Địa chỉ: </b><span id="modal-customer-address">${customer.address.address}</span>`;
         }
-        $(this).parent().parent().remove();
+        if (customer.phone) {
+            userHtml += `<br><b>- SĐT: </b><span id="modal-customer-phone">${customer.phone}</span>`;
+        }
+        if (customer.accounts[0]) {
+            userHtml += `<br><b>- Email: </b><span id="modal-customer-email">${customer.accounts[0].email}</span>`;
+        }
+        $('#modal-customer-info').html(userHtml);
+        
+    }
+    else {
+        $('#modal-customer-info').html(`<p class="text-center font-weight-bold my-1">Khách vãng lai</p>`);
+    }
+
+    if (selectedInvoice.summary != null && selectedInvoice.summary.length > 0) {
+        $('#modal-summary').append(selectedInvoice.summary.replace(/\n/g, "<br>"));
+    } else {
+        $('#modal-summary').append(`<span class="font-italic font-weight-bold" style="text-align: center;">Không có tóm tắt</span>`);
+    }
+
+    if (selectedInvoice.diagnose != null && selectedInvoice.diagnose.length > 0) {
+        $('#modal-diagnose').append(selectedInvoice.diagnose.replace(/\n/g, "<br>"));
+    } else {
+        $('#modal-diagnose').append(`<span class="font-italic font-weight-bold" style="text-align: center;">Không có chẩn đoán, đề xuất</span>`);
+    }
+
+    $("#modal_footer").append(
+        `<button type="button" class="btn btn-outline-secondary mr-2" id="modal_cancel_btn">Hủy</button>
+        <button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Xác nhận</button>`
+    );
+
+    $("#modal_id").modal("show");
+
+    $('#modal_cancel_btn').click(function () { 
+        $("#modal_id").modal("hide");
     });
-  }
+
+    $("#modal_submit_btn").click(async function () {
+        $.ajax({
+            type: "PUT",
+            url: "/api/history/done/"+selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code == 1000 && res.data) {
+                    $("#modal_id").modal("hide");
+                    Swal.fire({
+                        icon: "success",
+                        title: "Đã đóng hóa đơn",
+                        html: "Đơn dịch vụ này có trạng thái <b>đã thanh toán</b>",
+                        showConfirmButton: true,
+                        confirmButtonText: "Đóng",
+                        showCancelButton: false,
+                    });
+                    loadInvoiceInfo(res.data);
+                } else {
+                    Swal.close();
+                    console.error(res);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Đã xảy ra lỗi",
+                        text: utils.getErrorMessage(res.code),
+                        showCancelButton: false,
+                        timer: 3000
+                    });
+                    return;
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message,
+                    showCancelButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    });
+}
+
+$(document).on('click', '#confirm-order-btn', function () {
+    showConfirmOrderDialog();
+});
+
+$(document).on('click', '#cancel-order-btn', async function () {
+    let warning = await Swal.fire({
+        icon: "warning",
+        title: "Hủy đơn dịch vụ",
+        html: `Đơn dịch vụ sau khi hủy sẽ không thể chỉnh sửa`,
+        confirmButtonText: "Đồng ý",
+        showConfirmButton: true,
+        cancelButtonText: "Hủy",
+        showCancelButton: true,
+    });
+
+    if (warning.isConfirmed) {
+        $.ajax({
+            type: "PUT",
+            url: "/api/history/cancel/"+selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code == 1000 && res.data) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Đã đóng hóa đơn",
+                        html: "Đơn dịch vụ này có trạng thái <b>đã hủy</b>",
+                        showConfirmButton: true,
+                        confirmButtonText: "Đóng",
+                        showCancelButton: false,
+                    });
+                    loadInvoiceInfo(res.data);
+                } else {
+                    Swal.close();
+                    console.error(res);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Đã xảy ra lỗi",
+                        text: utils.getErrorMessage(res.code),
+                        showCancelButton: false,
+                        timer: 3000
+                    });
+                    return;
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message,
+                    showCancelButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    } else {
+        return;
+    }
+});

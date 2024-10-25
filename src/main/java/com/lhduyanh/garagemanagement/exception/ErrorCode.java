@@ -114,8 +114,19 @@ public enum ErrorCode {
     OPTION_NOT_IN_USE(1087, "This option is not in use", HttpStatus.BAD_REQUEST),
     UPDATE_HISTORY_ERROR(1088, "Error in updating history", HttpStatus.INTERNAL_SERVER_ERROR),
     DETAIL_LIST_EMPTY(1089, "Request must have at least 1 service", HttpStatus.BAD_REQUEST),
-    HISTORY_ID_MISMATCH(1090, "History ID mismatch in the request details", HttpStatus.BAD_REQUEST),
-    TEXT_LENGTH(1091, "Maximum text length is 65000 characters", HttpStatus.BAD_REQUEST),
+    TEXT_LENGTH(1090, "Maximum text length is 65000 characters", HttpStatus.BAD_REQUEST),
+    EMPTY_IMAGE_LIST(1091, "Image list must not be empty", HttpStatus.BAD_REQUEST),
+    NULL_IMAGE(1092, "Image can not be null", HttpStatus.BAD_REQUEST),
+    MAX_SIZE_IMAGE_LIST(1093, "Maximum image quantity allowed is {max_image_list_size}", HttpStatus.BAD_REQUEST),
+    DELETE_IMAGE_INVALID_HISTORY(1094, "Only images from ongoing service orders can be deleted", HttpStatus.BAD_REQUEST),
+    NOT_PROCEEDING_HISTORY(1095, "This action can only be performed on ongoing service orders", HttpStatus.BAD_REQUEST),
+
+    BLANK_KEY(1096, "Key must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_DESCRIPTION(1097, "Description must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_VALUE(1098, "Value must not be blank", HttpStatus.BAD_REQUEST),
+    PARAMETER_NOT_EXIST(1099, "Parameter does not exist", HttpStatus.BAD_REQUEST),
+    DETAIL_NOT_EXIST(1100, "This detail does not exist", HttpStatus.BAD_REQUEST),
+
 
     ;
 

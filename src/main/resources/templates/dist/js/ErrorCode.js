@@ -81,7 +81,21 @@ const ErrorCode = {
     HISTORY_NOT_EXISTS: { code: 1078, message: "Hóa đơn này không tồn tại", status: 404 },
     BLANK_HISTORY: { code: 1079, message: "Hóa đơn không được trống", status: 400 },
     PAID_HISTORY: { code: 1080, message: "Hóa đơn này đã được thanh toán, không thể chỉnh sửa", status: 400 },
-    ASSIGN_MANAGER_WARNING: { code: 1081, message: "Thao tác này sẽ tự động gán người dùng đã chọn làm quản lý của xe này", status: 200 }
+    ASSIGN_MANAGER_WARNING: { code: 1081, message: "Thao tác này sẽ tự động gán người dùng đã chọn làm quản lý của xe này", status: 200 },
+    BLANK_SERVICE: { code: 1082, message: "Dịch vụ không được để trống", status: 400 },
+    DISCOUNT_RANGE: { code: 1083, message: "Chiết khấu phải nằm trong khoảng từ 0% đến 100%", status: 400 },
+    QUANTITY_RANGE: { code: 1084, message: "Số lượng tối thiểu là 1", status: 400 },
+    CANCELED_HISTORY: { code: 1085, message: "Hóa đơn này đã bị hủy và không thể chỉnh sửa", status: 400 },
+    SERVICE_NOT_IN_USE: { code: 1086, message: "Dịch vụ này không được sử dụng", status: 400 },
+    OPTION_NOT_IN_USE: { code: 1087, message: "Tùy chọn này không được sử dụng", status: 400 },
+    UPDATE_HISTORY_ERROR: {code: 1088, message: "Có lỗi trong việc cập nhật lịch sử", status: 500 },
+    DETAIL_LIST_EMPTY: { code: 1089, message: "Yêu cầu phải có ít nhất 1 dịch vụ", status: 400 },
+    TEXT_LENGTH: { code: 1090, message: "Độ dài văn bản tối đa là 65000 ký tự", status: 400 },
+    EMPTY_IMAGE_LIST: { code: 1091, message: "Danh sách hình ảnh không được để trống", status: 400 },
+    NULL_IMAGE: { code: 1092, message: "Hình ảnh không được để null", status: 400 },
+    MAX_SIZE_IMAGE_LIST: { code: 1093, message: "Giới hạn số lượng ảnh tối đa là {max_image_list_size}", status: 400 },
+    DELETE_IMAGE_INVALID_HISTORY: { code: 1094, message: "Chỉ có thể xóa hình ảnh của các đơn hàng dịch vụ đang được xử lý", status: 400 },
+    NOT_PROCEEDING_HISTORY: { code: 1095, message: "Hành động này chỉ có thể thực hiện trên các đơn dịch vụ đang thi công", status: 400 },
 };
 
 export default ErrorCode;

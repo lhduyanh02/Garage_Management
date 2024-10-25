@@ -35,6 +35,8 @@ public class GlobalExceptionHandler {
         apiResponse.setCode(errorCode.getCode());
         apiResponse.setMessage(errorCode.getMessage());
 
+        // Kiem tra error code 1093 va lay tham so chung ra then vao {max_image_list_size}
+
         return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
     }
 

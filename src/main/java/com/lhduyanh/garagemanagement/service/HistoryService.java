@@ -175,7 +175,7 @@ public class HistoryService {
     }
 
     @Transactional
-    public HistoryWithDetailsResponse updateInvoiceInfo(String historyId, HistoryInfoUpdateRequest request) {
+    public HistoryWithDetailsResponse updateHistoryInfo(String historyId, HistoryInfoUpdateRequest request) {
         if (historyId == null || historyId == "") {
             throw new AppException(ErrorCode.BLANK_HISTORY);
         }
@@ -194,5 +194,21 @@ public class HistoryService {
         history.setOdo(request.getOdo());
         historyRepository.save(history);
         return updateHistoryById(history.getId());
+    }
+
+    @Transactional
+    public HistoryWithDetailsResponse closeHistory(String id, boolean isPaid) {
+        History history = historyRepository.findByIdFetchDetails(id)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()) {
+            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
+        }
+
+        updateHistoryById(history.getId());
+        history.setStatus(isPaid ? HistoryStatus.PAID.getCode() : HistoryStatus.CANCELED.getCode());
+        historyRepository.save(history);
+        return historyMapper.toHistoryWithDetailsResponse(history);
     }
 }

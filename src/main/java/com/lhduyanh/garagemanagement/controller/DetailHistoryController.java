@@ -29,17 +29,20 @@ public class DetailHistoryController {
                 .build();
     }
 
-//    @PostMapping("/{id}")
-//    public ApiResponse<HistoryWithDetailsResponse> updateDetailHistory(@PathVariable String id,
-//                                                                       @RequestBody @Valid List<DetailHistoryCreation> request) {
-//
-//    }
-
     @PutMapping("/clear-details/{id}")
     public ApiResponse<HistoryWithDetailsResponse> clearDetailHistory(@PathVariable String id) {
         return ApiResponse.<HistoryWithDetailsResponse>builder()
                 .code(1000)
                 .data(detailHistoryService.deleteAllDetailsByHistoryId(id))
+                .build();
+    }
+
+    @DeleteMapping
+    public ApiResponse<HistoryWithDetailsResponse> deleteDetailFromHistory(@RequestParam String history,
+                                                                           @RequestParam String detail) {
+        return ApiResponse.<HistoryWithDetailsResponse>builder()
+                .code(1000)
+                .data(detailHistoryService.deleteDetailFromHistory(history, detail))
                 .build();
     }
 

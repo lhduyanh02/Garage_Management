@@ -648,7 +648,7 @@ $("#new-user-btn").click(function () {
 
         <div class="form-group">
             <label>Vai trò</label>
-            <select id="roles-select" multiple="multiple" class="form-control select2" style="width: 100%;">
+            <select id="roles-select" multiple="multiple" class="form-control select2" style="width: unset;">
             </select>
         </div>
 
@@ -719,7 +719,7 @@ $("#new-user-btn").click(function () {
     });
 
     $('#roles-select').select2({
-        placeholder: `Vai trò mặc định là "Khách hàng"`,  
+        placeholder: `Mặc định là "Khách hàng"`,  
         allowClear: true,
         theme: "bootstrap",
         closeOnSelect: false,

@@ -16,8 +16,8 @@ $(document).ready(function(){
           </a>
       `);
       $('[data-toggle="tooltip"]').tooltip();
+
       $("#logoutBtn").click(function (e) { 
-        
         let token = utils.getCookie('authToken');
         Swal.fire({
           title: "Đăng xuất?" ,
@@ -41,6 +41,7 @@ $(document).ready(function(){
               success: function (res) {
                 if(res.code==1000){
                   utils.deleteCookie('authToken');
+                  utils.setLocalStorageObject('userInfo', null); 
                   Swal.fire({
                     icon: "success",
                     title: "Đã đăng xuất",
@@ -56,6 +57,7 @@ $(document).ready(function(){
                     title: "Lỗi",
                     didClose: () => {
                       utils.deleteCookie('authToken');
+                      utils.setLocalStorageObject('userInfo', null); 
                       window.location.reload();
                     }
                   });
@@ -68,6 +70,7 @@ $(document).ready(function(){
                     title: utils.getXHRInfo(xhr).message,
                     didClose: () => {
                       utils.deleteCookie('authToken');
+                      utils.setLocalStorageObject('userInfo', null); 
                       window.location.reload();
                     }
                 });

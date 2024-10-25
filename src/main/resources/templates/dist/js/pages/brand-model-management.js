@@ -167,6 +167,10 @@ $("#data-table").on("click", "#editBtn", async function () {
     return;
   }
 
+  if (!res) {
+    return;
+  }
+
   if (res.code == 1000 && res.data){
     clear_modal();
     $("#modal_title").text("Chỉnh sửa mẫu xe");

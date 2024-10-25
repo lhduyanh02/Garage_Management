@@ -125,6 +125,10 @@ public class DetailHistoryService {
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
 
+        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()){
+            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
+        }
+
         detailHistoryRepository.deleteAll(history.getDetails());
         history.getDetails().clear();
         historyRepository.save(history);
@@ -144,12 +148,36 @@ public class DetailHistoryService {
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
 
+        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()){
+            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
+        }
+
         detailHistoryRepository.deleteAll(history.getDetails());
         history.getDetails().clear();
         historyRepository.save(history);
 
 
         return historyService.updateHistoryById(id);
+    }
+
+    @Transactional
+    public HistoryWithDetailsResponse deleteDetailFromHistory(String historyId, String detailId) {
+        History history = historyRepository.findById(historyId)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()){
+            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
+        }
+
+        DetailHistory detail = detailHistoryRepository.findById(detailId)
+                .orElseThrow(() -> new AppException(ErrorCode.DETAIL_NOT_EXIST));
+
+        detailHistoryRepository.delete(detail);
+        history.getDetails().remove(detail);
+        historyRepository.save(history);
+
+        return historyService.updateHistoryById(historyId);
     }
 
 }

@@ -56,25 +56,32 @@ export function getLocalStorageObject(key) {
     }
 }
 
-export function getUserInfo() {
+export async function getUserInfo() {
     if (getCookie("authToken") !== null) {
         var userInfo = getLocalStorageObject("userInfo");
         if (userInfo == null) {
-            $.ajax({
-                type: "GET",
-                url: "/api/users/get-my-info",
-                headers: defaultHeaders(),
-                dataType: "json",
-                success: function (res) {
+            try {
+                let res = await $.ajax({
+                    type: "GET",
+                    url: "/api/users/get-my-info",
+                    headers: defaultHeaders(),
+                    dataType: "json",
+                });
+
+                if (res.code == 1000 && res.data) {
                     if(res.code == 1000){
                         setLocalStorageObject('userInfo', res.data)
-                        return userInfo;
+                        return res.data;
                     }
-                },
-                error: function (xhr, status, error) {
-                    console.log(xhr);
-                },
-            });
+                } else {
+                    console.error(res);
+                    return null;
+                }
+            } catch (error) {
+                console.log("Error in getting user info");
+                console.error(getXHRInfo(error));
+                return null;
+            }
         } else {
             return userInfo;
         }
@@ -106,6 +113,7 @@ export function introspect(bool) {
                 if (res.code == 1000) {
                     if (res.data.valid == false) {
                         deleteCookie("authToken");
+                        setLocalStorageObject('userInfo', null); 
                         if(bool) {
                           window.location.href = "/login#" + path;
                         }
@@ -115,13 +123,24 @@ export function introspect(bool) {
                     }
                 }
             },
-            error: function (res) {
-                deleteCookie("authToken");
-                if(bool) {
-                    window.location.href = "/login#" + path;
-                }
-                  else {
-                    window.location.href = "/login";
+            error: function (xhr, status, error) {
+                if (xhr.status == 401) {
+                    deleteCookie("authToken");
+                    setLocalStorageObject('userInfo', null); 
+                    if(bool) {
+                        window.location.href = "/login#" + path;
+                    }
+                    else {
+                        window.location.href = "/login";
+                    }
+                    return;
+                } else {
+                    console.error(xhr);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Internal server error",
+                    });
+                    setLocalStorageObject('userInfo', null);  
                 }
             },
         });

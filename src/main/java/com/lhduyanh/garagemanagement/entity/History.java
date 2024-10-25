@@ -35,8 +35,10 @@ public class History {
     @Column(name ="service_date", nullable = false)
     LocalDateTime serviceDate;
 
+    @Column(columnDefinition = "TEXT")
     String summary;
 
+    @Column(columnDefinition = "TEXT")
     String diagnose;
 
     @Column(nullable = false, name = "total_amount")

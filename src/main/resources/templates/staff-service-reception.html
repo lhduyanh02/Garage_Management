@@ -23,6 +23,8 @@
   <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- Select2 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
@@ -277,7 +279,7 @@
               <div class="row mb-1 no-print">
                 <div class="col-12 col-sm-6">
                   <h4>
-                    <i class="fas fa-globe"></i> Spring Detailing
+                    <i class="fas fa-globe"></i> <span id="facility-name"> Facility Name</span>
                   </h4>
                 </div>
                 <div class="col-12 col-sm-6 d-flex align-items-center align-items-sm-start">
@@ -290,12 +292,13 @@
               <div class="row invoice-info">
                 <div class="col-sm-4 invoice-col">
                   From
-                  <address id="company-info">
-                    <strong>Spring, Inc.</strong><br>
-                    Đồng Văn Cống, An Thới,<br>
-                    Bình Thủy, Cần Thơ<br>
-                    Phone: <a id="company-phone" href="tel:+84818700047" class="text-dark hover-underline">(+84) 81 8700047</a><br>
-                    Email: <a id="company-email" href="mailto:lhduyanh2002@gmail.com" class="text-dark hover-underline">lhduyanh2002@gmail.com</a>
+                  <address id="facility-info">
+                    <strong id="company-name">Company Name</strong><br>
+                    <span id="facility-address">Facility<br>
+                                                Address<br>
+                    </span>
+                    Phone: <a id="facility-phone" class="text-dark hover-underline">Phone number</a><br>
+                    Email: <a id="facility-email" class="text-dark hover-underline">Email</a>
                   </address>
                 </div>
                 <!-- /.col -->
@@ -424,17 +427,17 @@
                   <a href="#" type="button" class="btn btn-outline-primary mr-md-2">
                     <i class="fas fa-download"></i> PDF
                   </a>
-                  <a href="/pages/examples/invoice-print.html" rel="noopener" target="_blank" 
+                  <a role="button" rel="noopener" id="print-btn" 
                      class="btn btn-default">
                     <i class="fas fa-print"></i> Print
                   </a>
                 </div>
                 
                 <div class="col-12 col-md-6 d-flex justify-content-center justify-content-md-end">
-                  <button type="button" class="btn btn-danger mr-md-2 mr-auto">
-                    <i class="fas fa-download"></i> Hủy đơn
+                  <button id="cancel-order-btn" type="button" class="btn btn-danger mr-md-2 mr-auto">
+                    <i class="fa-regular fa-rectangle-xmark"></i> Hủy đơn
                   </button>
-                  <button type="button" class="btn btn-success">
+                  <button id="confirm-order-btn" type="button" class="btn btn-success">
                     <i class="far fa-credit-card"></i> Đã thanh toán
                   </button>
                 </div>
@@ -443,23 +446,64 @@
             <!-- /.invoice -->
 
 
-            <div class="card card-default">
-              <div class="card-header">
-                <h3 class="card-title">Upload hình ảnh</h3>
-              </div>
+            <div id="service-image-cards" hidden>
+              <div id="pre-service-image" class="card card-default image-card">
+                <div class="card-header">
+                  <h3 class="card-title">Hình ảnh trước thi công</h3>
+                </div>
 
-              <div class="card-body">
-                <div class="upload__box">
-                  <div class="upload__btn-box">
-                    <label class="upload__btn">
-                      <span>Upload images</span>
-                      <input type="file" multiple="" data-max_length="5" class="upload__inputfile">
-                    </label>
+                <div class="card-body">
+                  <span class="font-italic number-of-image-warning">Lưu ý: chỉ upload tối đa 15 ảnh, không thể xóa ảnh của hóa đơn đã thanh toán hoặc đã hủy</span>
+                  <div class="upload__box">
+                    <div class="upload__btn-box">
+                      <label class="image-card-btn reload-images-btn mr-2" data-target="pre-service-image">
+                        <span>Làm mới</span>
+                      </label>
+                      <label class="upload__btn custom-blue-btn mr-2" hidden>
+                        <span>Thêm ảnh</span>
+                        <input type="file" multiple="" data-max_length="15" class="upload__inputfile">
+                      </label>
+                      <label class="image-card-btn btn-upload-submit custom-green-btn mr-2" data-target="pre-service-image" hidden>
+                        <span>Lưu</span>
+                      </label>
+                      <label class="image-card-btn images-delete-btn custom-red-btn" data-target="post-service-image" hidden>
+                        <span>Xóa tất cả</span>
+                      </label>
+                    </div>
+                    <div class="upload__img-wrap"></div>
                   </div>
-                  <div class="upload__img-wrap"></div>
                 </div>
               </div>
-            </div>
+
+              <div id="post-service-image" class="card card-default image-card">
+                <div class="card-header">
+                  <h3 class="card-title">Hình ảnh sau thi công</h3>
+                </div>
+
+                <div class="card-body">
+                  <span class="font-italic number-of-image-warning">Lưu ý: chỉ upload tối đa 15 ảnh, không thể xóa ảnh của hóa đơn đã thanh toán hoặc đã hủy</span>
+                  <div class="upload__box">
+                    <div class="upload__btn-box">
+                      <label class="image-card-btn reload-images-btn mr-2" data-target="post-service-image">
+                        <span>Làm mới</span>
+                      </label>
+                      <label class="upload__btn custom-blue-btn mr-2" hidden>
+                        <span>Thêm ảnh</span>
+                        <input type="file" multiple="" data-max_length="15" class="upload__inputfile">
+                      </label>
+                      <label class="image-card-btn btn-upload-submit custom-green-btn mr-2" data-target="post-service-image" hidden>
+                        <span>Lưu</span>
+                      </label>
+                      <label class="image-card-btn images-delete-btn custom-red-btn" data-target="post-service-image" hidden>
+                        <span>Xóa tất cả</span>
+                      </label>
+                    </div>
+                    <div class="upload__img-wrap"></div>
+                  </div>
+                </div>
+              </div>
+            </div>  
+
           </div><!-- /.col -->
         </div><!-- /.row -->
       </div><!-- /.container-fluid -->
@@ -521,7 +565,7 @@
   <!-- ChartJS -->
   <script src="/plugins/chart.js/Chart.min.js"></script>
   <!-- Bootstrap -->
-  <script src="/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
 
   <script src="/dist/js/services/refreshTokenService.js"></script>
 

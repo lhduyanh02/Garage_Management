@@ -60,7 +60,23 @@ public class HistoryController {
                                                               @RequestBody @Valid HistoryInfoUpdateRequest request) {
         return ApiResponse.<HistoryWithDetailsResponse>builder()
                 .code(1000)
-                .data(historyService.updateInvoiceInfo(id, request))
+                .data(historyService.updateHistoryInfo(id, request))
+                .build();
+    }
+
+    @PutMapping("/done/{id}")
+    public ApiResponse<HistoryWithDetailsResponse> doneHistory(@PathVariable String id) {
+        return ApiResponse.<HistoryWithDetailsResponse>builder()
+                .code(1000)
+                .data(historyService.closeHistory(id, true))
+                .build();
+    }
+
+    @PutMapping("/cancel/{id}")
+    public ApiResponse<HistoryWithDetailsResponse> cancelHistory(@PathVariable String id) {
+        return ApiResponse.<HistoryWithDetailsResponse>builder()
+                .code(1000)
+                .data(historyService.closeHistory(id, false))
                 .build();
     }
 
