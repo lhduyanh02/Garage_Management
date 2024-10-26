@@ -44,6 +44,7 @@ var FACILITY_NAME;
 var FACILITY_PHONE;
 var FACILITY_EMAIL;
 var FACILITY_ADDRESS;
+var DEFAULT_TAX;
 
 // 2 mảng toàn cục chứa hình ảnh
 var preServiceImages = [];
@@ -302,7 +303,8 @@ $(document).ready(function () {
                 "FACILITY_PHONE_NUMBER",
                 "FACILITY_ADDRESS",
                 "FACILITY_CONTACT_MAIL",
-                "NUMBER_OF_SERVICE_IMAGE"
+                "NUMBER_OF_SERVICE_IMAGE",
+                "TAX"
             ]
         ),
         dataType: "json",
@@ -315,6 +317,7 @@ $(document).ready(function () {
                 FACILITY_ADDRESS = data[3].value;
                 FACILITY_EMAIL = data[4].value;
                 maxNumberOfImage = parseInt(res.data[5].value);
+                DEFAULT_TAX = data[6].value;
                 
                 $('#facility-name').text(FACILITY_NAME);
 
@@ -338,12 +341,21 @@ $(document).ready(function () {
     });
 });
 
-$(".discount-suggestion").on("click", function () {
+$(".discount-suggestion").on("click", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
     const discountValue = $(this).text().replace("%", ""); // Loại bỏ dấu '%'
     $("#discount-info").val(discountValue).trigger("input");
 });
 
-$("#discount-info").on("input", function () {
+
+$("#discount-info").on("keydown input", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
     const input = $(this).val();
     if (input.startsWith(".")) {
         $(this).val("0" + input);
@@ -365,13 +377,56 @@ $("#discount-info").on("input", function () {
     $(".dropdown-menu").removeClass("show");
 });
 
-$(document).on("input", "#odo-info", function () {
+$(".tax-suggestion").on("click", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
+    const taxValue = $(this).text().replace("%", ""); // Loại bỏ dấu '%'
+    $("#tax-info").val(taxValue).trigger("input");
+});
+
+$("#tax-info").on("keydown input", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
+    const input = $(this).val();
+    if (input.startsWith(".")) {
+        $(this).val("0" + input);
+    }
+
+    if (!/^\d*\.?\d*$/.test(input)) {
+        $(this).val(input.slice(0, -1));
+    } else {
+        const parsedValue = parseFloat(input);
+        if (parsedValue > 100) {
+            $(this).val(input.slice(0, -1));
+        } else if (!input.includes(".") && parsedValue == 0) {
+            $(this).val("0");
+            calculateAmountDue();
+        } else {
+            calculateAmountDue();
+        }
+    }
+    $(".dropdown-menu").removeClass("show");
+});
+
+$(document).on("keydown input", "#odo-info", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
     let input = $(this).val().replace(/\D/g, "");
     const formattedInput = utils.formatCurrent(input);
     $(this).val(formattedInput);
 });
 
-$("#discount-info").on("paste", function () {
+$("#discount-info").on("paste", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
     setTimeout(() => {
         const input = $(this).val();
 
@@ -400,17 +455,23 @@ function calculateAmountDue() {
     if (selectedInvoice.totalAmount > 0) {
         const discountValue =
             $("#discount-info").val() == "" ? 0 : $("#discount-info").val();
+        const taxValue =
+            $("#tax-info").val() == "" ? DEFAULT_TAX : $("#tax-info").val();
 
         const parsedDiscount = parseFloat(discountValue);
+        const parsedTax = parseFloat(taxValue);
         if (
-            !isNaN(parsedDiscount) &&
-            parsedDiscount >= 0 &&
-            parsedDiscount <= 100
+            !isNaN(parsedDiscount) && !isNaN(parsedTax) &&
+            parsedDiscount >= 0 && parsedTax >= 0 &&
+            parsedDiscount <= 100 && parsedTax <= 100
         ) {
             // Tính toán số tiền phải thanh toán
+            const taxAmount =
+                (selectedInvoice.totalAmount * parsedTax) / 100;
             const discountAmount =
                 (selectedInvoice.totalAmount * parsedDiscount) / 100;
-            const amountDue = selectedInvoice.totalAmount - discountAmount;
+            
+            const amountDue = selectedInvoice.totalAmount + taxAmount - discountAmount;
 
             // Làm tròn
             const roundedAmountDue = Math.round(amountDue);
@@ -1496,6 +1557,10 @@ $("#add-detail-btn").click(async function () {
     }
 
     clear_modal();
+    $('#modal_id').modal({
+        backdrop: 'static', // Ngăn đóng khi click bên ngoài
+        keyboard: true      // Cho phép đóng khi nhấn Escape
+    });
     $(".modal-dialog").addClass("modal-lg");
     $("#modal_title").text("Danh sách đăng ký dịch vụ");
     $("#modal_body").append(`
@@ -2248,9 +2313,30 @@ $("#show-history-btn").click(function () {
 });
 
 $("#save-invoice-info-btn").click(function () {
+    if (selectedInvoice) {
+        if (selectedInvoice.status != 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Không thể chỉnh sửa hóa đơn đã đóng",
+                showCancelButton: false,
+                timer: 2000
+            });
+            return;
+        }
+    } else {
+        Swal.fire({
+            icon: "warning",
+            title: "Không thể lấy thông tin hóa đơn",
+            showCancelButton: false,
+            timer: 2000
+        });
+        return;
+    }
+
     // Lưu odo, summary, diagnose, discount
     let summary = $("#summary-input").val().trim();
     let diagnose = $("#diagnose-input").val().trim();
+    let tax = $("#tax-info").val();
     let discount = $("#discount-info").val();
     let odo = $("#odo-info").val().trim();
 
@@ -2258,6 +2344,10 @@ $("#save-invoice-info-btn").click(function () {
         odo = odo.replace(/\D/g, "");
     } else {
         odo = null;
+    }
+    
+    if (tax == null || tax == "") {
+        tax = parseFloat(DEFAULT_TAX);
     }
 
     if (discount == null || discount == "") {
@@ -2272,6 +2362,7 @@ $("#save-invoice-info-btn").click(function () {
             summary: summary,
             diagnose: diagnose,
             discount: discount,
+            tax: tax,
             odo: odo,
         }),
         dataType: "json",
@@ -2440,10 +2531,24 @@ function loadInvoiceInfo(invoice) {
         $('#confirm-order-btn').prop('hidden', false);
         $('#cancel-order-btn').prop('hidden', false);
         $('#add-detail-btn').prop('hidden', false);
+        $('#save-invoice-info-btn').prop('hidden', false);
+        $('#invoice-status-info').html('');
     } else {
         $('#confirm-order-btn').prop('hidden', true);
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
+        $('#save-invoice-info-btn').prop('hidden', true);
+        if (invoice.status == 1) {
+            $('#invoice-status-info').html(`
+                <a type="button" class="btn btn-success">
+                    <i class="far fa-credit-card"></i> Đã thanh toán
+                </a>`);
+        } else {
+            $('#invoice-status-info').html(`
+                <a type="button" class="btn btn-danger">
+                    <i class="fa-regular fa-rectangle-xmark"></i> Đã hủy
+                </a>`);
+        }
     }
 
     // Tìm dòng chứa đơn này trong bảng danh sách đơn dịch vụ và highlight
@@ -2494,6 +2599,7 @@ function loadInvoiceInfo(invoice) {
     let payableAmount = utils.formatVNDCurrency(invoice.payableAmount);
 
     $("#total-amount-info").text(totalAmount);
+    $("#tax-info").val(invoice.tax);
     $("#discount-info").val(invoice.discount);
     $("#payable-amount-info").text(payableAmount);
     $("#summary-input").val(invoice.summary);

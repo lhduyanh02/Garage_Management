@@ -47,6 +47,9 @@ public class History {
     @Column(nullable = false)
     Float discount;
 
+    @Column(nullable = false)
+    Float tax;
+
     @Column(name = "payable_amount", nullable = false)
     Double payableAmount;
 

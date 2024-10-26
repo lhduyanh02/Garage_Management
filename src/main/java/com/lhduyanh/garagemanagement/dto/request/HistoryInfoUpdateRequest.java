@@ -18,5 +18,7 @@ public class HistoryInfoUpdateRequest {
 
     Float discount;
 
+    Float tax;
+
     Long odo;
 }

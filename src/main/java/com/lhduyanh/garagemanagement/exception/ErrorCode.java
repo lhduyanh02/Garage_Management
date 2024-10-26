@@ -126,6 +126,8 @@ public enum ErrorCode {
     BLANK_VALUE(1098, "Value must not be blank", HttpStatus.BAD_REQUEST),
     PARAMETER_NOT_EXIST(1099, "Parameter does not exist", HttpStatus.BAD_REQUEST),
     DETAIL_NOT_EXIST(1100, "This detail does not exist", HttpStatus.BAD_REQUEST),
+    EMPTY_PERMISSION_LIST(1101, "Permission list must not be empty", HttpStatus.BAD_REQUEST),
+    ROLE_CAN_NOT_EDIT(1102, "This role can not be edit", HttpStatus.BAD_REQUEST),
 
 
     ;

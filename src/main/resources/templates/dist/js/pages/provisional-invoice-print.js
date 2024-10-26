@@ -10,7 +10,7 @@ $(document).ready(async function () {
                         (now.getMonth() + 1).toString().padStart(2, '0') + '/' +
                         now.getFullYear();
                         
-    $('#print-at').text(`Print at: ${formattedTime}`);
+    $('#print-at').text(`In ngày: ${formattedTime}`);
 
     let id = utils.getHashParam('invoice');
     if (id == null || id == "") {
@@ -206,9 +206,9 @@ function loadInvoiceInfo(invoice) {
     let t = utils.getTimeAsJSON(invoice.serviceDate);
     let invoiceIdHtml = "";
     if (invoice.status == 1) {
-        invoiceIdHtml = `Invoice #${invoice.id}`;
+        invoiceIdHtml = `Hóa đơn: #${invoice.id}`;
     } else {
-        invoiceIdHtml = `Order #${invoice.id}`;
+        invoiceIdHtml = `Đơn dịch vụ: #${invoice.id}`;
     }
     $("#invoice-id").html(invoiceIdHtml);
     $("#history-date").text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
@@ -220,12 +220,11 @@ function loadInvoiceInfo(invoice) {
     let payableAmount = utils.formatVNDCurrency(invoice.payableAmount);
 
     $("#total-amount-info").text(totalAmount);
+    $("#tax-info").text(invoice.tax + " %");
     $("#discount-info").text(invoice.discount + " %");
     $("#payable-amount-info").text(payableAmount);
-    $("#summary-input").html(invoice.summary.replace(/\n/g, "<br>"));
+    $("#summary-input").html(invoice.summary != "" ? invoice.summary.replace(/\n/g, "<br>") : `<span class="font-italic font-weight-bold" style="text-align: center;">Không có tóm tắt</span>`);
     $("#diagnose-input").html(invoice.diagnose.replace(/\n/g, "<br>"));
-
-    // loadListDetailsHistory(invoice.details);
 }
 
 function loadAdvisorInfo(advisor) {

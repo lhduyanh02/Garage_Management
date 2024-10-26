@@ -53,7 +53,13 @@ public class ServicesService {
     public List<ServiceResponse> getAllServicesWithPrice() {
         return serviceRepository.findAll()
                 .stream()
-                .map(serviceMapper::toServiceResponse)
+                .map(service -> {
+                    ServiceResponse response = serviceMapper.toServiceResponse(service);
+                    response.setOptionPrices(response.getOptionPrices().stream()
+                            .sorted(Comparator.comparing(OptionPriceResponse::getName, vietnameseCollator))
+                            .toList());
+                    return response;
+                })
                 .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
                 .toList();
     }

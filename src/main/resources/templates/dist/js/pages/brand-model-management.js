@@ -27,7 +27,19 @@ $(document).ready(function () {
   dataTable = $("#data-table").DataTable({
     responsive: true,
     lengthChange: true,
-    autoWidth: false,
+    language: {
+      paginate: {
+          next: "Trước",
+          previous: "Sau",
+      },
+      lengthMenu: "Số dòng: _MENU_",
+      info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+      infoEmpty: "Không có dữ liệu để hiển thị",
+      infoFiltered: "(Lọc từ _MAX_ mục)",
+      emptyTable: "Không có dữ liệu",
+      search: "Tìm kiếm:",
+      loadingRecords: "Đang tải dữ liệu...",
+    },
     buttons: [
       { extend: "copy", text: "Copy" },
       { extend: "csv", text: "CSV" },

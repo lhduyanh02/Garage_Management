@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.mapper;
 
 import com.lhduyanh.garagemanagement.dto.request.PermissionRequest;
 import com.lhduyanh.garagemanagement.dto.response.PermissionResponse;
+import com.lhduyanh.garagemanagement.dto.response.PermissionSimpleResponse;
 import com.lhduyanh.garagemanagement.entity.Permissions;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,5 +15,7 @@ public interface PermissionMapper {
 
     @Mapping(target = "function", source = "function")
     PermissionResponse toPermissionResponse(Permissions permissions);
+
+    PermissionSimpleResponse toSimpleResponse(Permissions permissions);
 
 }

@@ -12,10 +12,7 @@ import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.HistoryMapper;
-import com.lhduyanh.garagemanagement.repository.CarRepository;
-import com.lhduyanh.garagemanagement.repository.HistoryRepository;
-import com.lhduyanh.garagemanagement.repository.PriceRepository;
-import com.lhduyanh.garagemanagement.repository.UserRepository;
+import com.lhduyanh.garagemanagement.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +35,7 @@ public class HistoryService {
     CarRepository carRepository;
     UserRepository userRepository;
     PriceRepository priceRepository;
+    CommonParameterRepository commonParameterRepository;
 
     HistoryMapper historyMapper;
 
@@ -77,6 +75,9 @@ public class HistoryService {
                 .filter(u -> securityExpression.hasPermission(u.getId(), List.of("SIGN_SERVICE", "UPDATE_PROGRESS", "CANCEL_SERVICE")))
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_ADVISOR));
 
+        CommonParameter tax = commonParameterRepository.findByKey("TAX")
+                .orElseThrow(() -> new AppException(ErrorCode.PARAMETER_NOT_EXIST));
+
         History history = new History();
 
         history.setCar(car);
@@ -84,6 +85,7 @@ public class HistoryService {
         history.setServiceDate(LocalDateTime.now());
         history.setTotalAmount(0.0);
         history.setDiscount(0.0f);
+        history.setTax(Float.parseFloat(tax.getValue()));
         history.setPayableAmount(0.0);
         history.setStatus(HistoryStatus.PROCEEDING.getCode());
 
@@ -168,7 +170,7 @@ public class HistoryService {
         history.setDetails(updatedDetails);
         history.setTotalAmount(totalAmount);
 
-        Double payableAmount = totalAmount - (totalAmount * (history.getDiscount() / 100));
+        Double payableAmount = totalAmount + (totalAmount * (history.getTax() / 100)) - (totalAmount * (history.getDiscount() / 100));
         history.setPayableAmount(payableAmount);
         historyRepository.save(history);
         return historyMapper.toHistoryWithDetailsResponse(history);
@@ -186,11 +188,19 @@ public class HistoryService {
         if (request.getDiscount() == null) {
             request.setDiscount(0.0f);
         }
+
         Float roundedDiscount = Math.round(request.getDiscount() * 100) / 100.0f;
+
+        if (request.getTax() == null) {
+            CommonParameter tax = commonParameterRepository.findByKey("TAX")
+                    .orElseThrow(() -> new AppException(ErrorCode.PARAMETER_NOT_EXIST));
+            request.setTax(Float.parseFloat(tax.getValue()));
+        }
 
         history.setSummary(request.getSummary().trim());
         history.setDiagnose(request.getDiagnose().trim());
         history.setDiscount(roundedDiscount);
+        history.setTax(request.getTax());
         history.setOdo(request.getOdo());
         historyRepository.save(history);
         return updateHistoryById(history.getId());

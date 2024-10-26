@@ -32,6 +32,19 @@ $(document).ready(function () {
         responsive: true,
         lengthChange: true,
         autoWidth: false,
+        language: {
+            paginate: {
+                next: "Trước",
+                previous: "Sau",
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "Không có dữ liệu để hiển thị",
+            infoFiltered: "(Lọc từ _MAX_ mục)",
+            emptyTable: "Không có dữ liệu",
+            search: "Tìm kiếm:",
+            loadingRecords: "Đang tải dữ liệu...",
+        },
         buttons: [
             { extend: "copy", text: "Copy" },
             { extend: "csv", text: "CSV" },
@@ -205,176 +218,82 @@ $("#data-table").on("click", "#editBtn", function () {
 
     $.ajax({
         type: "GET",
-        url: "/api/accounts/" + id,
+        url: "/api/options/" + id,
         dataType: "json",
         headers: utils.defaultHeaders(),
         success: function (res) {
             if(res.code != 1000) {
                 Toast.fire({
                     icon: "error",
-                    title: "Không thể lấy dữ liệu tài khoản"
+                    title: "Không thể lấy dữ liệu tùy chọn"
                 });
                 return;
             }
             clear_modal();
-            $("#modal_title").text("Sửa thông tin tài khoản");
+            $("#modal_title").text("Sửa thông tin tùy chọn");
             $("#modal_body").append(`
                 <div class="form-group">
                     <div class="container mt-3 mb-0">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_email_input">Email</label>
-                            <kbd id="modal_email_counter" class="mb-0 small">0/256</kbd>
+                            <label class="mb-0" for="modal_name_input">Tên tùy chọn</label>
+                            <kbd id="modal_name_counter" class="mb-0 small">0/100</kbd>
                         </div>
                     </div>
-                    <input type="text" class="form-control" id="modal_email_input" maxlength="255" placeholder="Nhập email">
+                    <input type="text" class="form-control" id="modal_name_input" maxlength="100" placeholder="Nhập tên tùy chọn">
                 </div>
 
                 <div class="form-group">
-                    <label>Hồ sơ liên kết</label>
-                    <div class="form-group">
-                        <select id="user-select" class="form-control select2bs4" style="width: 100%;">
-                        <option disabled> Chọn 1 hồ sơ liên kết </option>
-                        </select>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="is-apply-switch">
+                        <label class="custom-control-label" for="is-apply-switch">Sử dụng</label>
                     </div>
                 </div>
             `);
-
-            $('#user-select').empty();            
-            if (res.data.user) {
-                const phone = res.data.user.phone ? ` - ${res.data.user.phone}` : "";
-                $('#user-select').append('<option selected value="' + res.data.user.id + '">' + res.data.user.name
-                    + phone +'</option>');
-            }
-
-            (function () { // Sử dụng hàm IIFE (Immediately Invoked Function Expression) để tránh truy cập list từ console
-                $.ajax({
-                    url: "/api/users/is-active",
-                    type: "GET",
-                    dataType: "json",
-                    headers: utils.defaultHeaders(),
-                    success: function (response) {
-                        let userList = response.data;  // Lưu userList trong closure, không phải biến toàn cục
-            
-                        // Khởi tạo Select2 sau khi nhận được dữ liệu từ AJAX
-                        $("#user-select").select2({
-                            allowClear: false,
-                            theme: "bootstrap",
-                            closeOnSelect: true,
-                            language: "vi",
-                            minimumInputLength: 2,
-                            data: userList.map(function (option) {
-                                const phone = option.phone ? ` - ${option.phone}` : "";
-
-                                return {
-                                    id: option.id,
-                                    text: `${option.name}${phone}`
-                                };
-                            }),
-                            matcher: function (params, data) {
-                                if ($.trim(params.term) === '') {
-                                    return data;
-                                }
-            
-                                const searchTerm = params.term.toLowerCase();
-            
-                                if (data.text.toLowerCase().indexOf(searchTerm) > -1) {
-                                    return data;
-                                }
-            
-                                return null;
-                            }
-                        });
-                    }
-                });
-            })();
-
 
             $("#modal_footer").append(
                 '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
               );
 
-            $("#modal_email_input").val(res.data.email);
+            $("#modal_name_input").val(res.data.name);
+            if (res.data.status == 1) {
+                $('#is-apply-switch').prop('checked', true);
+            } else {
+                $('#is-apply-switch').prop('checked', false);
+            }
             
-            utils.set_char_count("#modal_email_input", "#modal_email_counter");
+            utils.set_char_count("#modal_name_input", "#modal_name_counter");
 
             $("#modal_id").modal("show");
 
             $("#modal_submit_btn").click(function (){
-                let email = $("#modal_email_input").val().trim();
-                let user = $("#user-select").val();
+                let name = $("#modal_name_input").val().trim();
+                let isApply = $('#is-apply-switch').is(':checked') ? 1 : 0;
 
-                if(user == null){
+                if(name == ""){
                     Toast.fire({
                         icon: "warning",
-                        title: "Vui lòng chọn hồ sơ"
-                    });
-                    return;
-                }
-
-                if(email == ""){
-                    Toast.fire({
-                        icon: "warning",
-                        title: "Vui lòng điền email hợp lệ"
+                        title: "Vui lòng điền tên option hợp lệ"
                     });
                     return;
                 }
 
                 $.ajax({
                     type: "PUT",
-                    url: "/api/accounts/"+id,
+                    url: "/api/options/" + id,
                     headers: utils.defaultHeaders(),
                     data: JSON.stringify({
-                        email: email,
-                        userId: user
+                        name: name,
+                        status: isApply
                     }),
                     success: function (response) {
                         if(response.code == 1000){
                             Toast.fire({
                                 icon: "success", 
-                                title: "Cập nhật tài khoản thành công"
+                                title: "Đã cập nhật tùy chọn<br>" + name
                             });
                             $("#modal_id").modal("hide");
                             dataTable.ajax.reload();
-                        } else if (response.code == 1067){ // Tham chiếu từ ErrorCode
-                            Swal.fire({
-                                title: `Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này?`,
-                                showDenyButton: false,
-                                showCancelButton: true,
-                                confirmButtonText: "Đồng ý",
-                                cancelButtonText: "Huỷ",
-                            }).then((result) => {
-                                /* Read more about isConfirmed, isDenied below */
-                                if (result.isConfirmed) {
-                                    $.ajax({
-                                        type: "PUT",
-                                        url: "/api/accounts/confirm/"+id,
-                                        headers: utils.defaultHeaders(),
-                                        data: JSON.stringify({
-                                            email: email,
-                                            userId: user
-                                        }),
-                                        success: function (res) {
-                                            if (res.code == 1000) {
-                                                Toast.fire({
-                                                    icon: "success", 
-                                                    title: "Cập nhật tài khoản thành công"
-                                                });
-                                            }
-                                            $("#modal_id").modal("hide");
-                                            dataTable.ajax.reload();
-                                        },
-                                        error: function (xhr, status, error) {
-                                            console.log(xhr);
-                                            Toast.fire({
-                                                icon: "error",
-                                                title: utils.getXHRInfo(xhr).message,
-                                            });
-                                        },
-                                    });
-                                }
-                            });
-                        } 
-                        else {
+                        } else {
                             Toast.fire({
                                 icon: "warning",
                                 title: utils.getErrorMessage(response.code)
@@ -387,7 +306,6 @@ $("#data-table").on("click", "#editBtn", function () {
                             icon: "error",
                             title: utils.getXHRInfo(xhr).message
                         });
-                        dataTable.ajax.reload();
                     }
                 });
             });
@@ -562,7 +480,7 @@ $("#new-option-btn").click(function () {
 
             <div class="form-group">
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="is-apply-switch">
+                    <input type="checkbox" class="custom-control-input" id="is-apply-switch" checked>
                     <label class="custom-control-label" for="is-apply-switch">Sử dụng</label>
                 </div>
             </div>

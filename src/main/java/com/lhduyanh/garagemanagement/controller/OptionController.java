@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.OptionCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.OptionUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.OptionFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.OptionSimpleResponse;
@@ -74,6 +75,15 @@ public class OptionController {
         return ApiResponse.<Boolean>builder()
                 .code(1000)
                 .data(optionService.enableOption(id))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<OptionSimpleResponse> updateOption(@PathVariable String id,
+                                                          @RequestBody @Valid OptionUpdateRequest request) {
+        return ApiResponse.<OptionSimpleResponse>builder()
+                .code(1000)
+                .data(optionService.updateOption(id, request))
                 .build();
     }
 

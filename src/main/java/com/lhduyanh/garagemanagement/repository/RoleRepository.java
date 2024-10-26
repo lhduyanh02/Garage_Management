@@ -15,8 +15,11 @@ public interface RoleRepository extends JpaRepository<Role, String> {
 
     @Override
     @NonNull
-    @Query("SELECT r FROM Role r JOIN FETCH r.permissions")
+    @Query("SELECT r FROM Role r LEFT JOIN FETCH r.permissions")
     List<Role> findAll();
+
+    @Query("SELECT r FROM Role r LEFT JOIN FETCH r.permissions WHERE r.id = :id")
+    Optional<Role> findByIdFetchPermissions(@Param("id") String id);
 
     List<Role> findAllByStatus(int status);
 

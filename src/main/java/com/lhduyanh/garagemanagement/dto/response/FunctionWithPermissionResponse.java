@@ -3,13 +3,16 @@ package com.lhduyanh.garagemanagement.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FunctionResponse {
+@Builder
+public class FunctionWithPermissionResponse {
     String id;
     String name;
     int status;
+    List<PermissionResponse> permissions;
 }

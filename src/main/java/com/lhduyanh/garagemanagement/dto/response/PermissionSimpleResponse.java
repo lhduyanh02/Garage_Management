@@ -8,8 +8,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FunctionResponse {
+public class PermissionSimpleResponse {
+
     String id;
     String name;
-    int status;
+    String permissionKey;
+
 }

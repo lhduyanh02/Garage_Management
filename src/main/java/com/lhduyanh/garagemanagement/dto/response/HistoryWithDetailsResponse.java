@@ -22,6 +22,7 @@ public class HistoryWithDetailsResponse {
     String diagnose;
     Double totalAmount;
     Float discount;
+    Float tax;
     Double payableAmount;
     int status;
     List<DetailHistoryResponse> details;

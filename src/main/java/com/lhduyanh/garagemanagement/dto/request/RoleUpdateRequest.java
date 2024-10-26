@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleCreationRequest {
+public class RoleUpdateRequest {
 
     @NotNull(message = "BLANK_NAME")
     @NotBlank(message = "BLANK_NAME")

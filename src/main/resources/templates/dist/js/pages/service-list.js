@@ -32,6 +32,10 @@ $(document).ready(function () {
         lengthChange: true,
         autoWidth: false,
         language: {
+            paginate: {
+                next: "Trước",
+                previous: "Sau",
+            },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "Không có dữ liệu để hiển thị",
