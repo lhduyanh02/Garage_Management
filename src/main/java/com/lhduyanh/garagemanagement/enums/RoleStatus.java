@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum RoleStatus {
-    DELETED(-1),
     NOT_USE(0),
     USING(1),
     ;

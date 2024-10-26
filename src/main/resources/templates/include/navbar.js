@@ -16,8 +16,8 @@ $(document).ready(function(){
           </a>
       `);
       $('[data-toggle="tooltip"]').tooltip();
+
       $("#logoutBtn").click(function (e) { 
-        
         let token = utils.getCookie('authToken');
         Swal.fire({
           title: "Đăng xuất?" ,
@@ -41,9 +41,12 @@ $(document).ready(function(){
               success: function (res) {
                 if(res.code==1000){
                   utils.deleteCookie('authToken');
-                  Toast.fire({
+                  utils.setLocalStorageObject('userInfo', null); 
+                  Swal.fire({
                     icon: "success",
                     title: "Đã đăng xuất",
+                    showConfirmButton: false,
+                    timer: 1500,
                     didClose: () => {
                       window.location.reload();
                     }
@@ -54,31 +57,22 @@ $(document).ready(function(){
                     title: "Lỗi",
                     didClose: () => {
                       utils.deleteCookie('authToken');
+                      utils.setLocalStorageObject('userInfo', null); 
                       window.location.reload();
                     }
                   });
                 }
               },
               error: function(xhr, status, error){
-                var statusCode = xhr.status;
-                var message = 'Lỗi không xác định, không có mã lỗi';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = 'Lỗi không xác định, không có mã lỗi';
-                }
+                console.error(xhr);
                 Toast.fire({
-                  icon: "error",
-                  title: message,
-                  didClose: () => {
-                    utils.deleteCookie('authToken');
-                    window.location.reload();
-                  }
+                    icon: "error",
+                    title: utils.getXHRInfo(xhr).message,
+                    didClose: () => {
+                      utils.deleteCookie('authToken');
+                      utils.setLocalStorageObject('userInfo', null); 
+                      window.location.reload();
+                    }
                 });
               },
             });

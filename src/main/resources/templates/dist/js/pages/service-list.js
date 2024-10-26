@@ -32,13 +32,17 @@ $(document).ready(function () {
         lengthChange: true,
         autoWidth: false,
         language: {
+            paginate: {
+                next: "Trước",
+                previous: "Sau",
+            },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "Không có dữ liệu để hiển thị",
             infoFiltered: "(Lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
-            loadingRecords: "Đang tải dữ liệu..."
+            loadingRecords: "Đang tải dữ liệu...",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -84,20 +88,10 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
-                var message = "Lỗi không xác định";
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = "Lỗi không xác định";
-                }
+                console.error(xhr);
                 Toast.fire({
                     icon: "error",
-                    title: message,
+                    title: utils.getXHRInfo(xhr).message
                 });
             },
         },
@@ -109,7 +103,10 @@ $(document).ready(function () {
                     let html = "";
                     html += `<b>${data}<br></b>`;
                     if (row.description != "") {
-                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace("\n", "<br>")}<br></div>`;
+                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace(
+                            "\n",
+                            "<br>"
+                        )}<br></div>`;
                     }
 
                     return html;
@@ -202,18 +199,22 @@ $(document).ready(function () {
                 .buttons()
                 .container()
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
-            $('#data-table tbody').on('dblclick', 'td:nth-child(3)', function () {
-                var row = $(this).closest('tr');
-            
-                // Tìm tất cả các thẻ <details> trong hàng đó và chuyển đổi trạng thái mở/đóng
-                row.find('details').each(function () {
-                    if ($(this).attr('open')) {
-                        $(this).removeAttr('open');
-                    } else {
-                        $(this).attr('open', true);
-                    }
-                });
-            });
+            $("#data-table tbody").on(
+                "dblclick",
+                "td:nth-child(3)",
+                function () {
+                    var row = $(this).closest("tr");
+
+                    // Tìm tất cả các thẻ <details> trong hàng đó và chuyển đổi trạng thái mở/đóng
+                    row.find("details").each(function () {
+                        if ($(this).attr("open")) {
+                            $(this).removeAttr("open");
+                        } else {
+                            $(this).attr("open", true);
+                        }
+                    });
+                }
+            );
         },
     });
 });
@@ -354,7 +355,9 @@ $("#data-table").on("click", "#editBtn", function () {
                                     </div>
 
                                     <div class="input-group col-md-5">
-                                        <input type="text" name="text[]" value="${formatCurrent(optionPrice.price.toString())}" required class="form-control option-price-input price-input" placeholder="Giá">
+                                        <input type="text" name="text[]" value="${formatCurrent(
+                                            optionPrice.price.toString()
+                                        )}" required class="form-control option-price-input price-input" placeholder="Giá">
                                         <div class="input-group-append option-price-input">
                                             <a id="remove-option-btn" class="btn btn-sm btn-danger d-flex align-items-center">
                                                 <i class="fa-regular fa-circle-xmark fa-lg"></i>
@@ -399,13 +402,8 @@ $("#data-table").on("click", "#editBtn", function () {
                             updateIsSelected(optionList);
                         });
 
-                        $(document).on(
-                            "click",
-                            "#remove-option-btn",
-                            function () {
-                                var totalRows = $(
-                                    "#option-wrapper .row"
-                                ).length;
+                        $(document).on("click", "#remove-option-btn", function () {
+                                var totalRows = $("#option-wrapper .row").length;
 
                                 if (totalRows == 1) {
                                     Toast.fire({
@@ -425,7 +423,7 @@ $("#data-table").on("click", "#editBtn", function () {
                         $(".price-input").on("input", function () {
                             let inputValue = $(this).val();
 
-                            let formattedValue = formatCurrent(inputValue) 
+                            let formattedValue = formatCurrent(inputValue);
 
                             $(this).val(formattedValue);
                         });
@@ -486,9 +484,9 @@ $("#data-table").on("click", "#editBtn", function () {
 
                 $(document).on("input", ".price-input", function () {
                     let inputValue = $(this).val();
-            
+
                     let formattedValue = formatCurrent(inputValue);
-            
+
                     $(this).val(formattedValue);
                 });
 
@@ -545,7 +543,7 @@ $("#data-table").on("click", "#editBtn", function () {
                         .find('input[name="text[]"]')
                         .val()
                         .trim()
-                        .replace(/\s+/g, '');
+                        .replace(/\s+/g, "");
 
                     if (selectedOption == null) {
                         Toast.fire({
@@ -660,10 +658,10 @@ $("#data-table").on("click", "#editBtn", function () {
                                             dataTable.ajax.reload();
                                         },
                                         error: function (xhr, status, error) {
+                                            console.log(xhr);
                                             Toast.fire({
                                                 icon: "error",
-                                                title: utils.getXHRInfo(xhr)
-                                                    .message,
+                                                title: utils.getXHRInfo(xhr).message,
                                             });
                                         },
                                     });
@@ -677,6 +675,7 @@ $("#data-table").on("click", "#editBtn", function () {
                         }
                     },
                     error: function (xhr, status, error) {
+                        console.log(xhr);
                         Toast.fire({
                             icon: "error",
                             title: utils.getXHRInfo(xhr).message,
@@ -739,6 +738,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
                     dataTable.ajax.reload();
                 },
                 error: function (xhr, status, error) {
+                    console.log(xhr);
                     Toast.fire({
                         icon: "error",
                         title: utils.getXHRInfo(xhr).message,
@@ -906,7 +906,7 @@ $("#new-service-btn").click(function () {
     $(".price-input").on("input", function () {
         let inputValue = $(this).val();
 
-        let formattedValue = formatCurrent(inputValue) 
+        let formattedValue = formatCurrent(inputValue);
 
         $(this).val(formattedValue);
     });
@@ -978,7 +978,7 @@ $("#new-service-btn").click(function () {
         $(".price-input").on("input", function () {
             let inputValue = $(this).val();
 
-            let formattedValue = formatCurrent(inputValue) 
+            let formattedValue = formatCurrent(inputValue);
 
             $(this).val(formattedValue);
         });
@@ -1026,7 +1026,6 @@ $("#new-service-btn").click(function () {
             $("#modal-form")[0].reportValidity();
             return;
         }
-        // logSelected();
 
         let name = $("#modal_name_input").val().trim();
         let description = $("#modal_description_input").val().trim();
@@ -1046,9 +1045,12 @@ $("#new-service-btn").click(function () {
         // Duyệt qua từng phần tử trong #option-wrapper
         $("#option-wrapper .row").each(function () {
             var selectedOption = $(this).find(".option-select").val();
-            console.log(selectedOption);
 
-            var priceValue = $(this).find('input[name="text[]"]').val().trim().replace(/\s+/g, '');
+            var priceValue = $(this)
+                .find('input[name="text[]"]')
+                .val()
+                .trim()
+                .replace(/\s+/g, "");
 
             if (selectedOption == null) {
                 Toast.fire({
@@ -1067,12 +1069,12 @@ $("#new-service-btn").click(function () {
                 return;
             }
 
-            var isValidNumber = /^\d+(\.\d+)?$/.test(priceValue);
-            
+            var isValidNumber = /^\d+$/.test(priceValue);
+
             if (!isValidNumber) {
                 Toast.fire({
                     icon: "warning",
-                    title: "Giá hợp lệ chứa số 0-9 và dấu chấm thập phân",
+                    title: "Giá chỉ được chứa các số từ 0-9",
                 });
                 hasError = true; // Đặt cờ lỗi
                 return;
@@ -1163,6 +1165,7 @@ $("#new-service-btn").click(function () {
                                     dataTable.ajax.reload();
                                 },
                                 error: function (xhr, status, error) {
+                                    console.log(xhr);
                                     Toast.fire({
                                         icon: "error",
                                         title: utils.getXHRInfo(xhr).message,
@@ -1179,6 +1182,7 @@ $("#new-service-btn").click(function () {
                 }
             },
             error: function (xhr, status, error) {
+                console.log(xhr);
                 Toast.fire({
                     icon: "error",
                     title: utils.getXHRInfo(xhr).message,
@@ -1203,15 +1207,17 @@ $("#copy-service-btn").click(function () {
 
         // Lắng nghe sự kiện click item trong bảng #data-table
         $("#data-table tbody").on("click", "tr", function () {
-            var rowData = $('#data-table').DataTable().row(this).data();
+            var rowData = $("#data-table").DataTable().row(this).data();
             var id = rowData.id;
 
-            $("#copy-service-btn").removeClass("btn-danger").addClass("btn-info").html(`
+            $("#copy-service-btn")
+                .removeClass("btn-danger")
+                .addClass("btn-info").html(`
                 <i class="fa-regular fa-clone mr-1"></i> Copy dịch vụ
             `);
             $("#data-table tbody tr").css("cursor", "default");
             $("#data-table tbody").off("click", "tr");
-            
+
             $.ajax({
                 type: "GET",
                 url: "/api/services/" + id,
@@ -1283,7 +1289,7 @@ $("#copy-service-btn").click(function () {
                             </div>
                         </form>
                     `);
-        
+
                     $(".select2bs4").select2({
                         allowClear: true,
                         theme: "bootstrap",
@@ -1291,22 +1297,25 @@ $("#copy-service-btn").click(function () {
                         width: "100%",
                         language: "vi",
                     });
-        
+
                     $("#modal_name_input").val(data.name + " copy");
                     $("#modal_description_input").text(data.description);
                     $("#is-enable-switch").prop(
                         "checked",
                         data.status == 1 ? true : false
                     );
-        
-                    utils.set_char_count("#modal_name_input", "#modal_name_counter");
+
+                    utils.set_char_count(
+                        "#modal_name_input",
+                        "#modal_name_counter"
+                    );
                     utils.set_char_count(
                         "#modal_description_input",
                         "#modal_description_counter"
                     );
-        
+
                     var optionList = [];
-        
+
                     $.ajax({
                         type: "GET",
                         url: "/api/options",
@@ -1326,10 +1335,12 @@ $("#copy-service-btn").click(function () {
                                     });
                                 });
                                 updateIsSelected(optionList);
-        
+
                                 $("#option-wrapper").empty();
-        
-                                data.optionPrices.forEach(function (optionPrice) {
+
+                                data.optionPrices.forEach(function (
+                                    optionPrice
+                                ) {
                                     if (optionPrice.status != 1) {
                                         return;
                                     }
@@ -1341,7 +1352,9 @@ $("#copy-service-btn").click(function () {
                                             </div>
         
                                             <div class="input-group col-md-5">
-                                                <input type="text" name="text[]" value="${formatCurrent(optionPrice.price.toString())}" required class="form-control option-price-input price-input" placeholder="Giá">
+                                                <input type="text" name="text[]" value="${formatCurrent(
+                                                    optionPrice.price.toString()
+                                                )}" required class="form-control option-price-input price-input" placeholder="Giá">
                                                 <div class="input-group-append option-price-input">
                                                     <a id="remove-option-btn" class="btn btn-sm btn-danger d-flex align-items-center">
                                                         <i class="fa-regular fa-circle-xmark fa-lg"></i>
@@ -1350,7 +1363,7 @@ $("#copy-service-btn").click(function () {
                                             </div>
                                         </div>
                                     `);
-        
+
                                     // Initialize select2
                                     $(".select2bs4").select2({
                                         allowClear: true,
@@ -1359,11 +1372,11 @@ $("#copy-service-btn").click(function () {
                                         width: "100%",
                                         language: "vi",
                                     });
-        
+
                                     var newSelect = $("#option-wrapper")
                                         .find(".option-select")
                                         .last();
-        
+
                                     optionList.forEach(function (option) {
                                         if (option.id == optionPrice.id) {
                                             newSelect.append(
@@ -1379,13 +1392,13 @@ $("#copy-service-btn").click(function () {
                                             );
                                         }
                                     });
-        
+
                                     newSelect.trigger("change");
-        
+
                                     updateOptions();
                                     updateIsSelected(optionList);
                                 });
-        
+
                                 $(document).on(
                                     "click",
                                     "#remove-option-btn",
@@ -1393,7 +1406,7 @@ $("#copy-service-btn").click(function () {
                                         var totalRows = $(
                                             "#option-wrapper .row"
                                         ).length;
-        
+
                                         if (totalRows == 1) {
                                             Toast.fire({
                                                 icon: "warning",
@@ -1402,33 +1415,38 @@ $("#copy-service-btn").click(function () {
                                             return;
                                         } else {
                                             $(this).closest(".row").remove();
-        
+
                                             updateOptions();
                                             updateIsSelected(optionList);
                                         }
                                     }
                                 );
-        
+
                                 $(".price-input").on("input", function () {
                                     let inputValue = $(this).val();
-        
-                                    let formattedValue = formatCurrent(inputValue) 
-        
+
+                                    let formattedValue =
+                                        formatCurrent(inputValue);
+
                                     $(this).val(formattedValue);
                                 });
-        
-                                $(document).on("change", ".option-select", function () {
-                                    updateOptions();
-                                    updateIsSelected(optionList);
-                                });
+
+                                $(document).on(
+                                    "change",
+                                    ".option-select",
+                                    function () {
+                                        updateOptions();
+                                        updateIsSelected(optionList);
+                                    }
+                                );
                             }
                         },
                     });
-        
+
                     $("#add-option-btn").click(function (e) {
                         e.preventDefault();
                         updateIsSelected(optionList);
-        
+
                         $("#option-wrapper").append(`
                             <div class="row my-2">
                                 <div class="col-md-7">
@@ -1446,7 +1464,7 @@ $("#copy-service-btn").click(function () {
                                 </div>
                             </div>
                         `);
-        
+
                         $(".select2bs4").select2({
                             allowClear: true,
                             theme: "bootstrap",
@@ -1454,7 +1472,7 @@ $("#copy-service-btn").click(function () {
                             width: "100%",
                             language: "vi",
                         });
-        
+
                         // Thêm các option vào select mới và lọc các tùy chọn đã chọn
                         var newSelect = $("#option-wrapper")
                             .find(".option-select")
@@ -1470,50 +1488,58 @@ $("#copy-service-btn").click(function () {
                                 );
                             }
                         });
-        
+
                         $(document).on("input", ".price-input", function () {
                             let inputValue = $(this).val();
-                    
+
                             let formattedValue = formatCurrent(inputValue);
-                    
+
                             $(this).val(formattedValue);
                         });
-        
+
                         newSelect.val("").trigger("change");
                         updateIsSelected(optionList);
                         updateOptions();
-        
+
                         // Xử lý sự kiện nhấn nút xóa bộ chọn option
-                        $(document).on("click", "#remove-option-btn", function () {
-                            $(this).closest(".row").remove();
-                            // Cập nhật lại các tùy chọn sau khi xóa
-                            updateOptions();
-                            updateIsSelected(optionList);
-                        });
-        
+                        $(document).on(
+                            "click",
+                            "#remove-option-btn",
+                            function () {
+                                $(this).closest(".row").remove();
+                                // Cập nhật lại các tùy chọn sau khi xóa
+                                updateOptions();
+                                updateIsSelected(optionList);
+                            }
+                        );
+
                         // Xử lý sự kiện thay đổi cho các select
                         $(document).on("change", ".option-select", function () {
                             updateOptions();
                             updateIsSelected(optionList);
                         });
                     });
-        
+
                     $("#modal_footer").append(
                         '<button type="button" form="modal-form" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
                     );
-        
+
                     $("#modal_id").modal("show");
-        
+
                     $("#modal_submit_btn").click(function () {
                         if (!$("#modal-form")[0].checkValidity()) {
                             $("#modal-form")[0].reportValidity();
                             return;
                         }
-        
+
                         let name = $("#modal_name_input").val().trim();
-                        let description = $("#modal_description_input").val().trim();
-                        let isApply = $("#is-enable-switch").is(":checked") ? 1 : 0;
-        
+                        let description = $("#modal_description_input")
+                            .val()
+                            .trim();
+                        let isApply = $("#is-enable-switch").is(":checked")
+                            ? 1
+                            : 0;
+
                         if (name == "") {
                             Toast.fire({
                                 icon: "warning",
@@ -1521,19 +1547,21 @@ $("#copy-service-btn").click(function () {
                             });
                             return;
                         }
-        
+
                         var optionPrices = [];
                         var hasError = false; // Biến cờ để theo dõi lỗi
-        
+
                         // Duyệt qua từng phần tử trong #option-wrapper
                         $("#option-wrapper .row").each(function () {
-                            var selectedOption = $(this).find(".option-select").val();
+                            var selectedOption = $(this)
+                                .find(".option-select")
+                                .val();
                             var priceValue = $(this)
                                 .find('input[name="text[]"]')
                                 .val()
                                 .trim()
-                                .replace(/\s+/g, '');
-        
+                                .replace(/\s+/g, "");
+
                             if (selectedOption == null) {
                                 Toast.fire({
                                     icon: "warning",
@@ -1550,9 +1578,11 @@ $("#copy-service-btn").click(function () {
                                 hasError = true; // Đặt cờ lỗi
                                 return;
                             }
-        
-                            var isValidNumber = /^\d+(\.\d+)?$/.test(priceValue);
-        
+
+                            var isValidNumber = /^\d+(\.\d+)?$/.test(
+                                priceValue
+                            );
+
                             if (!isValidNumber) {
                                 Toast.fire({
                                     icon: "warning",
@@ -1561,10 +1591,10 @@ $("#copy-service-btn").click(function () {
                                 hasError = true; // Đặt cờ lỗi
                                 return;
                             }
-        
+
                             // Kiểm tra giá trị nhập vào có phải là số hay không (double)
                             var priceAsNumber = parseFloat(priceValue);
-        
+
                             if (isNaN(priceAsNumber) || priceAsNumber < 0) {
                                 Toast.fire({
                                     icon: "warning",
@@ -1573,18 +1603,18 @@ $("#copy-service-btn").click(function () {
                                 hasError = true; // Đặt cờ lỗi
                                 return;
                             }
-        
+
                             // Thêm cặp giá trị vào mảng
                             optionPrices.push({
                                 option: selectedOption,
                                 price: priceValue,
                             });
                         });
-        
+
                         if (hasError) {
                             return;
                         }
-        
+
                         $.ajax({
                             type: "POST",
                             url: "/api/services",
@@ -1593,7 +1623,9 @@ $("#copy-service-btn").click(function () {
                                 name: name,
                                 description: description,
                                 status: isApply,
-                                listOptionPrices: optionPrices.map(function (item) {
+                                listOptionPrices: optionPrices.map(function (
+                                    item
+                                ) {
                                     return {
                                         optionId: item.option,
                                         price: item.price,
@@ -1627,14 +1659,16 @@ $("#copy-service-btn").click(function () {
                                                     name: name,
                                                     description: description,
                                                     status: isApply,
-                                                    listOptionPrices: optionPrices.map(
-                                                        function (item) {
-                                                            return {
-                                                                optionId: item.option,
-                                                                price: item.price,
-                                                            };
-                                                        }
-                                                    ),
+                                                    listOptionPrices:
+                                                        optionPrices.map(
+                                                            function (item) {
+                                                                return {
+                                                                    optionId:
+                                                                        item.option,
+                                                                    price: item.price,
+                                                                };
+                                                            }
+                                                        ),
                                                 }),
                                                 success: function (res) {
                                                     if (res.code == 1000) {
@@ -1643,13 +1677,21 @@ $("#copy-service-btn").click(function () {
                                                             title: `Thêm thành công dịch vụ<br>${name}`,
                                                         });
                                                     }
-                                                    $("#modal_id").modal("hide");
+                                                    $("#modal_id").modal(
+                                                        "hide"
+                                                    );
                                                     dataTable.ajax.reload();
                                                 },
-                                                error: function (xhr, status, error) {
+                                                error: function (
+                                                    xhr,
+                                                    status,
+                                                    error
+                                                ) {
                                                     Toast.fire({
                                                         icon: "error",
-                                                        title: utils.getXHRInfo(xhr).message,
+                                                        title: utils.getXHRInfo(
+                                                            xhr
+                                                        ).message,
                                                     });
                                                 },
                                             });
@@ -1658,11 +1700,14 @@ $("#copy-service-btn").click(function () {
                                 } else {
                                     Toast.fire({
                                         icon: "warning",
-                                        title: utils.getErrorMessage(response.code),
+                                        title: utils.getErrorMessage(
+                                            response.code
+                                        ),
                                     });
                                 }
                             },
                             error: function (xhr, status, error) {
+                                console.log(xhr);
                                 Toast.fire({
                                     icon: "error",
                                     title: utils.getXHRInfo(xhr).message,
@@ -1746,13 +1791,13 @@ function updateIsSelected(optionList) {
 
 function formatCurrent(inputValue) {
     // Xóa các ký tự không phải là số
-    inputValue = inputValue.replace(/\D/g, '');
+    inputValue = inputValue.replace(/\D/g, "");
 
     // Xóa các số 0 đứng đầu trừ khi số là 0 duy nhất
-    inputValue = inputValue.replace(/^0+(?=\d)/, '');
+    inputValue = inputValue.replace(/^0+(?=\d)/, "");
 
     // Thêm dấu cách giữa các nhóm 3 chữ số
-    let formattedValue = inputValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    let formattedValue = inputValue.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
     return formattedValue;
 }

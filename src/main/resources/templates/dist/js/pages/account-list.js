@@ -34,6 +34,19 @@ $(document).ready(function () {
         responsive: true,
         lengthChange: true,
         autoWidth: false,
+        language: {
+            paginate: {
+                next: "Trước",
+                previous: "Sau",
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "Không có dữ liệu để hiển thị",
+            infoFiltered: "(Lọc từ _MAX_ mục)",
+            emptyTable: "Không có dữ liệu",
+            search: "Tìm kiếm:",
+            loadingRecords: "Đang tải dữ liệu...",
+        },
         buttons: [
             { extend: "copy", text: "Copy" },
             { extend: "csv", text: "CSV" },
@@ -77,20 +90,9 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
-                var message = "Lỗi không xác định";
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.code) {
-                        message = utils.getErrorMessage(response.code);
-                    }
-                } catch (e) {
-                    // Lỗi khi parse JSON
-                    console.log("JSON parse error");
-                    message = "Lỗi không xác định";
-                }
                 Toast.fire({
                     icon: "error",
-                    title: message,
+                    title: utils.getXHRInfo(xhr).message,
                 });
             },
         },
@@ -206,6 +208,7 @@ $(document).ready(function () {
             }
         },
         error: function (xhr, status, error) {
+            console.log(xhr);
             Toast.fire({
                 icon: "error",
                 title: utils.getXHRInfo(xhr).message,
@@ -271,6 +274,7 @@ $("#reset-password-btn").click(function () {
                     }
                 },
                 error: function (xhr, status, error) {
+                    console.log(xhr);
                     Toast.fire({
                         icon: "error",
                         title: utils.getXHRInfo(xhr).message,
@@ -464,10 +468,10 @@ $("#data-table").on("click", "#editBtn", function () {
                                             dataTable.ajax.reload();
                                         },
                                         error: function (xhr, status, error) {
+                                            console.log(xhr);
                                             Toast.fire({
                                                 icon: "error",
-                                                title: utils.getXHRInfo(xhr)
-                                                    .message,
+                                                title: utils.getXHRInfo(xhr).message,
                                             });
                                         },
                                     });
@@ -481,6 +485,7 @@ $("#data-table").on("click", "#editBtn", function () {
                         }
                     },
                     error: function (xhr, status, error) {
+                        console.log(xhr);
                         Toast.fire({
                             icon: "error",
                             title: utils.getXHRInfo(xhr).message,
@@ -491,10 +496,10 @@ $("#data-table").on("click", "#editBtn", function () {
             });
         },
         error: function (xhr, status, error) {
-            let response = utils.getXHRInfo(xhr);
+            console.error(xhr);
             Toast.fire({
                 icon: "error",
-                title: response.message,
+                title: utils.getXHRInfo(xhr).message,
             });
             $("#modal_id").modal("hide");
         },
@@ -543,6 +548,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
                     dataTable.ajax.reload();
                 },
                 error: function (xhr, status, error) {
+                    console.log(xhr);
                     Toast.fire({
                         icon: "error",
                         title: utils.getXHRInfo(xhr).message,
@@ -585,10 +591,10 @@ $("#data-table").on("click", "#disableBtn", function () {
                     }
                 },
                 error: function (xhr, status, error) {
-                    let response = utils.getXHRInfo(xhr);
+                    console.error(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message,
+                        title: utils.getXHRInfo(xhr).message,
                     });
                     dataTable.ajax.reload();
                 },
@@ -639,10 +645,10 @@ $("#data-table").on("click", "#activateBtn", function () {
                     }
                 },
                 error: function (xhr, status, error) {
-                    let response = utils.getXHRInfo(xhr);
+                    console.error(xhr);
                     Toast.fire({
                         icon: "error",
-                        title: response.message,
+                        title: utils.getXHRInfo(xhr).message,
                     });
                     dataTable.ajax.reload();
                 },
@@ -885,6 +891,7 @@ $("#new-account-btn").click(function () {
                                     dataTable.ajax.reload();
                                 },
                                 error: function (xhr, status, error) {
+                                    console.log(xhr);
                                     Toast.fire({
                                         icon: "error",
                                         title: utils.getXHRInfo(xhr).message,
@@ -901,6 +908,7 @@ $("#new-account-btn").click(function () {
                 }
             },
             error: function (xhr, status, error) {
+                console.log(xhr);
                 Toast.fire({
                     icon: "error",
                     title: utils.getXHRInfo(xhr).message,

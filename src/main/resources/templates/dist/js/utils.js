@@ -56,6 +56,43 @@ export function getLocalStorageObject(key) {
     }
 }
 
+export async function getUserInfo() {
+    if (getCookie("authToken") !== null) {
+        var userInfo = getLocalStorageObject("userInfo");
+        if (userInfo == null) {
+            try {
+                let res = await $.ajax({
+                    type: "GET",
+                    url: "/api/users/get-my-info",
+                    headers: defaultHeaders(),
+                    dataType: "json",
+                });
+
+                if (res.code == 1000 && res.data) {
+                    if(res.code == 1000){
+                        setLocalStorageObject('userInfo', res.data)
+                        return res.data;
+                    }
+                } else {
+                    console.error(res);
+                    return null;
+                }
+            } catch (error) {
+                console.log("Error in getting user info");
+                console.error(getXHRInfo(error));
+                return null;
+            }
+        } else {
+            return userInfo;
+        }
+    }
+    else {
+        setLocalStorageObject('userInfo', null)
+        console.log("Token not found");
+        return null;
+    }
+}
+
 export function introspect(bool) {
     // Hàm kiểm tra token có hợp lệ hay không, nếu không thì trả về trang index
     let token = getCookie("authToken");
@@ -76,6 +113,7 @@ export function introspect(bool) {
                 if (res.code == 1000) {
                     if (res.data.valid == false) {
                         deleteCookie("authToken");
+                        setLocalStorageObject('userInfo', null); 
                         if(bool) {
                           window.location.href = "/login#" + path;
                         }
@@ -85,13 +123,24 @@ export function introspect(bool) {
                     }
                 }
             },
-            error: function (res) {
-                deleteCookie("authToken");
-                if(bool) {
-                    window.location.href = "/login#" + path;
-                }
-                  else {
-                    window.location.href = "/login";
+            error: function (xhr, status, error) {
+                if (xhr.status == 401) {
+                    deleteCookie("authToken");
+                    setLocalStorageObject('userInfo', null); 
+                    if(bool) {
+                        window.location.href = "/login#" + path;
+                    }
+                    else {
+                        window.location.href = "/login";
+                    }
+                    return;
+                } else {
+                    console.error(xhr);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Internal server error",
+                    });
+                    setLocalStorageObject('userInfo', null);  
                 }
             },
         });
@@ -245,6 +294,9 @@ export function getTimeAsJSON(isoDate) {
 export function formatCurrent(inputValue) {
     if (!inputValue) {
         return "";
+    }
+    if (typeof inputValue !== 'string') {
+        inputValue = String(inputValue);
     }
     // Xóa các ký tự không phải là số
     inputValue = inputValue.replace(/\D/g, '');

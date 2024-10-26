@@ -18,7 +18,7 @@ public class Options {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
-    @Column(length = 100, nullable = false, updatable = false)
+    @Column(length = 100, nullable = false)
     String name;
 
     @Column(nullable = false)

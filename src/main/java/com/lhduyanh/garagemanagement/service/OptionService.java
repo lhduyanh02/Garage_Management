@@ -79,11 +79,22 @@ public class OptionService {
     }
 
     public OptionSimpleResponse updateOption(String id, OptionUpdateRequest request) {
-        Options options = optionRepository.findById(id)
+        Options option = optionRepository.findById(id)
+                .filter(o -> o.getStatus() != OptionStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.OPTION_EXISTED));
 
-        optionMapper.updateOption(options, request);
-        return optionMapper.toSimpleResponse(optionRepository.save(options));
+        List<Options> options = optionRepository.findAllByName(request.getName())
+                .stream()
+                .filter(o -> o.getStatus() != OptionStatus.DELETED.getCode() && o.getId().equals(id))
+                .toList();
+        if (options.size() > 0) {
+            throw new AppException(ErrorCode.OPTION_EXISTED);
+        }
+
+        optionMapper.updateOption(option, request);
+        Options response = optionRepository.save(option);
+        log.info(response.getName());
+        return optionMapper.toSimpleResponse(response);
     }
 
     public boolean enableOption(String id) {

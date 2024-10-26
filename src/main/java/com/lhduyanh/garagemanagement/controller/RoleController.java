@@ -1,6 +1,7 @@
 package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.RoleCreationRequest;
+import com.lhduyanh.garagemanagement.dto.request.RoleUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.RoleResponse;
 import com.lhduyanh.garagemanagement.dto.response.RoleSimpleResponse;
@@ -31,6 +32,14 @@ public class RoleController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<RoleResponse> getRoleById(@PathVariable String id) {
+        return ApiResponse.<RoleResponse>builder()
+                .code(1000)
+                .data(roleService.getRoleById(id))
+                .build();
+    }
+
     @GetMapping
     public ApiResponse<List<RoleSimpleResponse>> getAllEnableRoles() {
         return ApiResponse.<List<RoleSimpleResponse>>builder()
@@ -47,12 +56,28 @@ public class RoleController {
                 .build();
     }
 
-    @DeleteMapping("/{roleId}")
-    public ApiResponse<Void> deleteRole(@PathVariable String roleId) {
-        roleService.deleteRole(roleId);
-        return ApiResponse.<Void>builder()
+    @PutMapping("/{id}")
+    public ApiResponse<RoleResponse> updateRole(@PathVariable String id,
+                                                @RequestBody @Valid RoleUpdateRequest request) {
+        return ApiResponse.<RoleResponse>builder()
                 .code(1000)
-                .message("Role deleted successfully")
+                .data(roleService.updateRole(id, request))
+                .build();
+    }
+
+    @PutMapping("/enable/{roleId}")
+    public ApiResponse<Boolean> enableRole(@PathVariable String roleId) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(roleService.enableRoleById(roleId))
+                .build();
+    }
+
+    @PutMapping("/disable/{roleId}")
+    public ApiResponse<Boolean> disableRole(@PathVariable String roleId) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(roleService.disableRoleById(roleId))
                 .build();
     }
 }

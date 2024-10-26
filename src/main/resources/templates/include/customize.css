@@ -96,3 +96,211 @@ h1, h2, h3, h4, h5{
   font-weight: 500;
   margin: 0;
 }
+
+/* Underline on hover */
+
+.hover-underline-animation {
+  display: inline-block;
+  position: relative;
+}
+
+.hover-underline-animation::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #0087ca;
+  transition: transform 0.25s ease-out;
+}
+
+.hover-underline-animation:hover::after {
+  transform: scaleX(1);
+}
+
+.hover-underline-animation.left::after {
+  transform-origin: bottom right;
+}
+
+.hover-underline-animation.left:hover::after {
+  transform-origin: bottom left;
+}
+
+.hover-underline-animation.center::after {
+  transform-origin: bottom center;
+}
+
+.hover-underline-animation.center:hover::after {
+  transform-origin: bottom center;
+}
+
+.hover-underline-animation.right::after {
+  transform-origin: bottom left;
+}
+
+.hover-underline-animation.right:hover::after {
+  transform-origin: bottom right;
+}
+/* End of Underline on hover */
+
+
+
+/* Modal Preview Ảnh */
+.ekko-lightbox .modal-body {
+  padding: 5px !important;
+}
+
+
+.upload__box {
+  padding: 20px;
+}
+.upload__inputfile {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+.upload__btn, .image-card-btn {
+  display: inline-block;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  padding: 5px 10px; 
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid;
+  background-color: #007bff;
+  border-color: #007bff;
+  border-radius: 10px;
+  line-height: 26px;
+  font-size: 14px;
+}
+.upload__btn:hover, .image-card-btn:hover {
+  background-color: unset;
+  color: #007bff;
+  transition: all 0.3s ease;
+}
+
+.image-card-btn {
+  min-width: unset;           /* Bỏ min-width */
+  padding: 5px 10px;              /* Đặt lại padding */
+  width: auto;                /* Đảm bảo nút co giãn theo nội dung */
+  white-space: nowrap;        /* Ngăn nội dung xuống dòng */
+}
+
+.custom-blue-btn {
+  border-color: #007bff;
+  background-color: #fff;
+  color: #007bff;
+}
+
+.custom-blue-btn:hover {
+  background-color: #007bff; /* Đổi sang màu nền xanh */
+  color: #fff; /* Đổi chữ thành màu trắng */
+}
+
+.custom-green-btn {
+  border-color: #28a745;
+  background-color: #fff;
+  color: #28a745;
+}
+
+.custom-green-btn:hover {
+  background-color: #28a745; /* Đổi sang màu nền xanh */
+  color: #fff; /* Đổi chữ thành màu trắng */
+}
+
+.custom-red-btn {
+  border-color: #dc3545;
+  background-color: #fff;
+  color: #dc3545;
+}
+
+.custom-red-btn:hover {
+  background-color: #dc3545; /* Đổi sang màu nền đỏ */
+  color: #fff; /* Đổi chữ thành màu trắng */
+}
+
+
+
+.upload__btn-box {
+  margin-bottom: 10px;
+}
+.upload__img-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -10px;
+}
+.upload__img-box {
+  width: 200px;
+  padding: 0 10px;
+  margin-bottom: 12px;
+}
+.upload__img-close {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  text-align: center;
+  line-height: 24px;
+  z-index: 1;
+  cursor: pointer;
+}
+.upload__img-close:after {
+  content: '\2716';
+  font-size: 14px;
+  color: white;
+}
+.img-bg {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  padding-bottom: 100%;
+}
+
+.image-card .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2); /* Nền đen với độ trong suốt */
+  display: flex;
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  color: #fff;
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 2; /* Đảm bảo overlay nằm trên cùng */
+  pointer-events: none; /* Để không chặn các sự kiện click khác */
+}
+
+.image-card .img-bg {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.image-card .upload__img-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background-color: #ff4d4d;
+  border-radius: 50%;
+  z-index: 3;
+  cursor: pointer;
+}

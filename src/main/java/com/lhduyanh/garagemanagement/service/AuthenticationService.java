@@ -162,7 +162,6 @@ public class AuthenticationService {
         }
 
         return user.getId();
-
     }
 
     public void logout(LogoutRequest logoutRequest) throws ParseException, JOSEException {

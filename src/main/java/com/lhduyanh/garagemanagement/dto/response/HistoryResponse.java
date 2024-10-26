@@ -21,6 +21,7 @@ public class HistoryResponse {
     String diagnose;
     Double totalAmount;
     Float discount;
+    Float tax;
     Double payableAmount;
     int status;
 }
