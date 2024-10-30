@@ -57,5 +57,10 @@ public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findById(@Param("id") String id);
 
     Optional<User> findByStatus(int status);
+
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r " +
+            "WHERE r.roleKey = :roleKey AND u.status = :status")
+    long countByRoleKeyAndStatus(@Param("roleKey") String roleKey,
+                                 @Param("status") int status);
 }
 

@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quản lý phân quyền | Spring Detailing</title>
+  <title>Tham số chung | Spring Detailing</title>
 
   <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -77,12 +77,12 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Quản lý phân quyền</h1>
+              <h1>Quản lý tham số chung</h1>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#" class="text-dark">Quản lý hệ thống</a></li>
-                <li class="breadcrumb-item active">Quản lý phân quyền</li>
+                <li class="breadcrumb-item active">Quản lý tham số chung</li>
               </ol>
             </div>
           </div>
@@ -98,12 +98,9 @@
 
             <div id="data-table-card" class="card">
               <div class="card-header d-flex align-items-center">
-                <h3 class="card-title">Danh mục vai trò (roles)</h3>
-                <button class="btn btn-success btn-sm ms-auto ml-2" id="new-role-btn">
+                <h3 class="card-title">Danh mục tham số</h3>
+                <!-- <button class="btn btn-success btn-sm ms-auto ml-2" id="new-role-btn">
                   <i class="fa-solid fa-user-plus mr-1"></i> Thêm vai trò
-                </button>
-                <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
-                  <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
                 </button> -->
                 <div class="ml-auto card-tools">
                   <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
@@ -118,9 +115,9 @@
                   <thead>
                     <tr>
                       <th scope="col" style="text-align: center" width="4%">#</th>
-                      <th scope="col" style="text-align: center" width="20%">Tên vai trò</th>
-                      <th scope="col" style="text-align: center" min-width="25%">Phân quyền</th>
-                      <th scope="col" style="text-align: center" width="14%">Trạng thái</th>
+                      <th scope="col" style="text-align: center" width="20%">Mã tham số (Key)</th>
+                      <th scope="col" style="text-align: center" min-width="25%">Mô tả</th>
+                      <th scope="col" style="text-align: center" width="20%">Giá trị</th>
                       <th scope="col" style="text-align: center" width="14%">Thao tác</th>
                     </tr>
                   </thead>
@@ -163,7 +160,7 @@
   </div>
   <!-- ./wrapper -->
 
-  <!-- Select2 JS -->
+    <!-- Select2 JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/vi.js"></script>
   <!-- Bootstrap 4 -->
@@ -185,15 +182,15 @@
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 
   <!-- overlayScrollbars -->
-  <script src="/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
   <!-- PAGE PLUGINS -->
   <!-- jQuery Mapael -->
-  <script src="/plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
-  <script src="/plugins/raphael/raphael.min.js"></script>
-  <script src="/plugins/jquery-mapael/jquery.mapael.min.js"></script>
-  <script src="/plugins/jquery-mapael/maps/usa_states.min.js"></script>
+  <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
+  <script src="plugins/raphael/raphael.min.js"></script>
+  <script src="plugins/jquery-mapael/jquery.mapael.min.js"></script>
+  <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
   <!-- ChartJS -->
-  <script src="/plugins/chart.js/Chart.min.js"></script>
+  <script src="plugins/chart.js/Chart.min.js"></script>
 
   
   <!-- bs-custom-file-input -->
@@ -203,7 +200,7 @@
 
   <!-- AdminLTE for demo purposes -->
   <script src="/dist/js/demo.js"></script>
-  <script type="module" src="/dist/js/pages/role-management.js"></script>
+  <script type="module" src="dist/js/pages/common-parameter.js"></script>
 </body>
 
 </html>

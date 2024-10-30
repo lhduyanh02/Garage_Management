@@ -38,7 +38,11 @@ $(document).ready(async function () {
     let userInfo = await utils.getUserInfo();
     if (userInfo) {
         $("#user-name-sidebar").text(userInfo.name);
+        $('.user-panel').on('click', function (e) { 
+            window.location.href = "/my-profile";
+        });
     } else {
         console.error("Can not get user info");
+        $('.user-panel').off('click');
     }
 });

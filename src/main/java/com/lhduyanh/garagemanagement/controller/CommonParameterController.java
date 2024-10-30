@@ -42,14 +42,14 @@ public class CommonParameterController {
     }
 
     @GetMapping
-    public ApiResponse<CommonParameterResponse> getParamById(@RequestParam("id") String id) {
+    public ApiResponse<CommonParameterResponse> getParamById(@RequestParam(value = "id") String id) {
         return ApiResponse.<CommonParameterResponse>builder()
                 .code(1000)
                 .data(service.getCommonParameterById(id))
                 .build();
     }
 
-    @GetMapping("all-param")
+    @GetMapping("all")
     public ApiResponse<List<CommonParameterResponse>> getAllParam() {
         return ApiResponse.<List<CommonParameterResponse>>builder()
                 .code(1000)

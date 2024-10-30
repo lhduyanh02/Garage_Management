@@ -49,6 +49,7 @@ $(document).ready(async function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         columns: [
             { data: "number", className: "text-center", width: "5%" },

@@ -36,7 +36,11 @@ public class CommonParameterService {
         CommonParameter parameter = commonParameterRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PARAMETER_NOT_EXIST));
 
-        commonParameterMapper.updateCommonParameter(parameter, request);
+        if (request.getValue() == null || request.getValue().isBlank()) {
+            throw new AppException(ErrorCode.BLANK_VALUE);
+        }
+
+        parameter.setValue(request.getValue());
         commonParameterRepository.save(parameter);
         return getAllCommonParameter();
     }

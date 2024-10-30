@@ -98,7 +98,7 @@ public enum ErrorCode {
     DISABLED_CAR(1072, "This car was disabled", HttpStatus.BAD_REQUEST),
     ILLEGAL_NUM_PLATE(1073, "Illegal num plate", HttpStatus.BAD_REQUEST),
     INVALID_SEARCH_CRITERIA(1074, "The search requires at least one criterion", HttpStatus.BAD_REQUEST),
-    NO_CARS_FOUND(1075, "No cars founded", HttpStatus.OK),
+    NO_CARS_FOUND(1075, "No cars found", HttpStatus.OK),
     INVALID_ADVISOR(1076, "Advisor is invalid", HttpStatus.BAD_REQUEST),
 
     CAR_IN_SERVICE(1077, "This vehicle is currently undergoing service", HttpStatus.BAD_REQUEST),
@@ -122,13 +122,25 @@ public enum ErrorCode {
     NOT_PROCEEDING_HISTORY(1095, "This action can only be performed on ongoing service orders", HttpStatus.BAD_REQUEST),
 
     BLANK_KEY(1096, "Key must not be blank", HttpStatus.BAD_REQUEST),
-    BLANK_DESCRIPTION(1097, "Description must not be blank", HttpStatus.BAD_REQUEST),
+    DESCRIPTION_LENGTH(1097, "Maximum description length is 65000 characters", HttpStatus.BAD_REQUEST),
     BLANK_VALUE(1098, "Value must not be blank", HttpStatus.BAD_REQUEST),
     PARAMETER_NOT_EXIST(1099, "Parameter does not exist", HttpStatus.BAD_REQUEST),
     DETAIL_NOT_EXIST(1100, "This detail does not exist", HttpStatus.BAD_REQUEST),
     EMPTY_PERMISSION_LIST(1101, "Permission list must not be empty", HttpStatus.BAD_REQUEST),
     ROLE_CAN_NOT_EDIT(1102, "This role can not be edit", HttpStatus.BAD_REQUEST),
+    BLANK_CUSTOMER(1103, "Customer must not be blank", HttpStatus.BAD_REQUEST),
+    HAVE_PENDING_APPOINTMENT(1104, "This customer has a pending appointment, can not create a new one", HttpStatus.BAD_REQUEST),
+    HAVE_UPCOMING_APPOINTMENT(1105, "This customer has an upcoming appointment, can not create a new one", HttpStatus.BAD_REQUEST),
+    BLOCKED_USER(1106, "This user has been blocked", HttpStatus.BAD_REQUEST),
+    BLANK_APPOINTMENT_TIME(1107, "Time of appointment must not be blank", HttpStatus.BAD_REQUEST),
+    MINIMUM_SCHEDULE_TIME(1108, "The minimum booking time for an appointment is 10 minutes from now", HttpStatus.BAD_REQUEST),
+    APPOINTMENT_NOT_EXIST(1109, "This appointment does not exist", HttpStatus.BAD_REQUEST),
+    PAST_APPOINTMENT(1110, "This appointment has already passed and cannot be modified", HttpStatus.BAD_REQUEST),
+    CONFIRMED_APPOINTMENT(1111, "This appointment has been confirmed, and cannot be modified", HttpStatus.BAD_REQUEST),
 
+    USER_NOT_MANAGE_CAR(1112, "Selected user not manage this car", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS(1113, "Invalid status", HttpStatus.BAD_REQUEST),
+    INVALID_TIME(1114, "Invalid time of appointment, the time must be in future", HttpStatus.BAD_REQUEST),
 
     ;
 

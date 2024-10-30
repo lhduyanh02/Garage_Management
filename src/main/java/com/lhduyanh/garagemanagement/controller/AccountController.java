@@ -4,6 +4,9 @@ import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.service.AccountService;
 import jakarta.validation.Valid;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +14,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
-public class AccountController {   // for design account controller api
-    @Autowired
-    private AccountService accountService;
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequiredArgsConstructor
+public class AccountController {
+
+    AccountService accountService;
 
     @GetMapping("/{id}")
     public ApiResponse<AccountFullResponse> getAccountById(@PathVariable String id) {

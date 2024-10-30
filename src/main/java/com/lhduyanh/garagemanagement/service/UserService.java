@@ -37,6 +37,7 @@ import static java.util.Objects.isNull;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class UserService {
+
     UserRepository userRepository;
     AddressRepository addressRepository;
     AccountRepository accountRepository;
@@ -48,6 +49,7 @@ public class UserService {
     public List<UserResponse> getAllUserWithAddress(){
         List<User> users = userRepository.findAllUserFullInfo();
         return users.stream()
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .map(user -> {
                     UserResponse response = userMapper.toUserResponse(user);
 
@@ -64,15 +66,15 @@ public class UserService {
     };
 
     public List<UserResponse> getAllActiveUser(){
-
         List<User> users = userRepository.findAllActiveUserFetchCars();
         return users.stream()
+                .filter(u -> u.getStatus() == UserStatus.CONFIRMED.getCode())
                 .map(user -> {
                     UserResponse response = userMapper.toUserResponse(user);
 
                     // Lọc các cars trong UserResponse dựa trên trạng thái
                     List<CarResponse> filteredCars = response.getCars().stream()
-                            .filter(car -> car.getStatus()!=CarStatus.DELETED.getCode())
+                            .filter(car -> car.getStatus() != CarStatus.DELETED.getCode())
                             .collect(Collectors.toList());
                     response.setCars(filteredCars);
 
@@ -100,21 +102,22 @@ public class UserService {
 
                     List<AccountSimpleResponse> accounts = response.getAccounts()
                             .stream()
-                            .filter(account -> account.getStatus() >= AccountStatus.NOT_CONFIRM.getCode())
+                            .filter(account -> account.getStatus() > AccountStatus.NOT_CONFIRM.getCode())
                             .toList();
                     response.setAccounts(accounts);
 
                     return response;
                 })
                 .sorted(Comparator.comparing(UserFullResponse::getName))
-                .filter(user -> user.getRoles().size()>0)
+                .filter(user -> !user.getRoles().isEmpty() && user.getStatus() == UserStatus.CONFIRMED.getCode())
                 .collect(Collectors.toList());
     };
 
     public List<UserWithAccountsResponse> getAllUserWithAccounts(){
         List<User> users = userRepository.findAllWithAccounts();
         return users
-                .stream().filter(user -> user.getStatus() != 9999)
+                .stream()
+                .filter(user -> user.getStatus() != 9999 && user.getStatus() != UserStatus.DELETED.getCode())
                 .map(userMapper::toUserWithAccountsResponse)
                 .sorted(Comparator.comparing(UserWithAccountsResponse::getName, vietnameseCollator))
                 .toList();
@@ -204,7 +207,12 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(String userId, UserUpdateRequest request){
         User user = userRepository.findById(userId)
+                .filter( u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
 
         if (request.getPhone() != null) {
             // Xóa ký tự khoảng trắng , . -
@@ -245,15 +253,21 @@ public class UserService {
     }
 
     public void deleteUserById(String id) {
-        var user = userRepository.findById(id)
+        var user = userRepository.findByIdFullInfo(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
 
         if (user.getStatus() != UserStatus.NOT_CONFIRM.getCode()){
             throw new AppException(ErrorCode.DELETE_ACTIVATED_USER);
         }
 
-        var account = accountRepository.findByUserId(user.getId());
-        account.ifPresent(accountRepository::delete);
+        List<Account> accounts = accountRepository.findByUserId(user.getId());
+        if (!accounts.isEmpty()){
+            accountRepository.deleteAll(accounts);
+        }
 
         userRepository.deleteById(id);
     }
@@ -262,8 +276,10 @@ public class UserService {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        var account = accountRepository.findByUserId(user.getId());
-        account.ifPresent(accountRepository::delete);
+        List<Account> accounts = accountRepository.findByUserId(user.getId());
+        if (!accounts.isEmpty()){
+            accountRepository.deleteAll(accounts);
+        }
 
         userRepository.deleteById(id);
     }
@@ -291,16 +307,17 @@ public class UserService {
 //    @Transactional
     public boolean userCarMapping(UserCarMappingRequest request) {
         User user = userRepository.findById(request.getUserId())
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
         if(user.getStatus() != UserStatus.CONFIRMED.getCode()) {
             throw new AppException(ErrorCode.DISABLED_USER);
         }
 
         Car car = carRepository.findById(request.getCarId())
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
-        if(car.getStatus() != CarStatus.USING.getCode()) {
-            throw new AppException(ErrorCode.   DISABLED_CAR);
-        }
+
         Set<Car> carSet = user.getCars();
         if(!carSet.contains(car)) {
             carSet.add(car);
@@ -309,4 +326,38 @@ public class UserService {
         userRepository.save(user);
         return true;
     }
+
+    public boolean userCarRemoveMapping(UserCarMappingRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if(user.getStatus() != UserStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.DISABLED_USER);
+        }
+
+        Car car = carRepository.findById(request.getCarId())
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
+
+        Set<Car> carSet = user.getCars();
+
+        var findCar = carSet.stream().filter(c -> c.getId().equals(car.getId()))
+                .findFirst();
+
+        if(findCar.isPresent()) {
+            carSet.remove(findCar.get());
+            user.setCars(carSet);
+            userRepository.save(user);
+        } else {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
+        return true;
+    }
+
+    public Long getCustomerQuantity() {
+        return userRepository.countByRoleKeyAndStatus("CUSTOMER", 1);
+    }
+
 }

@@ -297,11 +297,7 @@ public class AccountService {
         }
 
         if(account.getUser().getStatus() == 9999) {
-            var uid = getUUIDFromJwt();
-            var user = userRepository.findById(uid).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if(user.getStatus() != 9999){
-                throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
-            }
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
         }
 
         if(emailChange) {

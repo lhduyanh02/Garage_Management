@@ -39,15 +39,16 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-            "/users/get-quantity",
+            "/users",
+            "/users/**",
             "/addresses/**",
             "/brands/**",
             "/models/**",
             "/plate-types/**",
-            "/services/**",
-            "/options/**",
             "/cars/**",
-            "/accounts/**"
+            "/accounts/**",
+            "/services",
+            "/services/**",
     };
 
     @Autowired

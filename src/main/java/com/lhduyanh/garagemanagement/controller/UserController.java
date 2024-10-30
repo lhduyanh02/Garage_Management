@@ -11,6 +11,7 @@ import com.lhduyanh.garagemanagement.repository.AddressRepository;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import com.lhduyanh.garagemanagement.service.UserService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,13 +29,10 @@ import java.util.List;
 @Slf4j
 public class UserController {
     UserService userService;
-    AddressRepository addressRepository;
-    RoleRepository roleRepository;
-    private final UserRepository userRepository;
 
 
     @GetMapping
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ACCOUNT_LIST', 'GET_USER_LIST'})")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER'})")
     public ApiResponse<List<UserResponse>> getAllUsers() { // All disabled and no role user
         return ApiResponse.<List<UserResponse>>builder()
                 .code(1000)
@@ -42,6 +40,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER', 'EDIT_CUSTOMER'})")
     @GetMapping("/{id}")
     public ApiResponse<UserFullResponse> getUserById(@PathVariable String id) {
         return ApiResponse.<UserFullResponse>builder()
@@ -60,7 +59,7 @@ public class UserController {
     }
 
     @GetMapping("/customers")
-//    @PreAuthorize("@securityExpression.hasPermission({'GET_ACCOUNT_LIST', 'GET_USER_LIST'})")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CUSTOMER', 'GET_ALL_USER', 'EDIT_USER', 'MAP_USER_CAR'})")
     public ApiResponse<List<UserFullResponse>> getAllActiveCustomers() {
         return ApiResponse.<List<UserFullResponse>>builder()
                 .code(1000)
@@ -68,6 +67,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER'})")
     @GetMapping("/with-accounts")
     public ApiResponse<List<UserWithAccountsResponse>> getAllUserWithAccounts(){
         return ApiResponse.<List<UserWithAccountsResponse>>builder()
@@ -76,7 +76,6 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_USER_LIST'})")
     @GetMapping("/get-my-info")
     public ApiResponse<UserFullResponse> getMyInfo() {
         return ApiResponse.<UserFullResponse>builder()
@@ -85,7 +84,16 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'ADD_PROFILE'})")
+    @PermitAll
+    @GetMapping("/get-quantity")
+    public ApiResponse<Long> getUserQuantity(){
+        return ApiResponse.<Long>builder()
+                .code(1000)
+                .data(userService.getCustomerQuantity())
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_USER'})")
     @PostMapping
     public ApiResponse<UserResponse> addUser(@RequestBody @Valid UserCreationRequest request) {
         var userResponse = userService.createUser(request);
@@ -95,7 +103,7 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'EDIT_PROFILE'})")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_USER'})")
     @PutMapping("/{userId}")
     public ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
         var result = userService.updateUser(userId, request);
@@ -105,6 +113,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_USER'})")
     @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> disableUser(@PathVariable String id) {
         userService.disableUserById(id);
@@ -114,6 +123,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_USER'})")
     @PutMapping("/activate/{id}")
     public ApiResponse<Boolean> activateUser(@PathVariable String id) {
         userService.activateUserById(id);
@@ -123,6 +133,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'MAP_USER_CAR', 'EDIT_USER', 'SIGN_SERVICE'})")
     @PutMapping("/car-mapping")
     public ApiResponse<Boolean> userCarMapping(@RequestBody @Valid UserCarMappingRequest request){
         return ApiResponse.<Boolean>builder()
@@ -131,26 +142,31 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'MAP_USER_CAR', 'EDIT_USER'})")
+    @PutMapping("/remove-car-mapping")
+    public ApiResponse<Boolean> userCarRemoveMapping(@RequestBody @Valid UserCarMappingRequest request){
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(userService.userCarRemoveMapping(request))
+                .build();
+    }
 
-    @PreAuthorize("hasRole('ADMIN')")
+
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_USER'})")
     @DeleteMapping("/{id}")
     public ApiResponse<Boolean> deleteUser(@PathVariable String id) {
         userService.deleteUserById(id);
-        return ApiResponse.<Boolean>builder().code(1000).data(true).build();
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(true)
+                .build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_USER'})")
     @DeleteMapping("/hard/{id}")
     public ApiResponse<Boolean> hardDeleteUser(@PathVariable String id) {
         userService.hardDeleteUserById(id);
         return ApiResponse.<Boolean>builder().code(1000).data(true).build();
     }
 
-    @GetMapping("/get-quantity")
-    public ApiResponse<Integer> getUserQuantity(){
-        return ApiResponse.<Integer>builder()
-                .code(1000)
-                .data(9999)
-                .build();
-    }
 }

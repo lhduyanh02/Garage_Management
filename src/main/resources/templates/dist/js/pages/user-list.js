@@ -45,6 +45,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -488,6 +489,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
 
     Swal.fire({
         title: `Xóa người dùng</br>${name}?`,
+        text: "Xóa người dùng sẽ xóa tất cả tài khoản được liên kết!",
         showDenyButton: false,
         showCancelButton: true,
         confirmButtonText: "Đồng ý",

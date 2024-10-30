@@ -78,6 +78,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: false,
         columnDefs: [
@@ -161,6 +162,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         columns: [
             { data: "number", className: "text-center", width: "5%" },
@@ -264,7 +266,6 @@ $(document).ready(function () {
         type: "GET",
         url: "/api/services/enable-with-price",
         dataType: "json",
-        headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code == 1000 && res.data) {
                 serviceOptionList = res.data;

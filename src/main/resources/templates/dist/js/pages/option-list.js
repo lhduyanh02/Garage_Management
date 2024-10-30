@@ -19,7 +19,6 @@ function clear_modal() {
 
 var dataTable;
 var dataTableCard = $("#data-table-card");
-var userList = [];
 
 $("#tableCollapseBtn").click(function (e) {
     if (dataTableCard.hasClass("collapsed-card")) {
@@ -44,6 +43,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -187,25 +187,6 @@ $(document).ready(function () {
                 });
             });
         },
-    });
-
-    $.ajax({
-        type: "GET",
-        url: "/api/users/with-accounts",
-        dataType: "json",
-        headers: utils.defaultHeaders(),
-        success: function (response) {
-            if(response.code == 1000) {
-                userList = response.data;
-            }
-        }, 
-        error: function(xhr, status, error) {
-            console.log(xhr);
-            Toast.fire({
-                icon: "error",
-                title: utils.getXHRInfo(xhr).message
-            });
-        }
     });
 });
 

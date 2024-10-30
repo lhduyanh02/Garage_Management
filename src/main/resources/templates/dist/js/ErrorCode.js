@@ -97,13 +97,13 @@ const ErrorCode = {
     DELETE_IMAGE_INVALID_HISTORY: { code: 1094, message: "Chỉ có thể xóa hình ảnh của các đơn hàng dịch vụ đang được xử lý", status: 400 },
     NOT_PROCEEDING_HISTORY: { code: 1095, message: "Hành động này chỉ có thể thực hiện trên các đơn dịch vụ đang thi công", status: 400 },
     BLANK_KEY: { code: 1096, message: "Mã (key) không được để trống", status: 400 },
-    BLANK_DESCRIPTION: { code: 1097, message: "Mô tả không được trống", status: 400 },
+    DESCRIPTION_LENGTH: { code: 1097, message: "Mô tả không được trống", status: 400 },
     BLANK_VALUE: { code: 1098, message: "Giá trị không được để trống", status: 400 },
     PARAMETER_NOT_EXIST: { code: 1099, message: "Tham số không tồn tại", status: 400 },
     DETAIL_NOT_EXIST: { code: 1100, message: "Không tìm thấy chi tiết dịch vụ này", status: 400 },
     EMPTY_PERMISSION_LIST: { code: 1101, message: "Danh sách phân quyền không được trống", status: 400 },
     ROLE_CAN_NOT_EDIT: { code: 1102, message: "Vai trò này không được phép chỉnh sửa", status: 400 },
+    BLANK_CUSTOMER: { code: 1103, message: "Khách hàng không được trống", status: 400 },
 };
 
 export default ErrorCode;
-

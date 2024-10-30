@@ -54,6 +54,10 @@ public class AuthenticationService {
     @Value("${app.signer-key}")
     String SIGNER_KEY;
 
+    @NonFinal
+    @Value("${app.token-valid-duration}")
+    Long VALID_DURATION;
+
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         var account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
@@ -83,7 +87,7 @@ public class AuthenticationService {
                 .issuer("lhduyanh.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli())) // Het han sau 1h
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(email))
                 .claim("UUID", buildUUID(email))

@@ -175,8 +175,6 @@ export function checkLoginStatus() {
                     }
                 },
                 error: function () {
-                    console.log("Login status: " + loginStatus);
-                    deleteCookie("authToken");
                     resolve(false);
                 },
             });

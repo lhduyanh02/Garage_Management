@@ -48,6 +48,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -950,7 +951,7 @@ $("#user-mapping-btn").click(function () {
                         return;
                     }
                     clear_modal();
-                    $("#modal_title").text("Chọn hồ sơ");
+                    $("#modal_title").text(`Chọn hồ sơ quản lý xe ${carModel} ${carPlate}`);
                     $(".modal-dialog").addClass("modal-lg");
                     $("#modal_body").append(`
                         <div class="row">
@@ -967,6 +968,7 @@ $("#user-mapping-btn").click(function () {
                             </div>
                             <div class="col-md-6 d-flex">
                                 <button id="user-select-btn" type="button" class="btn btn-sm btn-outline-info ml-auto mt-auto mb-3 px-3">Chọn</button>
+                                <button id="user-remove-btn" type="button" class="btn btn-sm btn-danger ml-2 mt-auto mb-3 px-3" hidden>Gỡ</button>
                             </div>
                         </div>
                         <table id="user-table" class="table table-bordered table-striped">
@@ -1047,7 +1049,7 @@ $("#user-mapping-btn").click(function () {
                                                 html+=` <span class="badge badge-light">&nbsp;${val.numPlate}<br>${val.model.model}</span></br>`
                                             }
                                             else if (val.status == 0){
-                                                html+=` <span class="badge badge-danger">&nbsp;${val.numPlate}<br>${va.model.model}</span></br>`
+                                                html+=` <span class="badge badge-danger">&nbsp;${val.numPlate}<br>${val.model.model}</span></br>`
                                             }
                                         });
                 
@@ -1093,12 +1095,28 @@ $("#user-mapping-btn").click(function () {
                         },
                     });
 
+                    $('#user-table tbody tr').css('cursor', 'pointer');
+
                     $('#user-table tbody').on('click', 'tr', function() {
+                        let listCars = $('#user-table').DataTable().row(this).data().cars;
+
                         if ($(this).hasClass('selected')) {
                             $(this).removeClass('selected');
+                            $('#user-remove-btn').prop('hidden', true);
                         } else {
                             $('#user-table tbody tr').removeClass('selected');
                             $(this).addClass('selected');
+                            if (listCars.length > 0) {
+                                listCars.forEach((car, index) => {
+                                    if (car.id == carId) {
+                                        $('#user-remove-btn').prop('hidden', false);
+                                        return;
+                                    }
+                                    $('#user-remove-btn').prop('hidden', true);
+                                });
+                            } else {
+                                $('#user-remove-btn').prop('hidden', true);
+                            }
                         }
                     });
 
@@ -1138,6 +1156,65 @@ $("#user-mapping-btn").click(function () {
                                                 dataTable.ajax.reload();
                                             }
                                             else {
+                                                Toast.fire({
+                                                    icon: "error",
+                                                    title: response.message
+                                                })
+                                            }
+                                        },
+                                        error: function(xhr, status, error) {
+                                            console.log(xhr);
+                                            Toast.fire({
+                                                icon: "error",
+                                                title: utils.getXHRInfo(xhr).message
+                                            })
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            Toast.fire({
+                                icon: "warning",
+                                title: "Hãy chọn 1 hồ sơ"
+                            })
+                        }
+                    });
+
+                    $("#user-remove-btn").click(function (e) { 
+                        var selectedRow = $('#user-table tbody tr.selected');
+                        let userData = $('#user-table').DataTable().row(selectedRow).data();
+                        
+                        if (selectedRow.length > 0) {
+                            Swal.fire({
+                                icon: "warning",
+                                title: `Gỡ hồ sơ ${userData.name}?`,
+                                html: `Gỡ hồ sơ <b>${userData.name}</b> khỏi xe <b>${carModel} ${carPlate}</b>`,
+                                showDenyButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: "Xác nhận",
+                                cancelButtonText: `Hủy`
+                            }).then((result) => {
+                                /* Read more about isConfirmed, isDenied below */
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: "/api/users/remove-car-mapping",
+                                        headers: utils.defaultHeaders(),
+                                        data: JSON.stringify({
+                                            userId: userData.id,
+                                            carId: carId
+                                        }),
+                                        success: function (response) {
+                                            if(response.code == 1000 && response.data == true) {
+                                                Toast.fire({
+                                                    icon: "success",
+                                                    title: "Đã gỡ người quản lý"
+                                                });
+                                                $("#modal_id").modal("hide");
+                                                dataTable.ajax.reload();
+                                            }
+                                            else {
+                                                console.error(response);
                                                 Toast.fire({
                                                     icon: "error",
                                                     title: response.message
