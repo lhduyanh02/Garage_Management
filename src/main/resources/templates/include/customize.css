@@ -308,3 +308,9 @@ h1, h2, h3, h4, h5{
 .time {
   font-size: 14px !important;
 }
+
+@media (min-width: 768px) {
+  .border-right-md {
+      border-right: 1px solid #ddd; /* Đổi #ddd thành màu mong muốn */
+  }
+}

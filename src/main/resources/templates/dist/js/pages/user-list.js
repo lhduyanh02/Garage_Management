@@ -21,6 +21,7 @@ function clear_modal() {
 var addressOptions = [];
 var dataTable;
 var dataTableCard = $("#data-table-card");
+var userList = [];
 
 $("#tableCollapseBtn").click(function (e) {
     if (dataTableCard.hasClass("collapsed-card")) {
@@ -28,8 +29,27 @@ $("#tableCollapseBtn").click(function (e) {
     }
 });
 
-$(document).ready(function () {
-    dataTable = $("#data-table").DataTable({
+$(document).ready(async function () {
+    await $.ajax({
+        type: "GET",
+        url: "/api/roles",
+        headers: utils.defaultHeaders(),
+        dataType: "json",
+        success: function (res) {
+            if (res.code == 1000) {
+                $('#role-filter').html("");
+                $('#role-filter').append(`<option selected value="all">Tất cả vai trò</option>`)
+                $.each(res.data, function (idx, role) { 
+                    $('#role-filter').append(`<option value="${role.id}">[${role.roleKey}] ${role.roleName}</option>`)
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr);
+        }
+    });
+
+    dataTable = await $("#data-table").DataTable({
         responsive: true,
         lengthChange: true,
         autoWidth: false,
@@ -69,6 +89,7 @@ $(document).ready(function () {
             headers: utils.defaultHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000) {
+                    userList = res.data;
                     var data = [];
                     var counter = 1;
                     res.data.forEach(function (user) {
@@ -227,10 +248,15 @@ $(document).ready(function () {
         },
     });
 
+    dataTable.on('xhr', function () {
+        $('#role-filter').val("all").trigger('change');
+        $('#status-filter').val("all").trigger('change');
+    });
+
     $.ajax({
         type: "GET",
         url: "/api/addresses",
-        headers: {
+        headers: {  
             "Content-Type": "application/json",
             "Authorization": "",
         },
@@ -254,7 +280,55 @@ $(document).ready(function () {
             });
         }
     });
+
+    $('.select2').select2({
+        allowClear: false,
+        theme: "bootstrap",
+        language: "vi",
+        closeOnSelect: true,
+        width: "100%"
+    });
 });
+
+$('#role-filter').on('change', applyFilters);
+$('#status-filter').on('change', applyFilters);
+
+function applyFilters() {
+    console.log(userList);
+    
+    let targetRoleId = $('#role-filter').val();
+    console.log(targetRoleId);
+    
+    let targetStatus = $('#status-filter').val();
+    console.log(targetStatus);
+    
+
+    let filteredData = userList.filter(function (user) {
+        let roleMatch = (targetRoleId === "all" || user.roles.some(role => role.id === targetRoleId));
+
+        let statusMatch = (targetStatus === "all" || user.status == targetStatus);
+
+        return roleMatch && statusMatch;
+    });
+    console.log(filteredData);
+    
+
+    // Chuyển đổi dữ liệu đã lọc thành mảng đối tượng cho DataTable
+    let data = filteredData.map((user, index) => ({
+        number: index + 1,
+        id: user.id,
+        name: user.name,
+        phone: user.phone,
+        gender: user.gender,
+        status: user.status,
+        address: user.address,
+        roles: user.roles,
+        cars: user.cars
+    }));
+    
+    // Cập nhật DataTable với dữ liệu đã lọc
+    $('#data-table').DataTable().clear().rows.add(data).draw();
+}
 
 $("#data-table").on("click", "#editBtn", function () {
     var id = $(this).data("id");
@@ -268,7 +342,11 @@ $("#data-table").on("click", "#editBtn", function () {
         url: "/api/users/" + id,
         dataType: "json",
         headers: utils.defaultHeaders(),
+        beforeSend: function() {
+            Swal.showLoading();
+        },
         success: function (res) {
+            Swal.close();
             if(res.code != 1000) {
                 Toast.fire({
                     icon: "error",
@@ -464,6 +542,7 @@ $("#data-table").on("click", "#editBtn", function () {
 
         },
         error: function(xhr, status, error) {
+            Swal.close();
             console.error(xhr);
             Toast.fire({
                 icon: "error",

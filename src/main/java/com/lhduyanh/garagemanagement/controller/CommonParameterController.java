@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public class CommonParameterController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_PARAM', 'EDIT_PARAM'})")
     @GetMapping("all")
     public ApiResponse<List<CommonParameterResponse>> getAllParam() {
         return ApiResponse.<List<CommonParameterResponse>>builder()
@@ -57,6 +59,7 @@ public class CommonParameterController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_PARAM'})")
     @PutMapping("/{id}")
     public ApiResponse<List<CommonParameterResponse>> updateParameter(@PathVariable String id,
                                                                       @RequestBody @Valid CommonParameterEditRequest request) {

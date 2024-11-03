@@ -35,7 +35,8 @@ public class SecurityConfig {
             "/auth/refreshToken",
             "/accounts/register",
             "/accounts/verify-account",
-            "/accounts/regenerate-otp"
+            "/accounts/regenerate-otp",
+            "/common-param/list-param",
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
@@ -49,6 +50,12 @@ public class SecurityConfig {
             "/accounts/**",
             "/services",
             "/services/**",
+            "/options",
+            "/options/**",
+            "/common-param",
+            "/common-param/**",
+            "/appointment",
+            "/appointment/**",
     };
 
     @Autowired

@@ -14,44 +14,6 @@ var ServiceDataTable;
 $(function () {
     "use strict";
 
-    if (token) {
-        $.ajax({
-            type: "POST",
-            url: "/api/auth/introspect",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            data: JSON.stringify({ token: token }),
-            success: function (res) {
-                if (res.code == 1000) {
-                    if (res.data.valid == false) {
-                        utils.deleteCookie("authToken");
-                    }
-                }
-            },
-            error: function (xhr, status, error) {
-                if (xhr.status >= 500 && xhr.status < 600) {
-                    console.error("Lỗi phía máy chủ");
-                }
-                utils.deleteCookie("authToken");
-            },
-        });
-    }
-
-    $.ajax({
-        url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
-        type: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        success: function (res) {
-            $("#user_quantity").text(res.data);
-        },
-        error: function (xhr, status, error) {
-            // console.error(xhr);
-        },
-    });
-
     $.ajax({
         url: "/api/users/get-quantity", // Thay đổi URL theo API thực tế của bạn
         type: "GET",
@@ -65,6 +27,8 @@ $(function () {
             console.error(xhr);
         },
     });
+
+
 
     ServiceDataTable = $("#services-table").DataTable({
         responsive: true,
@@ -97,60 +61,29 @@ $(function () {
         ],
         ajax: {
             type: "GET",
-            url: "/api/services/...",
+            url: "/api/services/enable-with-price",
             dataType: "json",
-            headers: utils.defaultHeaders(),
+            headers: utils.noAuthHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000 && res.data) {
                     var data = [];
                     var counter = 1;
-                    res.data.forEach(function (role) {
-                        var groupedData = {};
-                        role.permissions.forEach(function (permission) {
-                            // Lấy tên function hoặc gán 'Chưa phân loại' nếu không có function
-                            var functionName = permission.function
-                                ? permission.function.name
-                                : "UNCATEGORIZED";
-
-                            // Nếu function chưa tồn tại trong groupedData, khởi tạo mảng rỗng
-                            if (!groupedData[functionName]) {
-                                groupedData[functionName] = [];
-                            }
-
-                            // Thêm permission vào nhóm tương ứng
-                            groupedData[functionName].push({
-                                id: permission.id,
-                                name: permission.name,
-                                permissionKey: permission.permissionKey,
-                            });
-                        });
-
-                        // Chuyển groupedData thành một mảng để hiển thị dễ dàng
-                        var functions = Object.keys(groupedData).map(function (
-                            funcName
-                        ) {
-                            return {
-                                functionName: funcName,
-                                permissions: groupedData[funcName],
-                            };
-                        });
-
+                    res.data.forEach(function (service) {
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
-                            id: role.id,
-                            roleName: role.roleName,
-                            roleKey: role.roleKey,
-                            status: role.status,
-                            status: role.status,
-                            functions: functions,
+                            id: service.id,
+                            name: service.name,
+                            description: service.description,
+                            status: service.status,
+                            optionPrices: service.optionPrices,
                         });
                     });
 
-                    return data; // Trả về dữ liệu đã được xử lý
+                    return null; // Trả về dữ liệu đã được xử lý
                 } else {
                     Toast.fire({
                         icon: "error",
-                        title: utils.getErrorMessage(res.code),
+                        title: res.message || "Lỗi! Không thể lấy dữ liệu",
                     });
                 }
             },

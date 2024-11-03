@@ -30,7 +30,6 @@ import java.util.List;
 public class UserController {
     UserService userService;
 
-
     @GetMapping
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER'})")
     public ApiResponse<List<UserResponse>> getAllUsers() { // All disabled and no role user
@@ -59,7 +58,11 @@ public class UserController {
     }
 
     @GetMapping("/customers")
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CUSTOMER', 'GET_ALL_USER', 'EDIT_USER', 'MAP_USER_CAR'})")
+    @PreAuthorize("""
+        @securityExpression.hasPermission({'GET_ALL_CUSTOMER', 'GET_ALL_USER', 'EDIT_USER',
+                                            'MAP_USER_CAR',
+                                            'BOOKING', 'EDIT_APPOINTMENT'})
+        """)
     public ApiResponse<List<UserFullResponse>> getAllActiveCustomers() {
         return ApiResponse.<List<UserFullResponse>>builder()
                 .code(1000)
@@ -67,7 +70,7 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER'})")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_USER', 'EDIT_USER', 'BOOKING', 'EDIT_APPOINTMENT'})")
     @GetMapping("/with-accounts")
     public ApiResponse<List<UserWithAccountsResponse>> getAllUserWithAccounts(){
         return ApiResponse.<List<UserWithAccountsResponse>>builder()
@@ -110,6 +113,14 @@ public class UserController {
         return ApiResponse.<UserResponse>builder()
                 .code(1000)
                 .data(result)
+                .build();
+    }
+
+    @PutMapping("/self-update")
+    public ApiResponse<UserFullResponse> userSelfUpdate(@RequestBody @Valid UserUpdateRequest request) {
+        return ApiResponse.<UserFullResponse>builder()
+                .code(1000)
+                .data(userService.userSelfUpdate(request))
                 .build();
     }
 

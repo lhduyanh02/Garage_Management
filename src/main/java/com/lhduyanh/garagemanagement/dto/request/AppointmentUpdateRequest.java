@@ -19,6 +19,8 @@ public class AppointmentUpdateRequest {
     @NotNull(message = "BLANK_APPOINTMENT_TIME")
     LocalDateTime time;
 
+    String contact;
+
     @Size(max = 65000, message = "DESCRIPTION_LENGTH")
     String description;
 

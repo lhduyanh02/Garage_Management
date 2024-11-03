@@ -169,16 +169,6 @@ var register = function () {
         return;
     }
 
-    // console.table({
-    //     'fullname': fullName,
-    //     'phone': phoneNumber,
-    //     'gender': gender,
-    //     'address': address,
-    //     'email': email,
-    //     'password': passwd,
-    //     'retype': passwdRetype
-    // });
-
     if(gender == null) {
         gender = -1;
     }

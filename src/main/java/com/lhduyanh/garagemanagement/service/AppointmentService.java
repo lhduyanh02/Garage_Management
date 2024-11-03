@@ -1,13 +1,9 @@
 package com.lhduyanh.garagemanagement.service;
 
-import com.lhduyanh.garagemanagement.configuration.SecurityExpression;
 import com.lhduyanh.garagemanagement.dto.request.AppointmentCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.AppointmentUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.DetailAppointmentCreationRequest;
-import com.lhduyanh.garagemanagement.dto.response.AccountSimpleResponse;
-import com.lhduyanh.garagemanagement.dto.response.AppointmentResponse;
-import com.lhduyanh.garagemanagement.dto.response.DetailAppointmentResponse;
-import com.lhduyanh.garagemanagement.dto.response.UserWithAccountsResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.*;
 import com.lhduyanh.garagemanagement.enums.*;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -15,15 +11,20 @@ import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.AppointmentMapper;
 import com.lhduyanh.garagemanagement.mapper.DetailAppointmentMapper;
 import com.lhduyanh.garagemanagement.repository.*;
+import jakarta.mail.MessagingException;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
+import org.yaml.snakeyaml.emitter.Emitable;
 
 import java.text.Collator;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -41,11 +42,13 @@ public class AppointmentService {
     OptionRepository optionRepository;
     AppointmentRepository appointmentRepository;
     DetailAppointmentRepository detailAppointmentRepository;
+    CommonParameterRepository commonParameterRepository;
 
     AppointmentMapper appointmentMapper;
     DetailAppointmentMapper detailAppointmentMapper;
-    private final Collator vietnameseCollator;
-    private final SecurityExpression securityExpression;
+    Collator vietnameseCollator;
+
+    EmailSenderService emailSenderService;
 
     public List<AppointmentResponse> getAllAppointments() {
         return appointmentRepository.findAllFetchData()
@@ -76,7 +79,49 @@ public class AppointmentService {
 
                     return response;
                 })
-                .sorted(Comparator.comparing(AppointmentResponse::getTime))
+                .sorted(Comparator.comparing(AppointmentResponse::getTime).reversed())
+                .toList();
+    }
+
+    public List<AppointmentResponse> getAllAppointmentByCustomerId(String customerId, Boolean latestOrder) {
+        if (customerId == null || customerId.isEmpty()) {
+            customerId = getUUIDFromJwt();
+        }
+
+        if (latestOrder == null) {
+            latestOrder = true;
+        }
+
+        return appointmentRepository.findAllByCustomerId(customerId)
+                .stream()
+                .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
+                .map(appointment -> {
+                    AppointmentResponse response = appointmentMapper.toResponse(appointment);
+
+                    UserWithAccountsResponse customer = response.getCustomer();
+                    List<AccountSimpleResponse> acc1 = customer.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList();
+                    customer.setAccounts(acc1);
+                    response.setCustomer(customer);
+
+                    if (response.getAdvisor() != null) {
+                        UserWithAccountsResponse advisor = response.getAdvisor();
+                        List<AccountSimpleResponse> acc2 = advisor.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList();
+                        advisor.setAccounts(acc2);
+                        response.setAdvisor(advisor);
+                    }
+
+                    List<DetailAppointmentResponse> details = detailAppointmentRepository.findAllByAppointmentId(response.getId())
+                            .stream()
+                            .map(detailAppointmentMapper::toResponse)
+                            .sorted(Comparator.comparing(DetailAppointmentResponse::getServiceName, vietnameseCollator))
+                            .toList();
+
+                    response.setDetails(details);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(AppointmentResponse::getTime,
+                        latestOrder ? Comparator.naturalOrder() : Comparator.reverseOrder()))
                 .toList();
     }
 
@@ -109,7 +154,7 @@ public class AppointmentService {
 
                     return response;
                 })
-                .sorted(Comparator.comparing(AppointmentResponse::getTime))
+                .sorted(Comparator.comparing(AppointmentResponse::getTime).reversed())
                 .toList();
     }
 
@@ -172,15 +217,18 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse newAppointment(AppointmentCreationRequest appointmentRequest) {
+    public AppointmentResponse newAppointmentByStaff(AppointmentCreationRequest appointmentRequest) {
         Appointment appointment = new Appointment();
+
+        if (appointmentRequest.getCustomerId() == null || appointmentRequest.getCustomerId().isEmpty()) {
+            throw new AppException(ErrorCode.BLANK_USER);
+        }
 
         appointmentRepository.findAllByCustomerId(appointmentRequest.getCustomerId())
                 .stream()
                 .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
                 .peek(a -> {
                     if (a.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode()) {
-                        log.error("having pending appointment");
                         throw new AppException(ErrorCode.HAVE_PENDING_APPOINTMENT);
                     }
                     if (a.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
@@ -198,15 +246,34 @@ public class AppointmentService {
 
         appointment.setCustomer(customer);
 
-        if (appointmentRequest.getAdvisorId() != null && !appointmentRequest.getAdvisorId().isEmpty()) {
-            User advisor = userRepository.findByIdFullInfo(appointmentRequest.getAdvisorId())
-                    .filter(u -> (u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode()))
-                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if (advisor.getStatus() == UserStatus.BLOCKED.getCode()) {
-                throw new AppException(ErrorCode.BLOCKED_USER);
-            }
+        User advisor = userRepository.findByIdFullInfo(appointmentRequest.getAdvisorId())
+                .filter(u -> (u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode()))
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-            appointment.setAdvisor(advisor);
+        if (advisor.getStatus() == UserStatus.BLOCKED.getCode()) {
+            throw new AppException(ErrorCode.BLOCKED_USER);
+        }
+
+        appointment.setAdvisor(advisor);
+
+        String startStr = commonParameterRepository.findByKey("OPENING_TIME").get().getValue();
+        String endStr = commonParameterRepository.findByKey("CLOSING_TIME").get().getValue();
+
+        LocalTime openingTime = null;
+        LocalTime closingTime = null;
+
+        try {
+            openingTime = LocalTime.parse(startStr, DateTimeFormatter.ofPattern("HH:mm"));
+            closingTime = LocalTime.parse(endStr, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+            throw new AppException(ErrorCode.INVALID_TIME_FORMAT);
+        }
+
+        LocalTime selectedTime = appointmentRequest.getTime().toLocalTime();
+
+        if (selectedTime.isBefore(openingTime) || selectedTime.isAfter(closingTime)) {
+            throw new AppException(ErrorCode.CLOSING_TIME_APPOINTMENT);
         }
 
         if (appointmentRequest.getTime().isBefore(LocalDateTime.now().plusMinutes(10))) {
@@ -217,6 +284,7 @@ public class AppointmentService {
             throw new AppException(ErrorCode.DETAIL_LIST_EMPTY);
         }
 
+        appointment.setContact(appointmentRequest.getContact());
         appointment.setTime(appointmentRequest.getTime());
         appointment.setCreateAt(LocalDateTime.now());
         appointment.setStatus(appointmentRequest.getStatus());
@@ -229,15 +297,93 @@ public class AppointmentService {
     }
 
     @Transactional
+    public AppointmentResponse newAppointmentByCustomer(AppointmentCreationRequest request) {
+        Appointment appointment = new Appointment();
+
+        request.setCustomerId(getUUIDFromJwt());
+        if (request.getCustomerId() == null || request.getCustomerId().isEmpty()) {
+            throw new AppException(ErrorCode.BLANK_USER);
+        }
+
+        appointmentRepository.findAllByCustomerId(request.getCustomerId())
+                .stream()
+                .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
+                .peek(a -> {
+                    if (a.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode()) {
+                        throw new AppException(ErrorCode.HAVE_PENDING_APPOINTMENT);
+                    }
+                    if (a.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
+                        throw new AppException(ErrorCode.HAVE_UPCOMING_APPOINTMENT);
+                    }
+                }).toList();
+
+        User customer = userRepository.findByIdFullInfo(request.getCustomerId())
+                .filter(u -> (u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode()))
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (customer.getStatus() == UserStatus.BLOCKED.getCode()) {
+            throw new AppException(ErrorCode.BLOCKED_USER);
+        }
+
+        boolean hasRoleCustomer = customer.getRoles().stream()
+                .anyMatch(r -> r.getRoleKey().equals("CUSTOMER"));
+
+        if (!hasRoleCustomer) {
+            throw new AppException(ErrorCode.USER_NOT_CUSTOMER);
+        }
+
+        appointment.setCustomer(customer);
+
+        String startStr = commonParameterRepository.findByKey("OPENING_TIME").get().getValue();
+        String endStr = commonParameterRepository.findByKey("CLOSING_TIME").get().getValue();
+
+        LocalTime openingTime = null;
+        LocalTime closingTime = null;
+
+        try {
+            openingTime = LocalTime.parse(startStr, DateTimeFormatter.ofPattern("HH:mm"));
+            closingTime = LocalTime.parse(endStr, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+            throw new AppException(ErrorCode.INVALID_TIME_FORMAT);
+        }
+
+        LocalTime selectedTime = request.getTime().toLocalTime();
+
+        if (selectedTime.isBefore(openingTime) || selectedTime.isAfter(closingTime)) {
+            throw new AppException(ErrorCode.CLOSING_TIME_APPOINTMENT);
+        }
+
+        if (request.getTime().isBefore(LocalDateTime.now().plusMinutes(10))) {
+            throw new AppException(ErrorCode.MINIMUM_SCHEDULE_TIME);
+        }
+
+        if (request.getDetails().isEmpty()) {
+            throw new AppException(ErrorCode.DETAIL_LIST_EMPTY);
+        }
+
+        appointment.setContact(request.getContact());
+        appointment.setTime(request.getTime());
+        appointment.setCreateAt(LocalDateTime.now());
+        appointment.setStatus(0);
+        appointment.setDescription(request.getDescription());
+        appointment = appointmentRepository.save(appointment);
+
+        AppointmentResponse response = updateListDetailAppointment(appointment.getId(), request.getDetails(), false);
+
+        return response;
+    }
+
+    @Transactional
     public AppointmentResponse updateListDetailAppointment(String id, List<DetailAppointmentCreationRequest> listDetailRequest, boolean hardUpdate) {
         Appointment appointment = appointmentRepository.findByIdFetchData(id)
                 .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
 
         if (appointment.getStatus() == AppointmentStatus.MISSED.getCode() ||
-            appointment.getStatus() == AppointmentStatus.COMPLETED.getCode() ||
-            appointment.getStatus() == AppointmentStatus.CANCELLED.getCode()) {
-                throw new AppException(ErrorCode.PAST_APPOINTMENT);
+                appointment.getStatus() == AppointmentStatus.COMPLETED.getCode() ||
+                appointment.getStatus() == AppointmentStatus.CANCELLED.getCode()) {
+            throw new AppException(ErrorCode.PAST_APPOINTMENT);
         }
 
         if (!hardUpdate) {
@@ -305,10 +451,6 @@ public class AppointmentService {
             throw new AppException(ErrorCode.PAST_APPOINTMENT);
         }
 
-        if (request.getTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.INVALID_TIME);
-        }
-
         if (request.getDetails().isEmpty()) {
             throw new AppException(ErrorCode.DETAIL_LIST_EMPTY);
         }
@@ -317,10 +459,36 @@ public class AppointmentService {
             if (appointment.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
                 throw new AppException(ErrorCode.CONFIRMED_APPOINTMENT);
             }
+            String uid = getUUIDFromJwt();
+            if (!uid.equals(appointment.getCustomer().getId())) {
+                throw new AppException(ErrorCode.NOT_YOUR_APPOINTMENT);
+
+            }
+        }
+
+        String startStr = commonParameterRepository.findByKey("OPENING_TIME").get().getValue();
+        String endStr = commonParameterRepository.findByKey("CLOSING_TIME").get().getValue();
+
+        LocalTime openingTime = null;
+        LocalTime closingTime = null;
+
+        try {
+            openingTime = LocalTime.parse(startStr, DateTimeFormatter.ofPattern("HH:mm"));
+            closingTime = LocalTime.parse(endStr, DateTimeFormatter.ofPattern("HH:mm"));
+        } catch (DateTimeParseException e) {
+            e.printStackTrace();
+            throw new AppException(ErrorCode.INVALID_TIME_FORMAT);
+        }
+
+        LocalTime selectedTime = request.getTime().toLocalTime();
+
+        if (selectedTime.isBefore(openingTime) || selectedTime.isAfter(closingTime)) {
+            throw new AppException(ErrorCode.CLOSING_TIME_APPOINTMENT);
         }
 
         appointment.setTime(request.getTime());
         appointment.setDescription(request.getDescription());
+        appointment.setContact(request.getContact());
 
         if (appointment.getAdvisor() == null) {
             String uid = getUUIDFromJwt();
@@ -335,10 +503,18 @@ public class AppointmentService {
         return updateListDetailAppointment(id, request.getDetails(), hardUpdate);
     }
 
-    public Boolean updateAppointmentStatus(String id, int status) {
+    public Boolean updateAppointmentStatus(String id, int status){
         Appointment appointment = appointmentRepository.findById(id)
                 .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
+
+        if (appointment.getAdvisor() == null) {
+            String uid = getUUIDFromJwt();
+            if (!uid.equals(appointment.getCustomer().getId())) {
+                User advisor = userRepository.findById(uid).orElse(null);
+                appointment.setAdvisor(advisor);
+            }
+        }
 
         if (appointment.getStatus() == AppointmentStatus.MISSED.getCode() ||
                 appointment.getStatus() == AppointmentStatus.COMPLETED.getCode() ||
@@ -349,19 +525,76 @@ public class AppointmentService {
         if (status == AppointmentStatus.UPCOMING.getCode()) {
             if (appointment.getStatus() != AppointmentStatus.PENDING_CONFIRM.getCode()) {
                 throw new AppException(ErrorCode.CONFIRMED_APPOINTMENT);
-            }
-            else {
+            } else {
                 appointment.setStatus(AppointmentStatus.UPCOMING.getCode());
-                appointmentRepository.save(appointment);
-                return true;
+
+                List<Account> acc = appointment.getCustomer().getAccounts()
+                        .stream()
+                        .filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode())
+                        .toList();
+                if (!acc.isEmpty()) {
+                    String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+
+                    String body = """
+                            <p>Xin chào, <strong>{0}</strong>,</p>
+                            <p>Yêu cầu đặt hẹn vào lúc {1} của bạn đã được xác nhận!</p>
+                            <p><u>Thông tin chi tiết lịch hẹn:</u></p>
+                            <ul>
+                                <li><b>Thời gian:</b> {2}</li>
+                                <li><b>Địa chỉ:</b> {3}</li>
+                                <li><b>Liên hệ:</b> {4}</li>
+                                <li><b>Ghi chú của khách hàng:</b><br> {5}</li>
+                            </ul>
+                            
+                            <p><u>Dịch vụ đã chọn:</u></p>
+                            <ul>
+                            {7}
+                            </ul>
+                            <p>Xin cảm ơn.</p>
+                            <p>{6},<br><i>Trân trọng.</i></p>
+                            """;
+
+                    // 0 là tên customer, 1 là creatAt, 2 là time, 3 địa chỉ cơ sở, 4 là liên hệ, 5 là ghi chú
+                    String customerName = appointment.getCustomer().getName();
+
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+                    String createAt = appointment.getCreateAt().format(formatter);
+                    String time = appointment.getTime().format(formatter);
+
+                    String facilityAddress = commonParameterRepository.findByKey("FACILITY_ADDRESS").get().getValue();
+                    String facilityPhone = commonParameterRepository.findByKey("FACILITY_PHONE_NUMBER").get().getValue();
+                    String description =  appointment.getDescription().isEmpty() ? "Không có ghi chú." : appointment.getDescription().replace("\n", "<br>");;
+
+                    String services = "";
+                    List<DetailAppointment> details = detailAppointmentRepository.findAllByAppointmentId(appointment.getId());
+                    if (!details.isEmpty()) {
+                        for (DetailAppointment detail : details) {
+                            String optionHtml = "";
+                            if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                                optionHtml = "<i>("+detail.getOptionName()+")</i>";
+                            }
+                            services += "<li><b>"+detail.getServiceName()+"</b> "+optionHtml+"</li>";
+                        }
+                    }
+
+                    String htmlBody = MessageFormat.format(body, customerName, createAt, time, facilityAddress, facilityPhone, description, facilityName, services);
+
+                    emailSenderService.sendHtmlEmail(acc.getFirst().getEmail(), "[" + facilityName.toUpperCase() + "] THÔNG BÁO ĐẶT HẸN", htmlBody);
+                }
             }
         } else if (status < 1 || status > 4) {
             throw new AppException(ErrorCode.INVALID_STATUS);
         } else {
             appointment.setStatus(status);
-            appointmentRepository.save(appointment);
-            return true;
         }
+
+        appointmentRepository.save(appointment);
+        return true;
     }
 
+    public void deleteappointment(String id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
+        appointmentRepository.delete(appointment);
+    }
 }

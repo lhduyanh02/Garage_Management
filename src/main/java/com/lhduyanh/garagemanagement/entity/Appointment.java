@@ -33,6 +33,8 @@ public class Appointment {
     @JoinColumn(name = "advisor_id")
     User advisor;
 
+    String contact;
+
     @Column(columnDefinition = "TEXT")
     String description;
 

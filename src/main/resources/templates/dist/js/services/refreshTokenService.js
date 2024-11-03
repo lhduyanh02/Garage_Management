@@ -21,12 +21,12 @@ function refreshToken() {
     }
 
     let expirationTime = localStorage.getItem("tokenExpirationTime");
-    
+
     if (expirationTime) {
         const currentTime = Date.now();
-        expirationTime = parseInt(expirationTime);
+        expirationTime = parseInt(expirationTime, 10);
 
-        if ((expirationTime - currentTime) > 60 * 60 * 1000) {
+        if ((expirationTime - currentTime) > (3 * 60 * 60 * 1000)) {
             // console.log("Token already refreshed"); 
             return;
         }
@@ -46,7 +46,7 @@ function refreshToken() {
                 console.log("**Token refreshed successfully.**");
 
                 // Lưu thời gian hết hạn vào localStorage (1 ngày)
-                const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 1 ngày
+                const expirationTime = Date.now() + (24 * 60 * 60 * 1000); // 1 ngày
                 localStorage.setItem("tokenExpirationTime", expirationTime);
             } else {
                 console.log("Failed to refresh token.");
@@ -63,4 +63,4 @@ refreshToken();
 
 setInterval(() => {
     refreshToken();
-}, 5*60*1000);
+}, 1*60*60*1000);

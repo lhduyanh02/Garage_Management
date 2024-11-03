@@ -16,11 +16,11 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppointmentCreationRequest {
 
-    @NotNull(message = "BLANK_CUSTOMER")
-    @NotBlank(message = "BLANK_CUSTOMER")
     String customerId;
 
     String advisorId;
+
+    String contact;
 
     @NotNull(message = "BLANK_APPOINTMENT_TIME")
     LocalDateTime time;

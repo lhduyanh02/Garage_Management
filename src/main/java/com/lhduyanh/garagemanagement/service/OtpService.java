@@ -64,27 +64,5 @@ public class OtpService {
         }
         return false;
 
-//        if(otpOptional.isPresent()){
-//            OTPCode otp = otpOptional.get();
-//            String s = "";
-//            s += "Email: " + otp.getEmail();
-//            s += "\nGenerated Time: " + otp.getGeneratedTime();
-//            s += "\nOTP Code: " + otp.getOtpCode();
-//            s += "\nIs Verified: " + otp.isVerified();
-//            log.info(s);
-//
-//            if(otp.getEmail().equals(email) && otp.getOtpCode().equals(otpCode)
-//                    && Duration.between(otp.getGeneratedTime(),LocalDateTime.now()).getSeconds() <= (duration * 60)){
-//                return true;
-//            }
-//            else
-//            {
-//                return false;
-//            }
-//        }
-//        else
-//        {
-//            return false;
-//        }
     }
 }

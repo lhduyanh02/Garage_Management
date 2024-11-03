@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Car {
+public class  Car {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;

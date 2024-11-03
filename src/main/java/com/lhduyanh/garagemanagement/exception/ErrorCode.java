@@ -138,9 +138,14 @@ public enum ErrorCode {
     PAST_APPOINTMENT(1110, "This appointment has already passed and cannot be modified", HttpStatus.BAD_REQUEST),
     CONFIRMED_APPOINTMENT(1111, "This appointment has been confirmed, and cannot be modified", HttpStatus.BAD_REQUEST),
 
-    USER_NOT_MANAGE_CAR(1112, "Selected user not manage this car", HttpStatus.BAD_REQUEST),
+    USER_NOT_MANAGE_CAR(1112, "User not manage this car", HttpStatus.BAD_REQUEST),
     INVALID_STATUS(1113, "Invalid status", HttpStatus.BAD_REQUEST),
     INVALID_TIME(1114, "Invalid time of appointment, the time must be in future", HttpStatus.BAD_REQUEST),
+    INVALID_TIME_FORMAT(1115, "Invalid time format", HttpStatus.BAD_REQUEST),
+    CLOSING_TIME_APPOINTMENT(1116, "Your selected time is in closing time", HttpStatus.BAD_REQUEST),
+
+    USER_NOT_CUSTOMER(1117, "This user does not have role customer", HttpStatus.BAD_REQUEST),
+    NOT_YOUR_APPOINTMENT(1118, "This appointment is not your, you can not update it", HttpStatus.BAD_REQUEST),
 
     ;
 

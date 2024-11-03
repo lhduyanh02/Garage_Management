@@ -24,7 +24,6 @@ public class OptionController {
 
     OptionService optionService;
 
-    @PermitAll
     @GetMapping
     public ApiResponse<List<OptionSimpleResponse>> getAllEnableOption() {
         return ApiResponse.<List<OptionSimpleResponse>>builder()

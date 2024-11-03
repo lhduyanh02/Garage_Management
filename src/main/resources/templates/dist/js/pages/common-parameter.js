@@ -241,3 +241,7 @@ $("#data-table").on("click", "#editBtn", async function () {
         },
     });
 });
+
+
+// thêm bộ chọn giờ cho giờ mở và đóng cửa
+// https://stackoverflow.com/questions/45323357/boostrap-datetimepicker-show-time-only

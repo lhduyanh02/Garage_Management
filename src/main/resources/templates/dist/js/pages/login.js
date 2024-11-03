@@ -22,8 +22,27 @@ const getCookie = (name) => {
 // Example: Get the value of the cookie named "authToken"
 
 function login() {
-  let email = $("#email").val();
+  let email = $("#email").val().trim();
   let password = $("#password").val();
+  
+  if (email == null) {
+    Swal.fire({
+      icon: "warning",
+      title: "Vui lòng điền email",
+      showCancelButton: false
+    });
+    return;
+  }
+
+  if (password == null) {
+    Swal.fire({
+      icon: "warning",
+      title: "Vui lòng điền mật khẩu",
+      showCancelButton: false
+    });
+    return;
+  }
+
   // Lấy redirect path
   let url = window.location.href;
   let hashIndex = url.indexOf("#");
@@ -38,9 +57,11 @@ function login() {
     data: JSON.stringify({ email: email, password: password }),
     success: function (res) {
       if (res.code === 1000 && res.data.authenticated) {
-        const expirationTime = Date.now() + 60 * 60 * 1000; // 60 phút
-        localStorage.setItem("tokenExpirationTime", expirationTime);
-        window.location.href = path || '/';
+        let expirationTime = (Date.now() + (24 * 60 * 60 * 1000)); // 1 ngày
+        setTimeout(() => {;
+          localStorage.setItem("tokenExpirationTime", expirationTime);
+          window.location.href = path || '/';
+        }, 500)
        
       } else {
         alert(res.code);

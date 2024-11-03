@@ -6,7 +6,6 @@ import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceSimpleResponse;
 import com.lhduyanh.garagemanagement.service.ServicesService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

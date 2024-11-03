@@ -30,6 +30,7 @@ public class AppointmentController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_APPOINTMENT'})")
     @GetMapping
     public ApiResponse<List<AppointmentResponse>> getAllAppointments() {
         return ApiResponse.<List<AppointmentResponse>>builder()
@@ -38,6 +39,16 @@ public class AppointmentController {
                 .build();
     }
 
+    @GetMapping("/customer")
+    public ApiResponse<List<AppointmentResponse>> getAllAppointments(@RequestParam(value = "customer", required = false) String customerId, @RequestParam(value = "sorter", required = false) Boolean sorter) {
+        return ApiResponse.<List<AppointmentResponse>>builder()
+                .code(1000)
+                .data(appointmentService.getAllAppointmentByCustomerId(customerId, sorter))
+                .build();
+    }
+
+
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_APPOINTMENT', 'STAFF_BOOKING'})")
     @GetMapping("/by-time")
     public ApiResponse<List<AppointmentResponse>> getAllAppointmentsByTimeRange(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
         return ApiResponse.<List<AppointmentResponse>>builder()
@@ -46,6 +57,7 @@ public class AppointmentController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_APPOINTMENT', 'STAFF_BOOKING'})")
     @GetMapping("/by-create-time")
     public ApiResponse<List<AppointmentResponse>> getAllAppointmentsByCreateTimeRange(@RequestParam LocalDateTime start, @RequestParam LocalDateTime end) {
         return ApiResponse.<List<AppointmentResponse>>builder()
@@ -54,11 +66,20 @@ public class AppointmentController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'STAFF_BOOKING'})")
     @PostMapping
-    public ApiResponse<AppointmentResponse> newAppointment(@RequestBody AppointmentCreationRequest request) {
+    public ApiResponse<AppointmentResponse> newAppointmentByStaff(@RequestBody AppointmentCreationRequest request) {
         return ApiResponse.<AppointmentResponse>builder()
                 .code(1000)
-                .data(appointmentService.newAppointment(request))
+                .data(appointmentService.newAppointmentByStaff(request))
+                .build();
+    }
+
+    @PostMapping("/customer-booking")
+    public ApiResponse<AppointmentResponse> newAppointmentByCustomer(@RequestBody AppointmentCreationRequest request) {
+        return ApiResponse.<AppointmentResponse>builder()
+                .code(1000)
+                .data(appointmentService.newAppointmentByCustomer(request))
                 .build();
     }
 
@@ -71,11 +92,28 @@ public class AppointmentController {
                 .build();
     }
 
-    @PutMapping("/staff-update-detail/{id}")
-    public ApiResponse<AppointmentResponse> updateAppointment(@PathVariable String id, @RequestBody AppointmentUpdateRequest request) {
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_APPOINTMENT'})")
+    @PutMapping("/staff-update/{id}")
+    public ApiResponse<AppointmentResponse> updateAppointmentByStaff(@PathVariable String id, @RequestBody AppointmentUpdateRequest request) {
         return ApiResponse.<AppointmentResponse>builder()
                 .code(1000)
                 .data(appointmentService.updateAppointment(id, request, true))
+                .build();
+    }
+
+    @PutMapping("/customer-update/{id}")
+    public ApiResponse<AppointmentResponse> updateAppointmentByCustomer(@PathVariable String id, @RequestBody AppointmentUpdateRequest request) {
+        return ApiResponse.<AppointmentResponse>builder()
+                .code(1000)
+                .data(appointmentService.updateAppointment(id, request, false))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteAppointment(@PathVariable String id) {
+        appointmentService.deleteappointment(id);
+        return ApiResponse.<Void>builder()
+                .code(1000)
                 .build();
     }
 

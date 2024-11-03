@@ -10,10 +10,6 @@ import java.util.Optional;
 
 public interface CarRepository extends JpaRepository<Car, String> {
 
-    boolean existsByNumPlate(String numPlate);
-
-    boolean existsByNumPlateAndPlateTypeIdAndStatus(String numPlate, int plateTypeId, int status);
-
     List<Car> findByNumPlateAndPlateTypeId(String numPlate, int plateTypeId);
 
     List<Car> findAllByStatus(int status);
@@ -27,5 +23,12 @@ public interface CarRepository extends JpaRepository<Car, String> {
                          @Param("plateTypeId") Integer plateTypeId,
                          @Param("brandId") Integer brandId,
                          @Param("modelId") Integer modelId);
+
+    @Query("""
+        SELECT c FROM Car c
+        JOIN c.users u 
+        WHERE u.id = :id
+    """)
+    List<Car> findAllByManager(@Param("id") String managerId);
 
 }

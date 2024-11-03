@@ -18,6 +18,7 @@ public class AppointmentResponse {
     LocalDateTime createAt;
     UserWithAccountsResponse customer;
     UserWithAccountsResponse advisor;
+    String contact;
     String description;
     int status;
     List<DetailAppointmentResponse> details;

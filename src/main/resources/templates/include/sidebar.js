@@ -11,15 +11,25 @@ function active_nav_link() {
     let current = window.location.href
         .split("/")
         .slice(-1)[0]
-        .replace(/#$/, "");
+        .split("#")[0];;
     let elements = document.querySelectorAll(".nav-link");
 
     elements.forEach(function (el) {
-        var element = el.getAttribute("id");
-        if (element && element.includes(current) && current !== "") {
-            el.classList.add("active");
-            var id = element.split("_")[0];
-            document.getElementById(id).classList.add("active");
+        var element = el.getAttribute("id"); // lấy id các thẻ nav item
+
+        if (element && element.includes(current) && current !== "") { //nếu id thẻ nav item nào có chứa url
+            var ids = element.split("_");
+
+            if (ids.length > 1) {
+                if (current === ids[1]) {
+                    $(`#${ids[0]}`).addClass("active");
+                    $(`#${element}`).addClass("active");
+                }
+            } else {
+                if (current === ids[0]) {
+                    $(`#${ids[0]}`).addClass("active");
+                }
+            }
         } else if (
             element &&
             element.includes(current) &&

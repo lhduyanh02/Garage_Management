@@ -82,7 +82,7 @@ $(document).ready(function () {
         },
         buttons: false,
         columnDefs: [
-            { orderable: false, targets: 0 },
+            { orderable: false, targets: [0, 2] },
             { targets: 0, className: "text-center" },
             { targets: 1, className: "text-center" },
         ],
@@ -125,6 +125,9 @@ $(document).ready(function () {
                 },
             },
         ],
+        headerCallback: function (thead) {
+            $(thead).find("th").addClass("text-center"); // Thêm class 'text-center' cho header
+        },
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
@@ -756,6 +759,15 @@ function openCarSelectionTable() {
 }
 
 async function openUserSelectionTable() {
+    if (selectedInvoice.status != 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Không thể chỉnh sửa",
+            text: "Hóa đơn đã đóng, không thể chỉnh sửa!",
+        });
+        return;
+    }
+
     try {
         if (customerList.length == 0) {
             const res = await $.ajax({
@@ -2224,8 +2236,20 @@ $("#new-history-btn").click(async function () {
     }
     let res;
 
-    console.log(selectedCar.id, userInfo.id);
-    
+    let warning = Swal.fire({
+        icon: "question",
+        title: "Thêm mới đơn dịch vụ?",
+        html: "Đơn dịch vụ sau khi được thêm sẽ <b>không được xóa</b>",
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy",
+        reverseButtons: true
+    });
+
+    if (!warning.isConfirmed) {
+        return;
+    }
 
     try {
         res = await $.ajax({
@@ -2993,6 +3017,7 @@ async function loadPreImageByHistoryId() {
             timer: 2000,
             showConfirmButton: false,
         });
+        return;
     }
     
     Swal.close();
@@ -3035,6 +3060,7 @@ async function loadPostImageByHistoryId() {
             timer: 2000,
             showConfirmButton: false,
         });
+        return;
     }
     
     Swal.close();
@@ -3330,13 +3356,13 @@ async function showConfirmOrderDialog() {
                 <td class="col-6" id="modal-total-amount">${utils.formatVNDCurrency(selectedInvoice.totalAmount)}</td>
             </tr>
             <tr class="row w-100">
+                <th class="col-6">Thuế (%):</th>
+                <td class="col-6" id="modal-tax">${selectedInvoice.tax} %</td>
+            </tr>
+            <tr class="row w-100">
                 <th class="col-6">Giảm giá (%):</th>
                 <td class="col-6" id="modal-discount">${selectedInvoice.discount} %</td>
             </tr>
-            <!-- <tr class="row w-100">
-                <th class="col-6">Thuế (%):</th>
-                <td class="col-6">0</td>
-            </tr> -->
             <tr class="row w-100">
                 <th class="col-6">Tổng thanh toán:</th>
                 <td class="col-6" id="modal-payable-amount">${utils.formatVNDCurrency(selectedInvoice.payableAmount)}</td>

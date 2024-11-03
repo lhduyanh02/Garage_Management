@@ -170,7 +170,6 @@ export function checkLoginStatus() {
                     if (res.code == 1000 && res.data.valid) {
                         resolve(true);
                     } else {
-                        deleteCookie("authToken");
                         resolve(false);
                     }
                 },
@@ -235,6 +234,13 @@ export function defaultHeaders() {
     return {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + getCookie("authToken")
+    };
+}
+
+export function noAuthHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": ""
     };
 }
 
@@ -345,4 +351,24 @@ export function getHashParam(key) {
     const value = params.has(key) ? params.get(key) : null;
 
     return value !== null && value !== "" ? value : null;
+}
+
+// Thay thế các ký tự tiếng việt thành tiếng anh
+export function removeVietnameseTones(str) {
+    const tones = [
+        { base: 'a', letters: 'áàãảạâấầẫẩậăắằẵẳạ' },
+        { base: 'e', letters: 'éèẽẻẹêếềễểệ' },
+        { base: 'i', letters: 'íìĩỉị' },
+        { base: 'o', letters: 'óòõỏọôốồỗổộơớờỡởợ' },
+        { base: 'u', letters: 'úùũủụưứừữửự' },
+        { base: 'y', letters: 'ýỳỹỷỵ' },
+        { base: 'd', letters: 'đ' },
+    ];
+    
+    tones.forEach(({ base, letters }) => {
+        const regex = new RegExp(`[${letters}]`, 'g');
+        str = str.replace(regex, base);
+    });
+    
+    return str;
 }

@@ -7,6 +7,7 @@ import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
 import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
 import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
 import com.lhduyanh.garagemanagement.entity.*;
+import com.lhduyanh.garagemanagement.enums.CarStatus;
 import com.lhduyanh.garagemanagement.enums.HistoryStatus;
 import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -49,10 +51,51 @@ public class HistoryService {
         return response;
     }
 
+    public List<HistoryResponse> customerGetAllHistoryByCarId(String id) {
+        String uid = getUUIDFromJwt();
+
+        List<Car> cars = carRepository.findAllByManager(uid);
+        boolean hasCar = cars.stream().anyMatch(c -> c.getId().equals(id));
+
+        if (!hasCar) {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
+        List<HistoryResponse> response = historyRepository.findAllHistoryByCarId(id)
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .toList();
+
+        return response;
+    }
+
     public HistoryWithDetailsResponse getHistoryById(String id) {
         HistoryWithDetailsResponse response = historyMapper.toHistoryWithDetailsResponse(historyRepository.findByIdFetchDetails(id)
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS)));
+
+        return response;
+    }
+
+    public HistoryWithDetailsResponse customerGetHistoryById(String id) {
+        String uid = getUUIDFromJwt();
+
+        History history = historyRepository.findByIdFetchDetails(id)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        String carID = history.getCar().getId();
+
+        List<Car> cars = carRepository.findAllByManager(uid);
+
+        boolean hasCar = cars.stream().anyMatch(c -> c.getId().equals(carID));
+
+        if (!hasCar) {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
+        HistoryWithDetailsResponse response = historyMapper.toHistoryWithDetailsResponse(history);
 
         return response;
     }

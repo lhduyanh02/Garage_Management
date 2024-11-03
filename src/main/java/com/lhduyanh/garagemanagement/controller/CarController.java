@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR'})")
     @GetMapping("/all")
     public ApiResponse<List<CarResponse>> getAllCar() {
         return ApiResponse.<List<CarResponse>>builder()
@@ -36,6 +38,15 @@ public class CarController {
                 .build();
     }
 
+    @GetMapping("/my-cars")
+    public ApiResponse<List<CarResponse>> getAllManagedCar() {
+        return ApiResponse.<List<CarResponse>>builder()
+                .code(1000)
+                .data(carService.getAllMyManagedCar())
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR'})")
     @GetMapping("/deleted")
     public ApiResponse<List<CarResponse>> getAllDeletedCar() {
         return ApiResponse.<List<CarResponse>>builder()
@@ -93,6 +104,15 @@ public class CarController {
         return ApiResponse.<CarResponse>builder()
                 .code(1000)
                 .data(carService.updateCar(id, request))
+                .build();
+    }
+
+    @PutMapping("customer-update/{id}")
+    public ApiResponse<CarResponse> customerUpdateCar(@PathVariable("id") String id,
+                                              @RequestBody @Valid CarRequest request) {
+        return ApiResponse.<CarResponse>builder()
+                .code(1000)
+                .data(carService.customerUpdateCar(id, request))
                 .build();
     }
 

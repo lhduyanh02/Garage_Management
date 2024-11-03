@@ -104,6 +104,23 @@ const ErrorCode = {
     EMPTY_PERMISSION_LIST: { code: 1101, message: "Danh sách phân quyền không được trống", status: 400 },
     ROLE_CAN_NOT_EDIT: { code: 1102, message: "Vai trò này không được phép chỉnh sửa", status: 400 },
     BLANK_CUSTOMER: { code: 1103, message: "Khách hàng không được trống", status: 400 },
+
+    HAVE_PENDING_APPOINTMENT: { code: 1104, message: "Khách hàng đang có một cuộc hẹn chờ xử lý, không thể tạo cuộc hẹn mới", status: 400 },
+    HAVE_UPCOMING_APPOINTMENT: { code: 1105, message: "Khách hàng đang có một cuộc hẹn đã xác nhận, không thể tạo cuộc hẹn mới", status: 400 },
+    BLOCKED_USER: { code: 1106, message: "Người dùng này đã bị chặn", status: 400 },
+    BLANK_APPOINTMENT_TIME: { code: 1107, message: "Thời gian cuộc hẹn không được để trống", status: 400 },
+    MINIMUM_SCHEDULE_TIME: { code: 1108, message: "Thời gian tối thiểu để đặt hẹn là 10 phút từ bây giờ", status: 400 },
+    APPOINTMENT_NOT_EXIST: { code: 1109, message: "Cuộc hẹn này không tồn tại", status: 400 },
+    PAST_APPOINTMENT: { code: 1110, message: "Cuộc hẹn này đã qua và không thể chỉnh sửa", status: 400 },
+    CONFIRMED_APPOINTMENT: { code: 1111, message: "Cuộc hẹn này đã được xác nhận và không thể chỉnh sửa", status: 400 },
+    USER_NOT_MANAGE_CAR: { code: 1112, message: "Người dùng không quản lý xe này", status: 400 },
+    INVALID_STATUS: { code: 1113, message: "Trạng thái không hợp lệ", status: 400 },
+    INVALID_TIME: { code: 1114, message: "Thời gian cuộc hẹn không hợp lệ, thời gian phải là thời gian trong tương lai", status: 400 },
+    INVALID_TIME_FORMAT: { code: 1115, message: "Định dạng thời gian không hợp lệ", status: 400 },
+    CLOSING_TIME_APPOINTMENT: { code: 1116, message: "Thời gian đã chọn nằm trong giờ đóng cửa", status: 400 },
+    USER_NOT_CUSTOMER: { code: 1117, message: "Người dùng này không có vai trò khách hàng", status: 400 },
+    NOT_YOUR_APPOINTMENT: { code: 1118, message: "Cuộc hẹn này không phải của bạn, bạn không thể cập nhật", status: 400 },
+
 };
 
 export default ErrorCode;

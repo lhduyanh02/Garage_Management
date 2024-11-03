@@ -403,24 +403,6 @@ $("#data-table").on("click", "#editBtn", function () {
                             updateIsSelected(optionList);
                         });
 
-                        $(document).on("click", "#remove-option-btn", function () {
-                                var totalRows = $("#option-wrapper .row").length;
-
-                                if (totalRows == 1) {
-                                    Toast.fire({
-                                        icon: "warning",
-                                        title: "Không thể xóa! Phải có ít nhất một lựa chọn",
-                                    });
-                                    return;
-                                } else {
-                                    $(this).closest(".row").remove();
-
-                                    updateOptions();
-                                    updateIsSelected(optionList);
-                                }
-                            }
-                        );
-
                         $(".price-input").on("input", function () {
                             let inputValue = $(this).val();
 
@@ -433,6 +415,14 @@ $("#data-table").on("click", "#editBtn", function () {
                             updateOptions();
                             updateIsSelected(optionList);
                         });
+                    } else {
+                        console.error(response);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi",
+                            text: utils.getErrorMessage(response.code)
+                        });
+                        return;
                     }
                 },
             });
@@ -495,19 +485,29 @@ $("#data-table").on("click", "#editBtn", function () {
                 updateIsSelected(optionList);
                 updateOptions();
 
-                // Xử lý sự kiện nhấn nút xóa bộ chọn option
-                $(document).on("click", "#remove-option-btn", function () {
-                    $(this).closest(".row").remove();
-                    // Cập nhật lại các tùy chọn sau khi xóa
-                    updateOptions();
-                    updateIsSelected(optionList);
-                });
-
                 // Xử lý sự kiện thay đổi cho các select
                 $(document).on("change", ".option-select", function () {
                     updateOptions();
                     updateIsSelected(optionList);
                 });
+            });
+
+            $(document).off('click', '#remove-option-btn');
+            $(document).on("click", "#remove-option-btn", function (e) {
+                var totalRows = $("#option-wrapper .row").length;
+
+                if (totalRows == 1) {
+                    Toast.fire({
+                        icon: "warning",
+                        title: "Không thể xóa! Phải có ít nhất một lựa chọn",
+                    });
+                    return;
+                } else {
+                    $(this).closest(".row").remove();
+
+                    updateOptions();
+                    updateIsSelected(optionList);
+                }
             });
 
             $("#modal_footer").append(
@@ -1400,29 +1400,6 @@ $("#copy-service-btn").click(function () {
                                     updateIsSelected(optionList);
                                 });
 
-                                $(document).on(
-                                    "click",
-                                    "#remove-option-btn",
-                                    function () {
-                                        var totalRows = $(
-                                            "#option-wrapper .row"
-                                        ).length;
-
-                                        if (totalRows == 1) {
-                                            Toast.fire({
-                                                icon: "warning",
-                                                title: "Không thể xóa! Phải có ít nhất một lựa chọn",
-                                            });
-                                            return;
-                                        } else {
-                                            $(this).closest(".row").remove();
-
-                                            updateOptions();
-                                            updateIsSelected(optionList);
-                                        }
-                                    }
-                                );
-
                                 $(".price-input").on("input", function () {
                                     let inputValue = $(this).val();
 
@@ -1502,18 +1479,6 @@ $("#copy-service-btn").click(function () {
                         updateIsSelected(optionList);
                         updateOptions();
 
-                        // Xử lý sự kiện nhấn nút xóa bộ chọn option
-                        $(document).on(
-                            "click",
-                            "#remove-option-btn",
-                            function () {
-                                $(this).closest(".row").remove();
-                                // Cập nhật lại các tùy chọn sau khi xóa
-                                updateOptions();
-                                updateIsSelected(optionList);
-                            }
-                        );
-
                         // Xử lý sự kiện thay đổi cho các select
                         $(document).on("change", ".option-select", function () {
                             updateOptions();
@@ -1521,6 +1486,25 @@ $("#copy-service-btn").click(function () {
                         });
                     });
 
+                    
+                    $(document).off('click', '#remove-option-btn');
+                    $(document).on("click", "#remove-option-btn", function (e) {
+                        var totalRows = $("#option-wrapper .row").length;
+        
+                        if (totalRows == 1) {
+                            Toast.fire({
+                                icon: "warning",
+                                title: "Không thể xóa! Phải có ít nhất một lựa chọn",
+                            });
+                            return;
+                        } else {
+                            $(this).closest(".row").remove();
+        
+                            updateOptions();
+                            updateIsSelected(optionList);
+                        }
+                    });
+                    
                     $("#modal_footer").append(
                         '<button type="button" form="modal-form" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
                     );

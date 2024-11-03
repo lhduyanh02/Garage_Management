@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -252,6 +253,59 @@ public class UserService {
         return response;
     }
 
+    @Transactional
+    public UserFullResponse userSelfUpdate(UserUpdateRequest request){
+        String id = getUUIDFromJwt();
+        User user = userRepository.findById(id)
+                .filter( u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (request.getPhone() != null) {
+            // Xóa ký tự khoảng trắng , . -
+            request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+            if(request.getPhone().length()<6) {
+                throw new AppException(ErrorCode.INVALID_PHONE_NUMBER);
+            }
+        };
+
+        userMapper.updateUser(user, request);
+
+        if(!(request.getAddressId() <= 0)) {
+            var address = addressRepository.findById(request.getAddressId());
+            address.ifPresent(addr -> {
+                user.setAddress(addr);
+            });
+        } else {
+            user.setAddress(null);
+        }
+
+        if (request.getTelegramId() != null) {
+            user.setTelegramId(request.getTelegramId());
+        }
+
+        userRepository.save(user);
+        Hibernate.initialize(user.getAddress());
+        Hibernate.initialize(user.getRoles());
+        Hibernate.initialize(user.getCars());
+        Hibernate.initialize(user.getAccounts());
+
+        UserFullResponse response = userMapper.toUserFullResponse(user);
+
+        response.setCars(response.getCars().stream()
+                .filter(c -> c.getStatus() == CarStatus.USING.getCode())
+                .toList());
+
+        response.setAccounts(response.getAccounts().stream()
+                .filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode())
+                .toList());
+
+        response.setRoles(response.getRoles().stream()
+                .filter(r -> r.getStatus() == RoleStatus.USING.getCode())
+                .collect(Collectors.toSet()));
+
+        return response;
+    }
+
     public void deleteUserById(String id) {
         var user = userRepository.findByIdFullInfo(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -274,7 +328,12 @@ public class UserService {
 
     public void hardDeleteUserById(String id) {
         var user = userRepository.findById(id)
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
 
         List<Account> accounts = accountRepository.findByUserId(user.getId());
         if (!accounts.isEmpty()){
@@ -285,8 +344,13 @@ public class UserService {
     }
 
     public void disableUserById(String id) {
-        var user = userRepository.findById(id)
+        var user = userRepository.findById(id).
+                filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
 
         if (user.getStatus() != UserStatus.CONFIRMED.getCode() && user.getStatus() != UserStatus.NOT_CONFIRM.getCode()){
             throw new AppException(ErrorCode.DISABLE_ACTIVE_USER_ONLY);
@@ -299,6 +363,10 @@ public class UserService {
     public void activateUserById(String id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (user.getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
 
         user.setStatus(UserStatus.CONFIRMED.getCode());
         userRepository.save(user);

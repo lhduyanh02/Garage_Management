@@ -27,4 +27,6 @@ public class UserUpdateRequest {
     int addressId;
 
     Set<String> roleIds;
+
+    Long telegramId;
 }
