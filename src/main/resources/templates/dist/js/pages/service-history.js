@@ -56,8 +56,8 @@ $(document).ready( async function () {
         searching: true,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -479,7 +479,10 @@ $("#data-table tbody").on("dblclick", "tr", async function () {
     
 
     $("#modal_footer").append(`
-        <button type="button" class="btn btn-primary" id="modal_submit_btn">Đóng</button>`
+        <div class="d-flex justify-content-between w-100">
+        <button type="button" class="btn btn-outline-info" id="modal_print_btn">In đơn</button>
+        <button type="button" class="btn btn-primary" id="modal_submit_btn">Đóng</button>
+    </div>`
     );
 
     $("#modal_id").modal("show");
@@ -487,6 +490,45 @@ $("#data-table tbody").on("dblclick", "tr", async function () {
     $('#modal_submit_btn').click(function () { 
         $("#modal_id").modal("hide");
     });
+});
+
+
+$(document).on('click', '#modal_print_btn', async function () { 
+    if (!selectedInvoice || !selectedInvoice.id) {
+        Swal.fire({
+            icon: "warning",
+            title: "Vui lòng chọn lại đơn cần in",
+            showConfirmButton: false,
+            timer: 2000
+        });
+        return;
+    }
+
+    let confirm;
+    if (selectedInvoice.status == 1) {
+        confirm = await Swal.fire({
+            icon: "question",
+            title: "In hóa đơn?",
+            showConfirmButton: true,
+            confirmButtonText: "Đồng ý",
+            showCancelButton: true,
+            cancelButtonText: "Hủy",
+        });
+    } else {
+        confirm = await Swal.fire({
+            icon: "question",
+            title: "In tạm tính?",
+            showConfirmButton: true,
+            confirmButtonText: "Đồng ý",
+            showCancelButton: true,
+            cancelButtonText: "Hủy",
+        });
+    }
+
+    if (confirm.isConfirmed) {
+        window.open('/provisional-invoice-print#user=customer&invoice=' + selectedInvoice.id, '_blank');
+    }
+    
 });
 
 $(document).on('click', '#pre-service-image', function() {

@@ -22,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommonParameterController {
 
-    private static final Logger log = LoggerFactory.getLogger(CommonParameterController.class);
     CommonParameterService service;
 
     @GetMapping("/{key}")
@@ -35,7 +34,6 @@ public class CommonParameterController {
 
     @PostMapping("/list-param")
     public ApiResponse<List<CommonParameterResponse>> getParamByListKey(@RequestBody List<String> keys) {
-        log.info(keys.toString());
         return ApiResponse.<List<CommonParameterResponse>>builder()
                 .code(1000)
                 .data(service.getCommonParameterByListKey(keys))

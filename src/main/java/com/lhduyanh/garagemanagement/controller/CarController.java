@@ -21,6 +21,7 @@ public class CarController {
 
     CarService carService;
 
+    @PreAuthorize("@securityExpression.hasPermission({'MAP_USER_CAR', 'EDIT_CAR', 'ADD_CAR', 'DEL_CAR', 'GET_ALL_HISTORY', 'UPDATE_PROGRESS', 'SIGN_SERVICE'})")
     @GetMapping
     public ApiResponse<List<CarResponse>> getAllEnableCars() {
         return ApiResponse.<List<CarResponse>>builder()
@@ -29,7 +30,7 @@ public class CarController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR'})")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR', 'EDIT_CAR', 'DEL_CAR', 'ADD_CAR'})")
     @GetMapping("/all")
     public ApiResponse<List<CarResponse>> getAllCar() {
         return ApiResponse.<List<CarResponse>>builder()
@@ -46,7 +47,7 @@ public class CarController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR'})")
+    @PreAuthorize("@securityExpression.hasPermission({'DEL_CAR'})")
     @GetMapping("/deleted")
     public ApiResponse<List<CarResponse>> getAllDeletedCar() {
         return ApiResponse.<List<CarResponse>>builder()
@@ -63,6 +64,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_CAR', 'EDIT_CAR', 'ADD_CAR', 'SIGN_SERVICE', 'GET_ALL_HISTORY', 'UPDATE_PROGRESS'})")
     @GetMapping("/search")
     public ApiResponse<List<CarResponse>> searchCars(@RequestParam(required = false) String plate,
                                                      @RequestParam(required = false) String plateType,
@@ -74,6 +76,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_CAR', 'GET_ALL_HISTORY', 'UPDATE_PROGRESS', 'SIGN_SERVICE'})")
     @PostMapping
     public ApiResponse<CarResponse> newCar(@RequestBody @Valid CarRequest carRequest) {
         return ApiResponse.<CarResponse>builder()
@@ -82,6 +85,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_CAR', 'GET_ALL_HISTORY', 'UPDATE_PROGRESS', 'SIGN_SERVICE'})")
     @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> disableCar(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
@@ -98,6 +102,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_CAR'})")
     @PutMapping("/{id}")
     public ApiResponse<CarResponse> updateCar(@PathVariable("id") String id,
                                               @RequestBody @Valid CarRequest request) {
@@ -116,6 +121,7 @@ public class CarController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'DEL_CAR'})")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteCar(@PathVariable String id) {
         carService.deteleCar(id);

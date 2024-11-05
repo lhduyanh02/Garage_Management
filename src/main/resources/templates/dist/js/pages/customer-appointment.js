@@ -525,7 +525,7 @@ $(document).on('click', '.appointment-cancel-btn', async function () {
     
     $.ajax({
         type: "PUT",
-        url: "/api/appointment/update-status?appointment=" +id+"&status=4",
+        url: "/api/appointment/customer-cancel/" + id,
         headers: utils.defaultHeaders(),
         dataType: "json",
         beforeSend: function() {
@@ -533,12 +533,12 @@ $(document).on('click', '.appointment-cancel-btn', async function () {
         },
         success: async function (res) {
             Swal.close();
-            if (res.code == 1000 && res.data) {
+            if (res.code == 1000) {
                 await loadListAppointment();
                 Swal.fire({
                     icon: "success",
                     title: "Đã hủy cuộc hẹn!",
-                    text: "Đã hủy cuộc hẹn thành công!",
+                    text: "Hủy cuộc hẹn thành công!",
                     showCancelButton: false,
                     timer: 3000
                 });
@@ -552,6 +552,7 @@ $(document).on('click', '.appointment-cancel-btn', async function () {
             }
         },
         error: function(xhr, status, error) {
+            Swal.close();
             console.error(xhr);
             Swal.fire({
                 icon: "error",
@@ -1005,6 +1006,7 @@ $(document).on('click', '.appointment-edit-btn', async function () {
                     });
                     
                 } else {
+                    Swal.close();
                     Toast.fire({
                         icon: "warning",
                         title: utils.getErrorMessage(response.code),

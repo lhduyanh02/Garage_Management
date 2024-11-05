@@ -51,8 +51,46 @@ $(document).ready(async function () {
         $('.user-panel').on('click', function (e) { 
             window.location.href = "/my-profile";
         });
+
+        $('#my-profile-nav').prop('hidden', false);
+        if (userInfo.roles && userInfo.roles.length > 0) {
+            $.each(userInfo.roles, function (idx, role) { 
+                if (role.roleKey === "CUSTOMER") {
+                    $('[data-id="CUSTOMER"]').prop('hidden', false);
+                }
+            });
+        }
+
+        $.ajax({
+            type: "GET",
+            url: "/api/users/get-my-permissions",
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            success: function (res) {
+                if (res.code == 1000) {
+                    let permissions = res.data;
+                    if (!permissions || permissions.length == 0) return;
+
+                    $.each(permissions, function (idx, permission) { 
+                        $('.nav-item').each(function () {
+                            // Nếu thẻ có data-id và data-id này nằm trong danh sách permissions
+                            if ($(this).data('id') && $(this).data('id') === permission) {
+
+                                $(this).prop('hidden', false);
+                                $(this).closest('li.nav-parent').prop('hidden', false);
+                
+                            }
+                        });
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr);
+            }
+        });
     } else {
         console.error("Can not get user info");
         $('.user-panel').off('click');
     }
+
 });

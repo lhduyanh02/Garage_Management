@@ -13,6 +13,7 @@ $(document).ready(async function () {
     $('#print-at').text(`In ngày: ${formattedTime}`);
 
     let id = utils.getHashParam('invoice');
+    let userType = utils.getHashParam('user');
     if (id == null || id == "") {
         Swal.fire({
             icon: "error",
@@ -46,7 +47,7 @@ $(document).ready(async function () {
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "",
             infoFiltered: "(Lọc từ _MAX_ mục)",
-            emptyTable: "Không có dữ liệu",
+            emptyTable: "Không có dịch vụ nào được chọn",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
             zeroRecords: "Không tìm thấy dữ liệu",
@@ -103,9 +104,14 @@ $(document).ready(async function () {
 
     let res;
     try {
+        let url = "/api/history/" + id;
+        if (userType && userType == "customer") {
+            url = "/api/history/customer/get-detail/" + id
+        }
+
         res = await $.ajax({
             type: "GET",
-            url: "/api/history/"+id,
+            url: url,
             headers: utils.defaultHeaders(),
             dataType: "json",
         });
@@ -206,10 +212,12 @@ function loadInvoiceInfo(invoice) {
 
     let t = utils.getTimeAsJSON(invoice.serviceDate);
     let invoiceIdHtml = "";
-    if (invoice.status == 1) {
+    if (invoice.status == 0) {
+        invoiceIdHtml = `Tạm tính: #${invoice.id}`;
+    } else if (invoice.status == 1) {
         invoiceIdHtml = `Hóa đơn: #${invoice.id}`;
     } else {
-        invoiceIdHtml = `Đơn dịch vụ: #${invoice.id}`;
+        invoiceIdHtml = `Đơn đã hủy: #${invoice.id}`;
     }
     $("#invoice-id").html(invoiceIdHtml);
     $("#history-date").text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);

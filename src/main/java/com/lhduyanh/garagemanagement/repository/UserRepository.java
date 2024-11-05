@@ -26,7 +26,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     List<User> findAllWithAddress();
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.address LEFT JOIN FETCH u.roles " +
-            "LEFT JOIN FETCH u.cars r")
+            "LEFT JOIN FETCH u.cars r LEFT JOIN FETCH u.accounts acc")
     List<User> findAllUserFullInfo();
 
     @Query("""
@@ -52,6 +52,17 @@ public interface UserRepository extends JpaRepository<User, String> {
             WHERE u.status = 1 AND "CUSTOMER" IN (SELECT rr.roleKey FROM u.roles rr)
             """)
     List<User> findAllActiveCustomerFullInfo();
+
+    @Query("""
+            SELECT u FROM User u 
+            LEFT JOIN FETCH u.accounts a
+            LEFT JOIN FETCH u.address 
+            LEFT JOIN FETCH u.roles r
+            LEFT JOIN FETCH u.cars c
+            WHERE 'CUSTOMER' IN (SELECT rr.roleKey FROM u.roles rr)
+            AND u.status <> 0-2
+            """)
+    List<User> findAllCustomerFullInfo();
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.address LEFT JOIN FETCH u.cars WHERE u.id = :id")
     Optional<User> findById(@Param("id") String id);

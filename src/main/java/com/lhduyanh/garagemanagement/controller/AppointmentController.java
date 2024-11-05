@@ -101,6 +101,14 @@ public class AppointmentController {
                 .build();
     }
 
+    @PutMapping("/customer-cancel/{id}")
+    public ApiResponse<Boolean> customerCancelAppointment(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(appointmentService.customerCancelAppointment(id))
+                .build();
+    }
+
     @PutMapping("/customer-update/{id}")
     public ApiResponse<AppointmentResponse> updateAppointmentByCustomer(@PathVariable String id, @RequestBody AppointmentUpdateRequest request) {
         return ApiResponse.<AppointmentResponse>builder()

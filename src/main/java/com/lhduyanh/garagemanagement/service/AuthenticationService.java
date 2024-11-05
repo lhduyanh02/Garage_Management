@@ -1,12 +1,10 @@
 package com.lhduyanh.garagemanagement.service;
 
-import com.lhduyanh.garagemanagement.dto.request.AuthenticationRequest;
-import com.lhduyanh.garagemanagement.dto.request.IntrospectRequest;
-import com.lhduyanh.garagemanagement.dto.request.LogoutRequest;
-import com.lhduyanh.garagemanagement.dto.request.RefreshTokenRequest;
+import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.AuthenticationResponse;
 import com.lhduyanh.garagemanagement.dto.response.IntrospectResponse;
 import com.lhduyanh.garagemanagement.entity.InvalidatedToken;
+import com.lhduyanh.garagemanagement.entity.Permissions;
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.entity.User;
 import com.lhduyanh.garagemanagement.enums.AccountStatus;
@@ -16,6 +14,7 @@ import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.AccountRepository;
 import com.lhduyanh.garagemanagement.repository.InvalidatedTokenRepository;
+import com.lhduyanh.garagemanagement.repository.PermissionRepository;
 import com.lhduyanh.garagemanagement.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -27,16 +26,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +49,8 @@ public class AuthenticationService {
     AccountRepository accountRepository;
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
+    private final PermissionRepository permissionRepository;
+
     @NonFinal
     @Value("${app.password-strength}")
     int strength;
@@ -106,6 +111,7 @@ public class AuthenticationService {
         }
     }
 
+    @Transactional
     public IntrospectResponse introspect(IntrospectRequest request) {
         try{
             var token = request.getToken();
@@ -123,6 +129,39 @@ public class AuthenticationService {
         }
         catch (Exception e){
             throw new AppException(ErrorCode.INTROSPECT_EXCEPTION);
+        }
+    }
+
+    @Transactional
+    public IntrospectResponse introspectPermissions(String permissionKey) {
+        try{
+            String uid = getUUIDFromJwt();
+            User user = userRepository.findByIdFullInfo(uid)
+                    .filter(u -> u.getStatus() >= UserStatus.CONFIRMED.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+            if (user.getStatus() == 9999) {
+                return IntrospectResponse.builder().valid(true).build();
+            }
+
+            Permissions permissions = permissionRepository.findByPermissionKey(permissionKey)
+                    .orElseThrow(() -> new AppException(ErrorCode.PERMISSION_NOT_EXISTED));
+
+            if (user.getRoles().stream().filter(r -> r.getStatus() == RoleStatus.USING.getCode()).toList().isEmpty()) {
+                return IntrospectResponse.builder().valid(false).build();
+            }
+
+            Optional<IntrospectResponse> response = user.getRoles().stream()
+                    .filter(r -> r.getPermissions().stream()
+                            .anyMatch(p -> p.getPermissionKey().equals(permissionKey)))
+                    .findFirst()
+                    .map(r -> IntrospectResponse.builder().valid(true).build());
+
+            return response.orElse(IntrospectResponse.builder().valid(false).build());
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
     }
 

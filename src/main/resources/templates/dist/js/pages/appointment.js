@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_APPOINTMENT');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -283,178 +283,362 @@ async function loadListAppointment() {
         utils.setHashParam('end', endDate);
         utils.setHashParam('filter', $('#search-type-select').val())
 
-        TIMELINE.html("");
-        // Nhóm lịch hẹn theo ngày
-        const groupedAppointments = {};
+        if ($('#search-type-select').val() === "booking-time"){
+            TIMELINE.html("");
+            // Nhóm lịch hẹn theo ngày
+            const groupedAppointments = {};
 
-        res.data.forEach(appointment => {
-            const appointmentDate = new Date(appointment.time);
-            const dateString = `${appointmentDate.getDate().toString().padStart(2, '0')}/${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}/${appointmentDate.getFullYear()}`;
+            res.data.forEach(appointment => {
+                const appointmentDate = new Date(appointment.time);
+                const dateString = `${appointmentDate.getDate().toString().padStart(2, '0')}/${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}/${appointmentDate.getFullYear()}`;
 
-            // Nếu ngày chưa tồn tại trong groupedAppointments, khởi tạo mảng
-            if (!groupedAppointments[dateString]) {
-                groupedAppointments[dateString] = [];
-            }
-
-            // Thêm lịch hẹn vào mảng của ngày tương ứng
-            groupedAppointments[dateString].push(appointment);
-        });
-
-        // Sắp xếp theo thứ tự ngày mới nhất
-        const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
-
-        // Log ra kết quả
-        sortedDates.forEach(date => {
-
-            // Sắp xếp các cuộc hẹn trong cùng một ngày theo thời gian mới nhất
-            groupedAppointments[date].sort((a, b) => new Date(b.time) - new Date(a.time));
-
-            TIMELINE.append(`
-                <div class="time-label">
-                    <span class="bg-info">${date}</span>
-                </div>
-            `);
-
-            groupedAppointments[date].forEach(appointment => {
-                const time = utils.getTimeAsJSON(appointment.time);
-                let nameHtml = "";
-                let phoneHtml = "";
-                let emailHtml = "";
-                let detailsHtml = "";
-                let contactHtml = "";
-                
-                nameHtml = "<b>Họ tên: </b>" + appointment.customer.name +"<br>";
-
-                if (appointment.customer.phone) {
-                    phoneHtml = `<b>SĐT: </b><a id="facility-phone" href="tel:${appointment.customer.phone}" class="text-dark hover-underline">${appointment.customer.phone}</a><br>`
+                // Nếu ngày chưa tồn tại trong groupedAppointments, khởi tạo mảng
+                if (!groupedAppointments[dateString]) {
+                    groupedAppointments[dateString] = [];
                 }
 
-                if (appointment.customer.accounts.length> 0) {
-                    emailHtml = `<b>Email: </b><a id="facility-email" href="mailto:${appointment.customer.accounts[0].email}" class="text-dark hover-underline">${appointment.customer.accounts[0].email}</a><br>`
-                }
+                // Thêm lịch hẹn vào mảng của ngày tương ứng
+                groupedAppointments[dateString].push(appointment);
+            });
 
-                appointment.details.forEach((val, idx) => {
-                    let html = "";
-                    html += `<b>- ${val.serviceName}</b> ${val.optionName ? `(${val.optionName})` : ""}<br>`
-                    detailsHtml += html;
-                })
+            // Sắp xếp theo thứ tự ngày mới nhất
+            const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
 
-                let footerHtml = "";
-                let statusHtml = "";
+            // Log ra kết quả
+            sortedDates.forEach(date => {
 
-                if (appointment.status == 0) { // Chưa gọi xác nhận
-                    footerHtml = `
-                        <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
-                        <button class="btn btn-primary btn-sm appointment-confirm-btn mr-1" data-id=${appointment.id}>Xác nhận</button>
-                        <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
-                    `;
-                    statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chờ xác nhận</span>`
-                    if (new Date(appointment.time) < new Date()) { // Quá giờ
-                        statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chưa xác nhận, đã quá giờ</span>`
-                    }
-                } else if (appointment.status == 1) { // Đã gọi xác nhận
-                    footerHtml = `
-                        <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
-                        <button class="btn btn-success btn-sm appointment-complete-btn mr-1" data-id=${appointment.id}>Đã hoàn thành</button>
-                        <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
-                    `;
-                    statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận</span>`
-                    if (new Date(appointment.time) < new Date()) { // Đã qua giờ hẹn
-                        footerHtml += `<button class="btn btn-outline-danger btn-sm appointment-missed-btn" data-id=${appointment.id}>Đã bỏ lỡ</button>`;
-                        statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận, đã quá giờ</span>`
-                    }
-                } else if (appointment.status == 2) { // Đã thi công hoàn tất
-                    statusHtml = `<span class="mx-1 badge badge-success"><i class="fa-solid fa-check-double"></i>&nbsp;Đã hoàn tất</span>` // fa-regular fa-square-check
-                } else if (appointment.status == 3) { // Đã bỏ lỡ
-                    statusHtml = `<span class="mx-1 badge badge-secondary"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Đã bỏ lỡ</span>`
-                } else {
-                    statusHtml = `<span class="mx-1 badge badge-dark"><i class="fa-solid fa-xmark"></i>&nbsp;Đã hủy hẹn</span>`
-                }
+                // Sắp xếp các cuộc hẹn trong cùng một ngày theo thời gian mới nhất
+                groupedAppointments[date].sort((a, b) => new Date(b.time) - new Date(a.time));
 
-                if (appointment.contact && appointment.contact != "") {
-                    contactHtml = appointment.contact
-                } else {
-                    contactHtml = "<i>Không có</i>"
-                }
+                TIMELINE.append(`
+                    <div class="time-label">
+                        <span class="bg-info">${date}</span>
+                    </div>
+                `);
 
-                let iconHtml = "";
-                if (appointment.status == 0) {
-                    iconHtml = "fa-solid fa-stopwatch bg-warning";
-                } else if (appointment.status == 1) {
-                    iconHtml =  "fa-solid fa-check bg-info";
-                } else if (appointment.status == 2) {
-                    iconHtml =  "fa-solid fa-check-double bg-success";
-                } else if (appointment.status == 3) {
-                    iconHtml =  "fa-solid fa-circle-exclamation bg-secondary";
-                } else {
-                    iconHtml =  "fa-solid fa-xmark bg-dark";
-                }
-
-                let advisorName = "";
-                let advisorPhone = "";
-                let advisorEmail = "";
-                if (appointment.advisor) {
-                    advisorName = `<b>Họ tên: </b>${appointment.advisor.name}<br>`;
+                groupedAppointments[date].forEach(appointment => {
+                    const time = utils.getTimeAsJSON(appointment.time);
+                    const createAt = utils.getTimeAsJSON(appointment.createAt);
+                    let nameHtml = "";
+                    let phoneHtml = "";
+                    let emailHtml = "";
+                    let detailsHtml = "";
+                    let contactHtml = "";
                     
-                    advisorEmail = `<b>Email: </b><a href="tel:${appointment.advisor.accounts[0].email}" class="text-dark hover-underline">${appointment.advisor.accounts[0].email}</a><br>`
-                    
-                    advisorPhone = advisorPhone ? `<b>SĐT: </b><a href="tel:${appointment.advisor.phone}" class="text-dark hover-underline">${appointment.advisor.phone}</a><br>` : "";
-                } else {
-                    advisorName = '<span class="font-italic">Chưa xử lý</span>';
-                }
+                    nameHtml = "<b>Họ tên: </b>" + appointment.customer.name +"<br>";
 
-                let html = `
-                    <div>
-                        <i class="fas ${iconHtml}"></i>
-                        <div class="timeline-item">
-                            <span class="time font-weight-bold"><i class="fas fa-clock"></i> ${time.hour}:${time.min}</span>
-                            <h3 class="timeline-header">Lịch hẹn của <b>${appointment.customer.name}</b> ${statusHtml}</h3>
+                    if (appointment.customer.phone) {
+                        phoneHtml = `<b>SĐT: </b><a id="facility-phone" href="tel:${appointment.customer.phone}" class="text-dark hover-underline">${appointment.customer.phone}</a><br>`
+                    }
 
-                            <div class="timeline-body">
-                                <div class="row"> 
-                                    <div class="col-12 col-md-6 border-right-md px-3"> 
-                                        <b style="text-decoration: underline">Thông tin khách hàng:</b><br>
-                                        <div class="px-3">
-                                            ${nameHtml}
-                                            ${phoneHtml}
-                                            ${emailHtml}
+                    if (appointment.customer.accounts.length> 0) {
+                        emailHtml = `<b>Email: </b><a id="facility-email" href="mailto:${appointment.customer.accounts[0].email}" class="text-dark hover-underline">${appointment.customer.accounts[0].email}</a><br>`
+                    }
+
+                    appointment.details.forEach((val, idx) => {
+                        let html = "";
+                        html += `<b>- ${val.serviceName}</b> ${val.optionName ? `(${val.optionName})` : ""}<br>`
+                        detailsHtml += html;
+                    })
+
+                    let footerHtml = "";
+                    let statusHtml = "";
+
+                    if (appointment.status == 0) { // Chưa gọi xác nhận
+                        footerHtml = `
+                            <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
+                            <button class="btn btn-primary btn-sm appointment-confirm-btn mr-1" data-id=${appointment.id}>Xác nhận</button>
+                            <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
+                        `;
+                        statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chờ xác nhận</span>`
+                        if (new Date(appointment.time) < new Date()) { // Quá giờ
+                            statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chưa xác nhận, đã quá giờ</span>`
+                        }
+                    } else if (appointment.status == 1) { // Đã gọi xác nhận
+                        footerHtml = `
+                            <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
+                            <button class="btn btn-success btn-sm appointment-complete-btn mr-1" data-id=${appointment.id}>Đã hoàn thành</button>
+                            <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
+                        `;
+                        statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận</span>`
+                        if (new Date(appointment.time) < new Date()) { // Đã qua giờ hẹn
+                            footerHtml += `<button class="btn btn-outline-danger btn-sm appointment-missed-btn" data-id=${appointment.id}>Đã bỏ lỡ</button>`;
+                            statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận, đã quá giờ</span>`
+                        }
+                    } else if (appointment.status == 2) { // Đã thi công hoàn tất
+                        statusHtml = `<span class="mx-1 badge badge-success"><i class="fa-solid fa-check-double"></i>&nbsp;Đã hoàn tất</span>` // fa-regular fa-square-check
+                    } else if (appointment.status == 3) { // Đã bỏ lỡ
+                        statusHtml = `<span class="mx-1 badge badge-secondary"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Đã bỏ lỡ</span>`
+                    } else {
+                        statusHtml = `<span class="mx-1 badge badge-dark"><i class="fa-solid fa-xmark"></i>&nbsp;Đã hủy hẹn</span>`
+                    }
+
+                    if (appointment.contact && appointment.contact != "") {
+                        contactHtml = appointment.contact
+                    } else {
+                        contactHtml = "<i>Không có</i>"
+                    }
+
+                    let iconHtml = "";
+                    if (appointment.status == 0) {
+                        iconHtml = "fa-solid fa-stopwatch bg-warning";
+                    } else if (appointment.status == 1) {
+                        iconHtml =  "fa-solid fa-check bg-info";
+                    } else if (appointment.status == 2) {
+                        iconHtml =  "fa-solid fa-check-double bg-success";
+                    } else if (appointment.status == 3) {
+                        iconHtml =  "fa-solid fa-circle-exclamation bg-secondary";
+                    } else {
+                        iconHtml =  "fa-solid fa-xmark bg-dark";
+                    }
+
+                    let advisorName = "";
+                    let advisorPhone = "";
+                    let advisorEmail = "";
+                    if (appointment.advisor) {
+                        advisorName = `<b>Họ tên: </b>${appointment.advisor.name}<br>`;
+                        
+                        advisorEmail = `<b>Email: </b><a href="tel:${appointment.advisor.accounts[0].email}" class="text-dark hover-underline">${appointment.advisor.accounts[0].email}</a><br>`
+                        
+                        advisorPhone = advisorPhone ? `<b>SĐT: </b><a href="tel:${appointment.advisor.phone}" class="text-dark hover-underline">${appointment.advisor.phone}</a><br>` : "";
+                    } else {
+                        advisorName = '<span class="font-italic">Chưa xử lý</span>';
+                    }
+
+                    let html = `
+                        <div>
+                            <i class="fas ${iconHtml}"></i>
+                            <div class="timeline-item">
+                                <span class="time font-weight-bold"><i class="fas fa-clock"></i> ${time.hour}:${time.min}</span>
+                                <h3 class="timeline-header">Lịch hẹn của <b>${appointment.customer.name}</b> ${statusHtml}</h3>
+
+                                <div class="timeline-body">
+                                    <div class="row"> 
+                                        <div class="col-12 col-md-6 border-right-md px-3"> 
+                                            <b style="text-decoration: underline">Thông tin khách hàng:</b><br>
+                                            <div class="px-3">
+                                                ${nameHtml}
+                                                ${phoneHtml}
+                                                ${emailHtml}
+                                            </div>
+
+                                            <br>
+                                            <i class="fa-regular fa-rectangle-list"></i> <b style="text-decoration: underline">Dịch vụ đã chọn:</b><br>
+                                            <div class="px-3">${detailsHtml}</div>
+
+                                            <br>
+                                            <b style="text-decoration: underline">Liên hệ:</b> ${contactHtml}
                                         </div>
+                                            
+                                        <div class="col-12 col-md-6 px-3"> 
+                                            <b style="text-decoration: underline">Nhân viên xử lý:</b><br>
+                                            <div class="px-3">
+                                                ${advisorName}
+                                                ${advisorEmail}
+                                                ${advisorPhone}
+                                            </div>
 
-                                        <br>
-                                        <i class="fa-regular fa-rectangle-list"></i> <b style="text-decoration: underline">Dịch vụ đã chọn:</b><br>
-                                        <div class="px-3">${detailsHtml}</div>
+                                            <br>
+                                            <b style="text-decoration: underline">Ghi chú:</b><br>
+                                            <div class="px-3">${appointment.description ? appointment.description.replace(/\n/g, "<br>") : `<span class="font-italic">Không có ghi chú.</span>`}</div>
 
-                                        <br>
-                                        <b style="text-decoration: underline">Liên hệ:</b> ${contactHtml}
-                                    </div>
-                                        
-                                    <div class="col-12 col-md-6 px-3"> 
-                                        <b style="text-decoration: underline">Nhân viên xử lý:</b><br>
-                                        <div class="px-3">
-                                            ${advisorName}
-                                            ${advisorEmail}
-                                            ${advisorPhone}
+                                            <br>
+                                            <b style="text-decoration: underline">Được tạo lúc:</b> ${createAt.hour}:${createAt.min}, ngày ${createAt.date}/${createAt.mon}/${createAt.year}
                                         </div>
-
-                                        <br>
-                                        <b style="text-decoration: underline">Ghi chú:</b><br>
-                                        <div class="px-3">${appointment.description ? appointment.description.replace(/\n/g, "<br>") : `<span class="font-italic">Không có ghi chú.</span>`}</div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="timeline-footer">
-                                ${footerHtml}
+                                <div class="timeline-footer">
+                                    ${footerHtml}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                TIMELINE.append(html);
+                    `;
+                    TIMELINE.append(html);
+                });
             });
-        });
 
-        TIMELINE.append(`<div>
-                            <i class="fas fa-clock bg-gray"></i>
-                        </div>`);
+            TIMELINE.append(`<div>
+                                <i class="fas fa-clock bg-gray"></i>
+                            </div>`);
+        }
+        else {                          // sort by create time
+            TIMELINE.html("");
+            // Nhóm lịch hẹn theo ngày
+            const groupedAppointments = {};
+
+            res.data.forEach(appointment => {
+                const appointmentDate = new Date(appointment.createAt);
+                const dateString = `${appointmentDate.getDate().toString().padStart(2, '0')}/${(appointmentDate.getMonth() + 1).toString().padStart(2, '0')}/${appointmentDate.getFullYear()}`;
+
+                // Nếu ngày chưa tồn tại trong groupedAppointments, khởi tạo mảng
+                if (!groupedAppointments[dateString]) {
+                    groupedAppointments[dateString] = [];
+                }
+
+                // Thêm lịch hẹn vào mảng của ngày tương ứng
+                groupedAppointments[dateString].push(appointment);
+            });
+
+            // Sắp xếp theo thứ tự ngày mới nhất
+            const sortedDates = Object.keys(groupedAppointments).sort((a, b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
+
+            // Log ra kết quả
+            sortedDates.forEach(date => {
+
+                // Sắp xếp các cuộc hẹn trong cùng một ngày theo thời gian mới nhất
+                groupedAppointments[date].sort((a, b) => new Date(b.createAt) - new Date(a.createAt));
+
+                TIMELINE.append(`
+                    <div class="time-label">
+                        <span class="bg-info">${date}</span>
+                    </div>
+                `);
+
+                groupedAppointments[date].forEach(appointment => {
+                    const time = utils.getTimeAsJSON(appointment.time);
+                    const createAt = utils.getTimeAsJSON(appointment.createAt);
+                    let nameHtml = "";
+                    let phoneHtml = "";
+                    let emailHtml = "";
+                    let detailsHtml = "";
+                    let contactHtml = "";
+                    
+                    nameHtml = "<b>Họ tên: </b>" + appointment.customer.name +"<br>";
+
+                    if (appointment.customer.phone) {
+                        phoneHtml = `<b>SĐT: </b><a id="facility-phone" href="tel:${appointment.customer.phone}" class="text-dark hover-underline">${appointment.customer.phone}</a><br>`
+                    }
+
+                    if (appointment.customer.accounts.length> 0) {
+                        emailHtml = `<b>Email: </b><a id="facility-email" href="mailto:${appointment.customer.accounts[0].email}" class="text-dark hover-underline">${appointment.customer.accounts[0].email}</a><br>`
+                    }
+
+                    appointment.details.forEach((val, idx) => {
+                        let html = "";
+                        html += `<b>- ${val.serviceName}</b> ${val.optionName ? `(${val.optionName})` : ""}<br>`
+                        detailsHtml += html;
+                    })
+
+                    let footerHtml = "";
+                    let statusHtml = "";
+
+                    if (appointment.status == 0) { // Chưa gọi xác nhận
+                        footerHtml = `
+                            <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
+                            <button class="btn btn-primary btn-sm appointment-confirm-btn mr-1" data-id=${appointment.id}>Xác nhận</button>
+                            <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
+                        `;
+                        statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chờ xác nhận</span>`
+                        if (new Date(appointment.time) < new Date()) { // Quá giờ
+                            statusHtml = `<span class="mx-1 badge badge-warning"><i class="fa-regular fa-clock"></i>&nbsp;Chưa xác nhận, đã quá giờ</span>`
+                        }
+                    } else if (appointment.status == 1) { // Đã gọi xác nhận
+                        footerHtml = `
+                            <button class="btn btn-warning btn-sm appointment-edit-btn mr-1" data-id=${appointment.id}>Chỉnh sửa</button>
+                            <button class="btn btn-success btn-sm appointment-complete-btn mr-1" data-id=${appointment.id}>Đã hoàn thành</button>
+                            <button class="btn btn-danger btn-sm appointment-cancel-btn mr-1" data-id=${appointment.id}>Hủy hẹn</button>
+                        `;
+                        statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận</span>`
+                        if (new Date(appointment.time) < new Date()) { // Đã qua giờ hẹn
+                            footerHtml += `<button class="btn btn-outline-danger btn-sm appointment-missed-btn" data-id=${appointment.id}>Đã bỏ lỡ</button>`;
+                            statusHtml = `<span class="mx-1 badge badge-info"><i class="fa-solid fa-check"></i>&nbsp;Đã xác nhận, đã quá giờ</span>`
+                        }
+                    } else if (appointment.status == 2) { // Đã thi công hoàn tất
+                        statusHtml = `<span class="mx-1 badge badge-success"><i class="fa-solid fa-check-double"></i>&nbsp;Đã hoàn tất</span>` // fa-regular fa-square-check
+                    } else if (appointment.status == 3) { // Đã bỏ lỡ
+                        statusHtml = `<span class="mx-1 badge badge-secondary"><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Đã bỏ lỡ</span>`
+                    } else {
+                        statusHtml = `<span class="mx-1 badge badge-dark"><i class="fa-solid fa-xmark"></i>&nbsp;Đã hủy hẹn</span>`
+                    }
+
+                    if (appointment.contact && appointment.contact != "") {
+                        contactHtml = appointment.contact
+                    } else {
+                        contactHtml = "<i>Không có</i>"
+                    }
+
+                    let iconHtml = "";
+                    if (appointment.status == 0) {
+                        iconHtml = "fa-solid fa-stopwatch bg-warning";
+                    } else if (appointment.status == 1) {
+                        iconHtml =  "fa-solid fa-check bg-info";
+                    } else if (appointment.status == 2) {
+                        iconHtml =  "fa-solid fa-check-double bg-success";
+                    } else if (appointment.status == 3) {
+                        iconHtml =  "fa-solid fa-circle-exclamation bg-secondary";
+                    } else {
+                        iconHtml =  "fa-solid fa-xmark bg-dark";
+                    }
+
+                    let advisorName = "";
+                    let advisorPhone = "";
+                    let advisorEmail = "";
+                    if (appointment.advisor) {
+                        advisorName = `<b>Họ tên: </b>${appointment.advisor.name}<br>`;
+                        
+                        advisorEmail = `<b>Email: </b><a href="tel:${appointment.advisor.accounts[0].email}" class="text-dark hover-underline">${appointment.advisor.accounts[0].email}</a><br>`
+                        
+                        advisorPhone = advisorPhone ? `<b>SĐT: </b><a href="tel:${appointment.advisor.phone}" class="text-dark hover-underline">${appointment.advisor.phone}</a><br>` : "";
+                    } else {
+                        advisorName = '<span class="font-italic">Chưa xử lý</span>';
+                    }
+
+                    let html = `
+                        <div>
+                            <i class="fas ${iconHtml}"></i>
+                            <div class="timeline-item">
+                                <span class="time font-weight-bold"><i class="fas fa-clock"></i> ${createAt.hour}:${createAt.min}</span>
+                                <h3 class="timeline-header">Lịch hẹn của <b>${appointment.customer.name}</b> ${statusHtml}</h3>
+
+                                <div class="timeline-body">
+                                    <div class="row"> 
+                                        <div class="col-12 col-md-6 border-right-md px-3"> 
+                                            <b style="text-decoration: underline">Thông tin khách hàng:</b><br>
+                                            <div class="px-3">
+                                                ${nameHtml}
+                                                ${phoneHtml}
+                                                ${emailHtml}
+                                            </div>
+
+                                            <br>
+                                            <i class="fa-regular fa-rectangle-list"></i> <b style="text-decoration: underline">Dịch vụ đã chọn:</b><br>
+                                            <div class="px-3">${detailsHtml}</div>
+
+                                            <br>
+                                            <b style="text-decoration: underline">Liên hệ:</b> ${contactHtml}
+                                        </div>
+                                            
+                                        <div class="col-12 col-md-6 px-3"> 
+                                            <b style="text-decoration: underline">Nhân viên xử lý:</b><br>
+                                            <div class="px-3">
+                                                ${advisorName}
+                                                ${advisorEmail}
+                                                ${advisorPhone}
+                                            </div>
+
+                                            <br>
+                                            <b style="text-decoration: underline">Ghi chú:</b><br>
+                                            <div class="px-3">${appointment.description ? appointment.description.replace(/\n/g, "<br>") : `<span class="font-italic">Không có ghi chú.</span>`}</div>
+
+                                            <br>
+                                            <b style="text-decoration: underline">Đặt hẹn ngày:</b> ${time.hour}:${time.min}, ngày ${time.date}/${time.mon}/${time.year}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="timeline-footer">
+                                    ${footerHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    TIMELINE.append(html);
+                });
+            });
+
+            TIMELINE.append(`<div>
+                                <i class="fas fa-clock bg-gray"></i>
+                            </div>`);
+        }
     }
     else {
         console.error(res);

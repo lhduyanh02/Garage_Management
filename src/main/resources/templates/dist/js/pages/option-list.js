@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_OPTION');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -33,8 +33,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -268,24 +268,27 @@ $("#data-table").on("click", "#editBtn", function () {
                     }),
                     success: function (response) {
                         if(response.code == 1000){
-                            Toast.fire({
+                            Swal.fire({
                                 icon: "success", 
                                 title: "Đã cập nhật tùy chọn<br>" + name
                             });
                             $("#modal_id").modal("hide");
                             dataTable.ajax.reload();
                         } else {
-                            Toast.fire({
+                            console.error(response);
+                            Swal.fire({
                                 icon: "warning",
-                                title: utils.getErrorMessage(response.code)
+                                title: "Đã xảy ra lỗi",
+                                text: utils.getErrorMessage(response.code)
                             })
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.log(xhr);
-                        Toast.fire({
+                        console.error(xhr);
+                        Swal.fire({
                             icon: "error",
-                            title: utils.getXHRInfo(xhr).message
+                            title: "Đã xảy ra lỗi",
+                            text: utils.getXHRInfo(xhr).message
                         });
                     }
                 });
@@ -293,10 +296,10 @@ $("#data-table").on("click", "#editBtn", function () {
 
         },
         error: function(xhr, status, error) {
-            let response = utils.getXHRInfo(xhr);
-            Toast.fire({
+            Swal.fire({
                 icon: "error",
-                title: response.message
+                title: "Đã xảy ra lỗi",
+                text: utils.getXHRInfo(xhr).message
             });
             $("#modal_id").modal("hide");
         }

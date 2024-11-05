@@ -77,9 +77,15 @@ $(document).ready(function () {
             transport: function (params, success, failure) {
                 let results = [];
 
-                // Lọc các address từ addressOptions dựa vào từ khóa người dùng nhập vào
+                let keyword = params.data.q || "";
+
                 var filtered = addressOptions.filter(function (option) {
-                    return option.address.toLowerCase().indexOf(params.data.term.toLowerCase()) > -1;
+                    let normalizedName = utils.removeVietnameseTones(option.address.toLowerCase()); // Tên đã loại bỏ dấu
+                    let termNormalized = utils.removeVietnameseTones(keyword.toLowerCase()); // Searching key đã loại bỏ dấu
+                    
+                    let nameMatch = normalizedName.includes(termNormalized);
+                   
+                    return nameMatch;
                 });
 
                 results = filtered.map(function (option) {

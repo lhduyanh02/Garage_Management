@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_CAR');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -38,8 +38,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -923,6 +923,7 @@ $("#user-mapping-btn").click(function () {
 
         // Lắng nghe sự kiện click item trong bảng #data-table
         $("#data-table tbody").on("click", "tr", function () {
+            if ($(this).find("td").hasClass("dataTables_empty")) return;
             var rowData = $('#data-table').DataTable().row(this).data();
             var carId = rowData.id;
             var carPlate = rowData.numPlate;
@@ -936,7 +937,7 @@ $("#user-mapping-btn").click(function () {
             
             $.ajax({
                 type: "GET",
-                url: "/api/users/is-active",
+                url: "/api/users/customers",
                 dataType: "json",
                 headers: utils.defaultHeaders(),
                 beforeSend: function() {
@@ -1031,7 +1032,7 @@ $("#user-mapping-btn").click(function () {
                             { data: 'phone', 
                                 render: function(data, type, row){
                                     let html = "";
-                                    if (data != "") {
+                                    if (data && data != "") {
                                         html += `<i>SĐT: </i>${data}<br>`;
                                     }
                                     if (row.address) {

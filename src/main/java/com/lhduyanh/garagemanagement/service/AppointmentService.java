@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.core.Local;
 import org.springframework.transaction.annotation.Transactional;
 import org.yaml.snakeyaml.emitter.Emitable;
 
@@ -49,6 +50,7 @@ public class AppointmentService {
     Collator vietnameseCollator;
 
     EmailSenderService emailSenderService;
+    TelegramService telegramService;
 
     public List<AppointmentResponse> getAllAppointments() {
         return appointmentRepository.findAllFetchData()
@@ -187,7 +189,7 @@ public class AppointmentService {
 
                     return response;
                 })
-                .sorted(Comparator.comparing(AppointmentResponse::getTime))
+                .sorted(Comparator.comparing(AppointmentResponse::getCreateAt).reversed())
                 .toList();
     }
 
@@ -219,6 +221,7 @@ public class AppointmentService {
     @Transactional
     public AppointmentResponse newAppointmentByStaff(AppointmentCreationRequest appointmentRequest) {
         Appointment appointment = new Appointment();
+        String advisorId = getUUIDFromJwt();
 
         if (appointmentRequest.getCustomerId() == null || appointmentRequest.getCustomerId().isEmpty()) {
             throw new AppException(ErrorCode.BLANK_USER);
@@ -246,12 +249,12 @@ public class AppointmentService {
 
         appointment.setCustomer(customer);
 
-        User advisor = userRepository.findByIdFullInfo(appointmentRequest.getAdvisorId())
+        User advisor = userRepository.findByIdFullInfo(advisorId)
                 .filter(u -> (u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode()))
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_ADVISOR));
 
         if (advisor.getStatus() == UserStatus.BLOCKED.getCode()) {
-            throw new AppException(ErrorCode.BLOCKED_USER);
+            throw new AppException(ErrorCode.INVALID_ADVISOR);
         }
 
         appointment.setAdvisor(advisor);
@@ -370,6 +373,67 @@ public class AppointmentService {
         appointment = appointmentRepository.save(appointment);
 
         AppointmentResponse response = updateListDetailAppointment(appointment.getId(), request.getDetails(), false);
+
+        String body = """   
+                        <b>YÊU CẦU ĐẶT HẸN MỚI</b>
+                       
+                        <u>Khách hàng:</u>
+                        <pre><code><b>Họ tên: </b>{0}\n
+                        <b>SĐT: </b>{1}
+                        <b>Địa chỉ: </b>{2}
+                        <b>Email: </b>{3}</code></pre>
+                        
+                        <u>Thông tin chi tiết yêu cầu:</u>
+                        <pre><code><b>Thời gian: </b>{4}
+                        <b>Liên hệ: </b>{5}
+                        <b>Ghi chú: </b>{6}</code></pre>
+                        
+                        <u>Dịch vụ đã chọn:</u>
+                        <pre><code>{7}</code></pre>
+                        
+                        <i>Đã tạo lúc: {8}.</i>
+                        """;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+        String serviceList = "";
+        List<DetailAppointmentResponse> details = response.getDetails();
+        if (!details.isEmpty()) {
+            int count = 1;
+            for (DetailAppointmentResponse detail : details) {
+                String optionHtml = "";
+                if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                    optionHtml = " <i>("+detail.getOptionName()+")</i>";
+                }
+                serviceList += count +". "+detail.getServiceName() + optionHtml+"\n";
+                count++;
+            }
+        } else {
+            serviceList = "Trống\n";
+        }
+
+        String message = MessageFormat.format(body,
+                customer.getName(),
+                customer.getPhone()!=null ? customer.getPhone() : "Không có",
+                customer.getAddress()!=null ? customer.getAddress().getAddress() : "Không có",
+                response.getCustomer().getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList().get(0).getEmail(),
+                response.getTime().format(formatter),
+                response.getContact(),
+                response.getDescription(),
+                serviceList,
+                response.getCreateAt().format(formatter)
+                );
+
+        var chatID = commonParameterRepository.findByKey("NEW_APPOINTMENT_NOTIFY").orElse(null);
+
+        if (chatID != null) {
+            try {
+                telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi thông báo Telegram");
+                e.printStackTrace();
+            }
+        }
 
         return response;
     }
@@ -536,7 +600,7 @@ public class AppointmentService {
                     String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
 
                     String body = """
-                            <p>Xin chào, <strong>{0}</strong>,</p>
+                            <p>Xin chào <strong>{0}</strong>,</p>
                             <p>Yêu cầu đặt hẹn vào lúc {1} của bạn đã được xác nhận!</p>
                             <p><u>Thông tin chi tiết lịch hẹn:</u></p>
                             <ul>
@@ -590,6 +654,104 @@ public class AppointmentService {
 
         appointmentRepository.save(appointment);
         return true;
+    }
+
+    public Boolean customerCancelAppointment(String id){
+        String uid = getUUIDFromJwt();
+
+        Appointment appointment = appointmentRepository.findByIdFetchData(id)
+                .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
+
+        if (!appointment.getCustomer().getId().equals(uid)) {
+            throw new AppException(ErrorCode.NOT_YOUR_APPOINTMENT);
+        }
+
+        if (appointment.getStatus() == AppointmentStatus.MISSED.getCode() ||
+                appointment.getStatus() == AppointmentStatus.COMPLETED.getCode() ||
+                appointment.getStatus() == AppointmentStatus.CANCELLED.getCode()) {
+            throw new AppException(ErrorCode.PAST_APPOINTMENT);
+        }
+
+        if (appointment.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode() ||
+            appointment.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
+            appointment.setStatus(AppointmentStatus.CANCELLED.getCode());
+            appointmentRepository.save(appointment);
+
+            String title = appointment.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode() ?
+                    "KHÁCH HÀNG HỦY YÊU CẦU ĐẶT HẸN" : "KHÁCH HÀNG HỦY LỊCH HẸN ĐÃ XÁC NHẬN";
+
+            String body = """   
+                        <b>{0}</b>
+                       
+                        <u>Khách hàng:</u>
+                        <pre><code><b>Họ tên: </b>{1}\n
+                        <b>SĐT: </b>{2}
+                        <b>Địa chỉ: </b>{3}
+                        <b>Email: </b>{4}</code></pre>
+                        
+                        <u>Thông tin chi tiết yêu cầu:</u>
+                        <pre><code><b>Thời gian: </b>{5}
+                        <b>Liên hệ: </b>{6}
+                        <b>Ghi chú: </b>{7}</code></pre>
+                        
+                        <u>Dịch vụ đã chọn:</u>
+                        <pre><code>{8}</code></pre>
+                        
+                        <i>Đã tạo lúc: {9}.</i>
+                        <i>Đã hủy lúc: {10}.</i>
+                        """;
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+            List<DetailAppointment> details = detailAppointmentRepository.findAllByAppointmentId(appointment.getId());
+
+            String serviceList = "";
+            if (!details.isEmpty()) {
+                int count = 1;
+                for (DetailAppointment detail : details) {
+                    String optionHtml = "";
+                    if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                        optionHtml = " <i>("+detail.getOptionName()+")</i>";
+                    }
+                    serviceList += count +". "+detail.getServiceName() + optionHtml+"\n";
+                    count++;
+                }
+            } else {
+                serviceList = "Trống\n";
+            }
+
+            User customer = appointment.getCustomer();
+
+            String message = MessageFormat.format(body,
+                    title,
+                    customer.getName(),
+                    customer.getPhone()!=null ? customer.getPhone() : "Không có",
+                    customer.getAddress()!=null ? customer.getAddress().getAddress() : "Không có",
+                    appointment.getCustomer().getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList().get(0).getEmail(),
+                    appointment.getTime().format(formatter),
+                    appointment.getContact(),
+                    appointment.getDescription(),
+                    serviceList,
+                    appointment.getCreateAt().format(formatter),
+                    LocalDateTime.now().format(formatter)
+            );
+
+            var chatID = commonParameterRepository.findByKey("APPOINTMENT_NOTIFY").orElse(null);
+
+            if (chatID != null) {
+                try {
+                    telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+                } catch (Exception e) {
+                    log.error("Lỗi khi gửi thông báo Telegram");
+                    e.printStackTrace();
+                }
+            }
+
+            return true;
+        } else {
+            throw new AppException(ErrorCode.INVALID_STATUS);
+        }
     }
 
     public void deleteappointment(String id) {

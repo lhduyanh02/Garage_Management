@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_SERVICES');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -33,8 +33,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -1208,6 +1208,7 @@ $("#copy-service-btn").click(function () {
 
         // Lắng nghe sự kiện click item trong bảng #data-table
         $("#data-table tbody").on("click", "tr", function () {
+            if ($(this).find("td").hasClass("dataTables_empty")) return;
             var rowData = $("#data-table").DataTable().row(this).data();
             var id = rowData.id;
 

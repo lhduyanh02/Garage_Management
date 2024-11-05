@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_HISTORY');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -75,7 +75,7 @@ $(document).ready(function () {
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "",
             infoFiltered: "(Lọc từ _MAX_ mục)",
-            emptyTable: "Không có dữ liệu",
+            emptyTable: "Chưa có đơn dịch vụ",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
             zeroRecords: "Không tìm thấy dữ liệu",
@@ -162,7 +162,7 @@ $(document).ready(function () {
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "",
             infoFiltered: "(Lọc từ _MAX_ mục)",
-            emptyTable: "Không có dữ liệu",
+            emptyTable: "Không có dịch vụ nào được chọn",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
             zeroRecords: "Không tìm thấy dữ liệu",
@@ -1581,6 +1581,23 @@ $("#add-detail-btn").click(async function () {
             <div class="input_wrap form-group">
                 <label>Chọn dịch vụ - Option - Số lượng - Giảm giá (%)</label><br>
                 <span class="font-weight-light font-italic">*Mặc định số lượng là "1" và % giảm giá là "0"</span>
+                <div class="row my-2 pb-1 border-bottom d-none d-md-flex">
+                    <div class="col-12 col-md-4 mb-1 mb-md-0">
+                        <label class="mb-0">Chọn dịch vụ</label>
+                    </div>
+
+                    <div class="col-12 col-md-4 mb-1 mb-md-0">
+                        <label class="mb-0">Chọn tùy chọn</label>
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="mb-0">Số lượng</label>
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="mb-0">Giảm giá (%)</label>
+                    </div>
+                </div>
                 <div id="service-wrapper" class="mt-2">
                     
                 </div>
@@ -2236,7 +2253,7 @@ $("#new-history-btn").click(async function () {
     }
     let res;
 
-    let warning = Swal.fire({
+    let warning = await Swal.fire({
         icon: "question",
         title: "Thêm mới đơn dịch vụ?",
         html: "Đơn dịch vụ sau khi được thêm sẽ <b>không được xóa</b>",
@@ -2947,10 +2964,6 @@ async function handleUpload(cardId) {
                 image: image.image,
             }))
         );
-
-        console.log(type);
-        console.log(url);
-        console.log(payload);
         
         const response = await $.ajax({
             type: type,
@@ -3193,7 +3206,6 @@ function updatePreServiceImages() {
 
     // Cập nhật lại mảng preServiceImages
     preServiceImages = updatedImages;
-    console.log('Cập nhật preServiceImages:', preServiceImages);
 }
 
 function updatePostServiceImages() {
@@ -3214,7 +3226,6 @@ function updatePostServiceImages() {
 
     // Cập nhật lại mảng postServiceImages
     postServiceImages = updatedImages;
-    console.log('Cập nhật postServiceImages:', postServiceImages);
 }
 
 // Handle paste event for pre-service and post-service images

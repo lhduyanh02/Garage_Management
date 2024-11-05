@@ -66,7 +66,7 @@ const ErrorCode = {
     DISABLE_ACTIVE_USER_ONLY: {code: 1063, message: "Không thể vô hiệu hóa người dùng này", httpStatus: 400},
     CAN_NOT_DISABLE_ADMIN: {code: 1064, message: "Không thể khóa tài khoản quản trị hệ thống", httpStatus: 400},
     BLANK_USER: { code: 1065, message: "Hồ sơ không được để trống", status: 400 },
-    CAN_NOT_EDIT_ADMIN: { code: 1066, message: "Bạn không có quyền chỉnh sửa tài khoản quản trị viên này", status: 403 },
+    CAN_NOT_EDIT_ADMIN: { code: 1066, message: "Không thể chỉnh sửa tài khoản quản trị gốc", status: 403 },
     DISABLE_ACCOUNT_WARNING: { code: 1067, message: "Hành động này sẽ vô hiệu hóa tất cả tài khoản khác liên kết với hồ sơ này", status: 200},
     NO_CHANGE_UPDATE: { code: 1068, message: "Không có thay đổi để cập nhật", status: 200 },
     PRICE_NOT_EXIST: { code: 1069, message: "Không tìm thấy giá cho tùy chọn này", status: 404 },

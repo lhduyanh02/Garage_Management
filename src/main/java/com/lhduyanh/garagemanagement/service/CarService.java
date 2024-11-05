@@ -44,7 +44,7 @@ public class CarService {
     public List<CarResponse> getAllCar() {
         return carRepository.findAll()
                 .stream()
-                .filter(car -> car.getStatus() == CarStatus.NOT_USE.getCode() || car.getStatus() == CarStatus.USING.getCode())
+                .filter(car -> car.getStatus() != CarStatus.DELETED.getCode())
                 .map(carMapper::toCarResponse)
                 .sorted(Comparator.comparing(CarResponse::getCreateAt).reversed())
                 .toList();
@@ -98,7 +98,7 @@ public class CarService {
 
         List<CarResponse> cars = carRepository.searchCars(numPlate, plateType, brand, model)
                 .stream()
-                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .filter(c -> c.getStatus() == CarStatus.USING.getCode())
                 .map(carMapper::toCarResponse)
                 .toList();
 

@@ -89,8 +89,8 @@ public enum ErrorCode {
     DISABLE_ACTIVE_USER_ONLY(1063, "Disable active user only", HttpStatus.BAD_REQUEST),
     CAN_NOT_DISABLE_ADMIN(1064, "Can not disable admin account", HttpStatus.BAD_REQUEST),
     BLANK_USER(1065, "User can not be blank", HttpStatus.BAD_REQUEST),
-    CAN_NOT_EDIT_ADMIN(1066, "You have no permission to edit admin account", HttpStatus.FORBIDDEN),
-    DISABLE_ACCOUNT_WARNING(1067, "This action will disable all accounts link to this user", HttpStatus.OK),
+    CAN_NOT_EDIT_ADMIN(1066, "Supervisor account cannot be edit", HttpStatus.FORBIDDEN),
+    DISABLE_ACCOUNT_WARNING(1067, "This action will disable all other accounts link to this user", HttpStatus.OK),
     NO_CHANGE_UPDATE(1068, "No change update", HttpStatus.OK),
     PRICE_NOT_EXIST(1069, "Price does not exist", HttpStatus.NOT_FOUND),
     BLANK_CAR(1070, "Car can not be blank", HttpStatus.BAD_REQUEST),
@@ -146,6 +146,10 @@ public enum ErrorCode {
 
     USER_NOT_CUSTOMER(1117, "This user does not have role customer", HttpStatus.BAD_REQUEST),
     NOT_YOUR_APPOINTMENT(1118, "This appointment is not your, you can not update it", HttpStatus.BAD_REQUEST),
+
+    ACTIVE_ACCOUNT(1119, "The selected account is currently active and cannot perform this action", HttpStatus.BAD_REQUEST),
+    EMPTY_ROLE_USER(1120, "Role list of this user is empty", HttpStatus.BAD_REQUEST),
+    EMPTY_PERMISSION_USER(1121, "Permission list of this user is empty", HttpStatus.BAD_REQUEST),
 
     ;
 

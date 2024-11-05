@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,7 +36,8 @@ public class ModelController {
                 .data(modelService.getModelById(id))
                 .build();
     }
-    
+
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     @PutMapping("/{id}")
     public ApiResponse<ModelResponse> updateModel(@PathVariable("id") int id, @RequestBody @Valid ModelRequest request) {
         return ApiResponse.<ModelResponse>builder()
@@ -44,8 +46,9 @@ public class ModelController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     @PostMapping
-    public ApiResponse<ModelResponse> newBrand(@RequestBody @Valid ModelRequest request) {
+    public ApiResponse<ModelResponse> newModel(@RequestBody @Valid ModelRequest request) {
         return ApiResponse.<ModelResponse>builder()
                 .code(1000)
                 .data(modelService.newModel(request))

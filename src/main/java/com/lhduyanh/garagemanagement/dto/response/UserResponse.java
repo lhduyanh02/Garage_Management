@@ -1,6 +1,5 @@
 package com.lhduyanh.garagemanagement.dto.response;
 
-import com.lhduyanh.garagemanagement.entity.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -12,7 +11,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-//@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
     String id;
     String name;

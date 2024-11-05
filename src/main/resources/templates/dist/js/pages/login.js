@@ -7,21 +7,9 @@ var Toast = Swal.mixin({
   timer: 3000,
 });
 
-const getCookie = (name) => {
-  const cookieString = document.cookie;
-  const cookies = cookieString.split("; ");
-
-  for (let cookie of cookies) {
-    if (cookie.startsWith(name + "=")) {
-      return cookie.split("=")[1];
-    }
-  }
-  return null; // Return null if the cookie is not found
-};
-
-// Example: Get the value of the cookie named "authToken"
-
 function login() {
+  utils.setLocalStorageObject("userInfo", null);
+
   let email = $("#email").val().trim();
   let password = $("#password").val();
   

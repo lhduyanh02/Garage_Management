@@ -46,7 +46,7 @@ public class HistoryController {
     public ApiResponse<List<HistoryResponse>> customerGetAllHistoryByCarId(@PathVariable String id) {
         return ApiResponse.<List<HistoryResponse>>builder()
                 .code(1000)
-                .data(historyService.getAllHistoryByCarId(id))
+                .data(historyService.customerGetAllHistoryByCarId(id))
                 .build();
     }
 

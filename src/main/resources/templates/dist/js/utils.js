@@ -154,6 +154,53 @@ export function introspect(bool) {
     }
 }
 
+export function introspectPermission(key) {  
+    if(!key || key == "") {
+        window.location.href = "/";
+        return;
+    }
+
+    let token = getCookie("authToken");
+
+    if (token) {
+        $.ajax({
+            type: "POST",
+            url: "/api/auth/permission-introspect/" + key,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            data: JSON.stringify({ token: token }),
+            success: function (res) {
+                if (res.code == 1000) {
+                    if (res.data.valid == true) {
+                        return true;
+                    } else {
+                        setLocalStorageObject("userInfo", null)
+                        window.location.href = "/";
+                    }
+                } else {
+                    setLocalStorageObject("userInfo", null)
+                    window.location.href = "/";
+                }
+            },
+            error: function (xhr, status, error) {
+                if (xhr.status >= 500 && xhr.status < 600) {
+                    console.error(xhr);
+                    console.warn("Error in permission introspecting");
+                    return;
+                } else {
+                    console.error(xhr);
+                    setLocalStorageObject('userInfo', null);
+                    window.location.href = "/";
+                }
+            },
+        });
+    } else {
+        window.location.href = "/";
+    }
+}
+
 export function checkLoginStatus() {
     return new Promise((resolve, reject) => {
         let token = getCookie("authToken");
@@ -229,6 +276,16 @@ export function validatePhoneNumber(phoneNumber) {
     var regex = /^\+?[0-9\s.-]+$/;
     return regex.test(phoneNumber);
 }
+
+export function isValidEmail(email) {
+    if (!email) {
+        return true; // Trả về false nếu email là null hoặc rỗng
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email); // Trả về true nếu email hợp lệ
+}
+
 
 export function defaultHeaders() {
     return {

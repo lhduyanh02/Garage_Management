@@ -30,7 +30,6 @@ public class BrandController {
                 .build();
     }
 
-
     @GetMapping("/fetch-model")
     public ApiResponse<List<BrandModelResponse>> getAllBrandModel() {
         return ApiResponse.<List<BrandModelResponse>>builder()
@@ -47,7 +46,7 @@ public class BrandController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'ADMIN'})")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     @PostMapping
     public ApiResponse<BrandSimpleResponse> newBrand(@RequestBody @Valid BrandRequest request) {
         return ApiResponse.<BrandSimpleResponse>builder()
@@ -56,6 +55,7 @@ public class BrandController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     @PutMapping
     public ApiResponse<BrandSimpleResponse> updateBrand(@RequestParam("id") int id, @RequestBody @Valid BrandRequest request) {
         return ApiResponse.<BrandSimpleResponse>builder()
