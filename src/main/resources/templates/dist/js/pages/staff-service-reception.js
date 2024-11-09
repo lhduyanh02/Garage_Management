@@ -91,10 +91,13 @@ $(document).ready(function () {
             {
                 data: "serviceDate",
                 render: function (data, type, row) {
-                    let time = utils.getTimeAsJSON(data);
-                    let html = `${time.hour}:${time.min}, ${time.date}/${time.mon}/${time.year}`;
+                    if (type === "display" || type === "filter") {
+                        let time = utils.getTimeAsJSON(data);
+                        let html = `${time.hour}:${time.min}, ${time.date}/${time.mon}/${time.year}`;
 
-                    return `<b>${html}</b>`;
+                        return `<b>${html}</b>`;
+                    }
+                    return data;
                 },
             },
             {
@@ -239,6 +242,7 @@ $(document).ready(function () {
             }
         },
     });
+
     $.ajax({
         type: "GET",
         url: "/api/plate-types",
@@ -294,7 +298,14 @@ $(document).ready(function () {
         let invoiceId = utils.getHashParam(hash_invoice);
         if (invoiceId) {
             loadInvoiceById(invoiceId);
+        } else {
+            $('#proceeding-orders').prop("hidden", false);
+            reloadProceedingOrder();
         }
+    } else {
+        utils.setHashParam(hash_car, null);
+        utils.setHashParam(hash_invoice, null);
+        reloadProceedingOrder();
     }
 
     $.ajax({
@@ -1213,6 +1224,7 @@ function clearInvoiceCard() {
 
     $(TABLE_DETAILS).DataTable().clear().draw();
     INVOICE_CARD.prop("hidden", true);
+    $('#proceeding-orders').prop("hidden", false);
     IMAGE_CARDS.prop("hidden", true);
 
     $('#facility-name').text(FACILITY_NAME);
@@ -1320,6 +1332,8 @@ $("#reset-btn").click(function (e) {
     utils.setHashParam(hash_car, null);
     selectedInvoice = null;
     utils.setHashParam(hash_invoice, null);
+    
+    reloadProceedingOrder();
 });
 
 $("#save-btn").click(function () {
@@ -2303,6 +2317,8 @@ $("#new-history-btn").click(async function () {
         loadInvoiceInfo(res.data);
     } else {
         INVOICE_CARD.prop("hidden", true);
+        $('#proceeding-orders').prop("hidden", false);
+        reloadProceedingOrder();
         IMAGE_CARDS.prop("hidden", true);
         clearInvoiceCard();
         Swal.fire({
@@ -2529,6 +2545,7 @@ function loadListDetailsHistory(details) {
     if (details.length == 0) {
         return;
     }
+    $('#delete-detail-btn').prop("hidden", true);
 
     let data = [];
     let counter = 1;
@@ -2552,6 +2569,8 @@ function loadListDetailsHistory(details) {
 
 function loadInvoiceInfo(invoice) {
     INVOICE_CARD.prop("hidden", false);
+    $('#delete-detail-btn').prop("hidden", true);
+    $('#proceeding-orders').prop("hidden", true);
     IMAGE_CARDS.prop("hidden", false);
 
     if (selectedInvoice) {
@@ -2580,6 +2599,7 @@ function loadInvoiceInfo(invoice) {
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
         $('#save-invoice-info-btn').prop('hidden', true);
+        $('#delete-detail-btn').prop("hidden", true);
         if (invoice.status == 1) {
             $('#invoice-status-info').html(`
                 <a type="button" class="btn btn-success">
@@ -2814,7 +2834,6 @@ function ImgUpload() {
 function updateImageArray(parentCard) {
     const imgArray = parentCard === "pre-service-image" ? updatePreServiceImages() : updatePostServiceImages();
 }
-
 
 // send image
 $(".btn-upload-submit").on("click", function () {
@@ -3537,4 +3556,74 @@ $(document).on('click', '#cancel-order-btn', async function () {
     } else {
         return;
     }
+});
+
+
+async function reloadProceedingOrder() {
+    $('#proceeding-orders').html("");
+
+    let res;
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/history/get-all-proceeding",
+            headers: utils.defaultHeaders(),
+            dataType: "json"
+        });
+    } catch (error) {
+        console.error(error);
+    }
+
+    if (!res) return;
+
+    if (res.code == 1000) {
+        if (res.data.length <= 0) return;
+
+        let html = "";
+        res.data.forEach(function(order) {
+            let numPlate = order.car.numPlate;
+            let plateType = order.car.plateType.type;
+            let color = order.car.color;
+            let model = order.car.model.brand.brand + " " + order.car.model.model;
+            let time = utils.getTimeAsJSON(order.serviceDate);
+            let timeHtml = `${time.hour}:${time.min}, ngày ${time.date}/${time.mon}/${time.year}`;
+
+            html += `
+                <div class="col-lg-3 col-6">
+                    <div role="button" class="small-box bg-white proceeding-history-card" data-invoice="${order.id}" data-car="${order.car.id}">
+                        <div class="inner">
+                            <h4>${numPlate} - ${plateType}</h4>
+                            <b>${model}</b>
+                            <span>${color}</span><br>
+                            <b>${timeHtml}</b>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-solid fa-car"></i>
+                        </div>
+                        <a role="button" class="small-box-footer">
+                        Xe đang thi công <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+
+        $('#proceeding-orders').html(html);
+        $('#proceeding-orders').prop("hidden", false);
+    } else {
+        console.error(res);
+    }
+}
+
+$(document).on('click', '.proceeding-history-card', function () {
+    let orderID = $(this).data("invoice");
+    let carID = $(this).data("car");
+
+    if (carID == null || carID == "") return;
+    utils.setHashParam(hash_car, carID);
+    loadCarInfoHistoryListByCarID(carID);
+
+    if (orderID == null || orderID == "") return;
+    utils.setHashParam(hash_car, orderID);
+    loadInvoiceById(orderID);
 });

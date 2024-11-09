@@ -61,7 +61,7 @@
 
 .modal-custom .form-control:focus {
     box-shadow: none;
-    border: 2px solid red;
+    border: 2px solid #007bff;
 }
 
 .modal-custom .validate {

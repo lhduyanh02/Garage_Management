@@ -12,6 +12,13 @@ var Toast = Swal.mixin({
 
 // Clear modal
 function clear_modal() {
+    if ($(".modal-dialog").hasClass("modal-lg")) {
+        $(".modal-dialog").removeClass("modal-lg");
+    }
+
+    if ($(".modal-dialog").hasClass("modal-xl")) {
+        $(".modal-dialog").removeClass("modal-xl");
+    }
     $("#modal_title").empty();
     $("#modal_body").empty();
     $("#modal_footer").empty();
@@ -282,6 +289,9 @@ $(document).ready(async function () {
 });
 
 $("#data-table tbody").on("click", "tr", function () {
+    $("#reset-password-btn").prop("disabled", true);
+    $("#car-mapping-btn").prop("disabled", true);
+
     if ($(this).find("td").hasClass("dataTables_empty")) return;
     const data = dataTable.row(this).data();
     const rowId = data.id;
@@ -298,7 +308,9 @@ $("#data-table tbody").on("click", "tr", function () {
 
     if (selectedRows.size > 0) {
         $("#car-mapping-btn").prop("disabled", false);
-        $("#reset-password-btn").prop("disabled", false);
+        if (data.accounts.length > 0 && data.accounts[0].email) {
+            $("#reset-password-btn").prop("disabled", false);
+        }
     } else {
         $("#reset-password-btn").prop("disabled", true);
         $("#car-mapping-btn").prop("disabled", true);
@@ -307,10 +319,16 @@ $("#data-table tbody").on("click", "tr", function () {
 
 // Draw table with selected rows in set selectedRows
 $(dataTable).on("draw", function () {
+    $("#car-mapping-btn").prop("disabled", true);
+    $("#reset-password-btn").prop("disabled", true);
     dataTable.rows().every(function () {
         const data = this.data();
         if (selectedRows.has(data.id)) {
             $(this.node()).addClass("selected");
+            $("#car-mapping-btn").prop("disabled", false);
+            if (data.accounts.length > 0 && data.accounts[0].email) {
+                $("#reset-password-btn").prop("disabled", false);
+            }
         }
     });
 });
@@ -342,6 +360,20 @@ function applyFilters() {
     
     // Cập nhật DataTable với dữ liệu đã lọc
     $('#data-table').DataTable().clear().rows.add(data).draw();
+    
+    if (selectedRows) {
+        $("#reset-password-btn").prop("disabled", true);
+        dataTable.rows().every(function () {
+            const data = this.data();
+            if (selectedRows.has(data.id)) {
+                $(this.node()).addClass("selected");
+                $("#car-mapping-btn").prop("disabled", false);
+                if (data.accounts.length > 0 && data.accounts[0].email) {
+                    $("#reset-password-btn").prop("disabled", false);
+                }
+            }
+        });
+    }
 }
 
 $("#new-user-btn").click(function () {
@@ -561,6 +593,450 @@ $("#new-user-btn").click(function () {
                 });
             }
         });
+    });
+});
+
+$("#reset-password-btn").click(async function () {
+    let id = selectedRows.values().next().value;
+    var row = dataTable.rows().data().toArray().find(rowData => rowData.id === id);
+
+    if (!row) {
+        Toast.fire({
+            icon: "warning",
+            title: "Vui lòng chọn tài khoản cần đặt lại"
+        });
+        return;
+    }
+
+    if (!row.accounts.length > 0) {
+        Toast.fire({
+            icon: "warning",
+            title: "Hồ sơ khách hàng chưa có tài khoản!"
+        });
+        return;
+    }
+    
+    let warning = await Swal.fire({
+        title: "Đặt lại mật khẩu khách hàng?",
+        html: `Một thông báo sẽ được gửi đến email<br><b>${row.accounts[0].email}</b>`,
+        icon: "warning",
+        showCancelButton: true,
+        showConfirmButton: true,
+        cancelButtonText: "Hủy",
+        confirmButtonText: "Đồng ý",
+        reverseButtons: true
+    });
+    
+    if (!warning.isConfirmed) {
+        return;
+    }
+
+
+    $.ajax({
+        type: "PUT",
+        url: "/api/accounts/reset-customer-password/" + row.accounts[0].id,
+        headers: utils.defaultHeaders(),
+        beforeSend: function () {
+            Swal.showLoading();
+        },
+        success: function (response) {
+            Swal.close();
+            if(response.code == 1000){
+                Swal.fire({
+                    icon: "success", 
+                    title: "Đã đặt lại mật khẩu!",
+                    html: `Đã lại mật khẩu cho <b>${row.name}</b><br>Email: <b>${row.accounts[0].email}</b><br>Mật khẩu mặc định là: <i>"password"</i>.`
+                });
+                $("#modal_id").modal("hide");
+                dataTable.ajax.reload();
+            } else {
+                Swal.close();
+                console.error(response);
+                Swal.fire({
+                    icon: "error",
+                    title: utils.getErrorMessage(response.code),
+                })
+            }
+        },
+        error: function(xhr, status, error) {
+            Swal.close();
+            console.error(xhr);
+            Swal.fire({
+                icon: "error",
+                title: "Đã xảy ra lỗi",
+                text: utils.getXHRInfo(xhr).message
+            });
+        }
+    });
+});
+
+$("#car-mapping-btn").click(async function () {
+    let id = selectedRows.values().next().value;
+    var row = dataTable.rows().data().toArray().find(rowData => rowData.id === id);
+
+    if (!row) {
+        Toast.fire({
+            icon: "warning",
+            title: "Vui lòng chọn khách hàng cần đăng ký"
+        });
+        return;
+    }
+
+    $.ajax({
+        type: "GET",
+        url: `/api/cars`,
+        dataType: "json",
+        headers: utils.defaultHeaders(),
+        beforeSend: function () {
+            Swal.showLoading();
+        },
+        success: async function (res) {
+            if (res.code == 1000) {
+                Swal.close();
+                clear_modal();
+                $("#modal_title").text("Đăng ký quản lý xe cho " + row.name);
+                $(".modal-dialog").addClass("modal-xl");
+                $("#modal_body").append(`
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tìm hồ sơ xe</label>
+                                <div class="input-group">
+                                    <input id="car-search-input" type="text" class="form-control" placeholder="Tìm kiếm hồ sơ xe">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex">
+                            <button id="car-select-btn" type="button" class="btn btn-outline-primary ml-auto mt-auto mb-3 px-3">Chọn</button>
+                            <button id="remove-mapping-btn" type="button" class="btn btn-outline-danger ml-2 mt-auto mb-3 px-3" hidden>Gỡ</button>
+                        </div>
+                    </div>
+                    <table id="car-table" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col" style="text-align: center" width="4%">#</th>
+                                <th scope="col" style="text-align: center" width="16%">Biển số</th>
+                                <th scope="col" style="text-align: center" width="20%">Mẫu xe</th>
+                                <th scope="col" style="text-align: center">Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                `);
+
+                let carTable = $("#car-table").DataTable({
+                    responsive: true,
+                    lengthChange: false,
+                    autoWidth: false,
+                    buttons: false,
+                    pageLength: 5,
+                    searching: true,
+                    dom: "lrtip", // (l: length, r: processing, t: table, i: information, p: pagination)
+
+                    columnDefs: [
+                        { orderable: false, targets: 0 },
+                        {
+                            targets: "_all", // Áp dụng cho tất cả các cột
+                            className: "text-center, targets: 0", // Căn giữa nội dung của tất cả các cột
+                        },
+                    ],
+                    language: {
+                        paginate: {
+                            next: "&raquo;",
+                            previous: "&laquo;",
+                        },
+                        lengthMenu: "Số dòng: _MENU_",
+                        info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+                        infoEmpty: "Không có dữ liệu để hiển thị",
+                        infoFiltered: "(Lọc từ _MAX_ mục)",
+                        emptyTable: "Không có dữ liệu",
+                        search: "Tìm kiếm:",
+                    },
+                    data: res.data,
+                    columns: [
+                        { title: "#", data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
+                        {
+                            data: "numPlate",
+                            render: function (data, type, row) {
+                                let html = "";
+                                html += `<center>${data}<br> `;
+
+                                if (row.plateType.type.includes("xanh")) {
+                                    html += `<span class="badge badge-primary">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (
+                                    row.plateType.type.includes("trắng")
+                                ) {
+                                    html += `<span class="badge badge-light">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (
+                                    row.plateType.type.includes("vàng")
+                                ) {
+                                    html += `<span class="badge badge-warning">&nbsp;${row.plateType.type}</span><br>`;
+                                } else if (row.plateType.type.includes("đỏ")) {
+                                    html += `<span class="badge badge-danger">&nbsp;${row.plateType.type}</span><br>`;
+                                } else {
+                                    html += `<span class="badge badge-secondary">&nbsp;${row.plateType.type}</span><br>`;
+                                }
+                                return html + "</center>";
+                            },
+                        },
+                        {
+                            data: "model",
+                            render: function (data, type, row) {
+                                let html = `<center>${data.brand.brand} ${data.model}</center>`;
+                                return html;
+                            },
+                        },
+                        {
+                            data: "carDetail",
+                            render: function (data, type, row) {
+                                let html = "";
+                                if (row.color != null) {
+                                    html += `<b>Màu:</b> ${row.color} | `;
+                                }
+
+                                if (row.createAt != null) {
+                                    html += `<b>Khởi tạo:</b> ${utils.formatVNDate(
+                                        row.createAt
+                                    )}<br>`;
+                                }
+
+                                if (data != "") {
+                                    html += `<b>Ghi chú: <br></b> ${data.replace(
+                                        /\n/g,
+                                        "<br>"
+                                    )}`;
+                                }
+                                return html;
+                            },
+                        },
+                    ],
+                    drawCallback: function (settings) {
+                        // Số thứ tự không thay đổi khi sort hoặc paginations
+                        var api = this.api();
+                        var start = api.page.info().start;
+                        api.column(0, { page: "current" })
+                            .nodes()
+                            .each(function (cell, i) {
+                                cell.innerHTML = start + i + 1;
+                            });
+                    },
+                });
+
+                let selectedCar;
+
+                $("#car-table tbody").on("click", "tr", function () {
+                    if ($(this).find("td").hasClass("dataTables_empty")) return;
+                    $('#remove-mapping-btn').prop('hidden', true);
+
+                    if ($(this).hasClass("selected")) {
+                        $(this).removeClass("selected");
+                        $('#remove-mapping-btn').prop('hidden', true);
+                        selectedCar = null;
+                    } else {
+                        $("#car-table tbody tr").removeClass("selected");
+                        $(this).addClass("selected");
+                        selectedCar = $("#car-table").DataTable().row(this).data();
+                        if (row.cars.length > 0) {
+                            row.cars.forEach((car, idx) => {
+                                if (car.id === selectedCar.id) {
+                                    $('#remove-mapping-btn').prop('hidden', false);
+                                }
+                            });
+                        }
+                    }
+                });
+
+                $("#car-search-input").on("keyup", function () {
+                    carTable.search(this.value.trim()).draw();
+                });
+
+                $(carTable).on("draw", function () {
+                    carTable.rows().every(function () {
+                        const data = this.data();
+                        if (selectedCar.id === data.id) {
+                            $(this.node()).addClass("selected");
+                        } else {
+                            $(this.node()).removeClass("selected");
+                        }
+                    });
+                });
+
+                $("#car-select-btn").click(async function (e) {
+                    if (!selectedCar) {
+                        Toast.fire({
+                            icon: "warning",
+                            title: "Vui lòng chọn lại xe cần đăng ký"
+                        });
+                        return;
+                    }
+
+                    const isDuplicate = row.cars.some(car => car.id === selectedCar.id);
+    
+                    if (isDuplicate) {
+                        await Swal.fire({
+                            icon: "warning",
+                            title: "Xe đã được đăng ký",
+                            html: `Xe <b>${selectedCar.numPlate}</b> đã được đăng ký<br>quản lý cho <b>${row.name}</b> trước đó`
+                        });
+                        return;
+                    }
+
+                    let warning = await Swal.fire({
+                        title: "Đăng ký quản lý?",
+                        html: `Đăng ký khách hàng <b>${row.name}</b><br>quản lý xe <b>${selectedCar.model.brand.brand} ${selectedCar.model.model} - ${selectedCar.numPlate}</b>`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        cancelButtonText: "Hủy",
+                        confirmButtonText: "Đồng ý",
+                        reverseButtons: true
+                    });
+                    
+                    if (!warning.isConfirmed) {
+                        return;
+                    }
+                    
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/users/car-mapping",
+                        headers: utils.defaultHeaders(),
+                        data: JSON.stringify({
+                            userId: row.id,
+                            carId: selectedCar.id
+                        }),
+                        beforeSend: function () {
+                            Swal.showLoading();
+                        },
+                        success: function (response) {
+                            Swal.close();
+                            if(response.code == 1000 && response.data == true) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Đăng ký quản lý thành công",
+                                });
+                                $("#modal_id").modal("hide");
+                                dataTable.ajax.reload();
+                            }
+                            else {
+                                console.error(response);
+                                Toast.fire({
+                                    icon: "error",
+                                    title: utils.getErrorMessage(response.code)
+                                })
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.close();
+                            console.error(xhr);
+                            Toast.fire({
+                                icon: "error",
+                                title: utils.getXHRInfo(xhr).message
+                            })
+                        }
+                    });
+                });
+
+                $("#remove-mapping-btn").click(async function (e) {
+                    if (!selectedCar) {
+                        Toast.fire({
+                            icon: "warning",
+                            title: "Vui lòng chọn lại xe cần gỡ quyền quản lý"
+                        });
+                        return;
+                    }
+
+                    const isDuplicate = row.cars.some(car => car.id === selectedCar.id);
+    
+                    if (!isDuplicate) {
+                        await Swal.fire({
+                            icon: "warning",
+                            title: "Xe không thuộc quản lý",
+                            html: `Xe <b>${selectedCar.numPlate}</b> chưa được quản lý bởi<br>khách hàng <b>${row.name}</b>`
+                        });
+                        return;
+                    }
+
+                    let warning = await Swal.fire({
+                        title: "Khách hàng ngưng quản lý xe?",
+                        html: `Khách hàng <b>${row.name}</b><br>sẽ ngừng quản lý xe <b>${selectedCar.model.brand.brand} ${selectedCar.model.model} - ${selectedCar.numPlate}</b>`,
+                        icon: "warning",
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        cancelButtonText: "Hủy",
+                        confirmButtonText: "Đồng ý",
+                        reverseButtons: true
+                    });
+                    
+                    if (!warning.isConfirmed) {
+                        return;
+                    }
+                    
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/users/remove-car-mapping",
+                        headers: utils.defaultHeaders(),
+                        data: JSON.stringify({
+                            userId: row.id,
+                            carId: selectedCar.id
+                        }),
+                        beforeSend: function () {
+                            Swal.showLoading();
+                        },
+                        success: function (response) {
+                            Swal.close();
+                            if(response.code == 1000 && response.data == true) {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Cập nhật thành công!",
+                                    html: `Khách hàng <b>${row.name}</b><br>đã ngừng quản lý xe <b>${selectedCar.model.brand.brand} ${selectedCar.model.model} - ${selectedCar.numPlate}</b>`
+                                });
+                                $("#modal_id").modal("hide");
+                                dataTable.ajax.reload();
+                            }
+                            else {
+                                console.error(response);
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Đã xảy ra lỗi",
+                                    text: utils.getErrorMessage(response.code)
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.close();
+                            console.error(xhr);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Đã xảy ra lỗi",
+                                text: utils.getXHRInfo(xhr).message
+                            })
+                        }
+                    });
+                });
+
+                $("#modal_id").modal("show");
+            } else {
+                Swal.close();
+                console.error(res);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getErrorMessage(res.code),
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.close();
+            console.log(xhr);
+            Swal.fire({
+                icon: "error",
+                title: "Đã xảy ra lỗi",
+                text: utils.getXHRInfo(xhr).message,
+            });
+        },
     });
 });
 
@@ -1020,5 +1496,3 @@ $("#data-table").on("click", "#activateBtn", function () {
     });
 });
 
-
-Hoàn thiện chức năng reset pass và mapping car

@@ -233,9 +233,11 @@ public class AccountService {
         }
 
         request.setEmail(request.getEmail().trim());
-        if (request.getPhone() != null) {
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             // Xóa ký tự khoảng trắng , . -
             request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+        } else {
+            request.setPhone(null);
         }
 
         User user = userMapper.toUser(request);
@@ -327,6 +329,78 @@ public class AccountService {
         }
     }
 
+    public Boolean sendOtpToEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+            throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+        }
+
+        // Kiểm tra cách 1 phút kể từ lần gửi email trước
+        if((account.getStatus() >= AccountStatus.CONFIRMED.getCode()) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 1)) {
+            otpService.createSendOtpCode(account);
+        }
+        else {
+            throw new AppException(ErrorCode.OTP_SEND_TIMER);
+        }
+        return true;
+    }
+
+    public AccountVerifyResponse accountEmailVerify (AccountVerifyRequest request) {
+        boolean result = otpService.VerifyOtpCode(request.getEmail(), request.getOtpCode());
+        if (result) {
+            Account account = accountRepository.findByEmail(request.getEmail())
+                    .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+            if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if (user.getStatus() == UserStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_USER);
+            }
+
+            return AccountVerifyResponse.builder().result(true).build();
+        }
+        throw new AppException(ErrorCode.INCORRECT_OTP);
+    }
+
+    public Boolean passwordRecovery (PasswordRecoveryRequest request) {
+        boolean result = otpService.VerifyOtpCode(request.getEmail(), request.getOtpCode());
+        if (result) {
+            Account account = accountRepository.findByEmail(request.getEmail())
+                    .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+            if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if (user.getStatus() == UserStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_USER);
+            }
+
+            account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            account.setOtpCode(otpService.generateOtp());
+            account.setGeneratedAt(LocalDateTime.now());
+            accountRepository.save(account);
+
+            return true;
+        }
+        throw new AppException(ErrorCode.INCORRECT_OTP);
+    }
+
     public boolean disableAccount(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
@@ -408,6 +482,39 @@ public class AccountService {
         return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
+    public Boolean changePassword(PasswordChangeRequest request) {
+        String uid = getUUIDFromJwt();
+
+        User user = userRepository.findById(uid)
+                .filter(u -> u.getStatus() >= UserStatus.CONFIRMED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        Account account = accountRepository.findById(request.getAccountId())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if(user.getAccounts().stream().noneMatch(a -> a.getId().equals(account.getId()))) {
+            throw new AppException(ErrorCode.NOT_YOUR_ACCOUNT);
+        }
+
+        if (account.getStatus() != AccountStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.INACTIVE_ACCOUNT);
+        }
+
+        boolean authenticated = passwordEncoder.matches(request.getOldPassword(), account.getPassword());
+
+        if (!authenticated) {
+            throw new AppException(ErrorCode.INCORRECT_PASSWORD);
+        }
+
+        if (request.getNewPassword().isEmpty() || request.getNewPassword().length() < 8) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+        return true;
+    }
+
     public Boolean resetPasswordById(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
@@ -421,7 +528,7 @@ public class AccountService {
         return true;
     }
 
-    public Boolean resetPasswordCustomer(String id) {
+    public Boolean resetCustomerPassword(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
 
@@ -435,6 +542,32 @@ public class AccountService {
 
         account.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         accountRepository.save(account);
+
+        try { // Gửi email thông báo đã đặt lại mật khẩu
+            String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+            User user = account.getUser();
+
+            String body = """
+                        <p>Xin chào <strong>{0}</strong>,</p>
+                        <p>Tài khoản của bạn đã được đặt lại mật khẩu vào lúc {1}.<br>Mật khẩu mặc định là: <i>{3}</i></p>
+                        <p>Xin cảm ơn.</p>
+                        <p>{2},<br><i>Trân trọng.</i></p>
+                        """;
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+            String message = MessageFormat.format(body,
+                    user.getName(), // 0
+                    LocalDateTime.now().format(formatter), // 1
+                    facilityName, // 2
+                    DEFAULT_PASSWORD);  // 3
+
+            emailSenderService.sendHtmlEmail(account.getEmail(), "[" + facilityName.toUpperCase() + "] ĐẶT LẠI MẬT KHẨU", message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error in sending message after customer verified account");
+        }
+
         return true;
     }
 

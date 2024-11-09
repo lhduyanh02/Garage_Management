@@ -31,4 +31,8 @@ public interface CarRepository extends JpaRepository<Car, String> {
     """)
     List<Car> findAllByManager(@Param("id") String managerId);
 
+    // Count number of car
+    @Query("SELECT COUNT(c) FROM Car c WHERE c.status <> 0-1")
+    Long countAllCar();
+
 }

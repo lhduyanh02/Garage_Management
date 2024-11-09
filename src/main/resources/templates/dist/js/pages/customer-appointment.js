@@ -1253,7 +1253,7 @@ $('#new-appointment-btn').click( async function (e) {
     });
 
     $("#modal_footer").append(
-        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Đặt hẹn</button>'
     );
 
     $("#modal_id").modal("show");

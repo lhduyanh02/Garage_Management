@@ -64,9 +64,9 @@ $(document).ready(function () {
         timePicker24Hour: true,   // Sử dụng định dạng 24 giờ
         timePickerIncrement: 10,
         autoUpdateInput: false,   // Không tự động cập nhật input cho đến khi nhấn "Chọn"
-        maxSpan: {
-            days: 31  // Giới hạn không quá 7 ngày
-        },
+        // maxSpan: {
+        //     days: 31  // Giới hạn không quá 31 ngày
+        // },
         locale: {
             format: 'HH:mm, DD/MM/YYYY',     // Định dạng ngày giờ tiếng Việt
             separator: ' đến ',              // Dấu phân cách giữa hai ngày

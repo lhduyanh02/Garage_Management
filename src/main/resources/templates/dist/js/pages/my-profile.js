@@ -200,8 +200,8 @@ $('#save-btn').click(async function () {
         return;
     }
 
-    if(telegramId) {
-        if (!/^\d+$/.test(telegramId) || Number(telegramId) > Number.MAX_SAFE_INTEGER) {
+    if (telegramId) {
+        if (!/^-?\d+$/.test(telegramId) || Number(telegramId) > Number.MAX_SAFE_INTEGER || Number(telegramId) < Number.MIN_SAFE_INTEGER) {
             Swal.fire({
                 icon: "warning",
                 title: "Telegram ID không hợp lệ!",
@@ -210,6 +210,7 @@ $('#save-btn').click(async function () {
             return;
         }
     }
+    
     if(gender == null) {
         gender = -1;
     }
@@ -263,5 +264,171 @@ $('#save-btn').click(async function () {
                 title: utils.getXHRInfo(xhr).message
             });
         }
+    });
+});
+
+$('#change-password-btn').click(async function () { 
+    if (userInfo == null) {
+        return;
+    }
+
+    if (!userInfo.accounts.length > 0) {
+        Toast.fire({
+            icon: "warning",
+            title: "Không tìm thấy tài khoản!"
+        });
+        return;
+    }
+
+    clear_modal();
+    $("#modal_title").text("Đổi mật khẩu");
+    $("#modal_body").append(`
+        <div class="form-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="mb-0" for="old_password_input">Mật khẩu cũ</label>
+                <kbd id="old_password_counter" class="mb-0 small">0/255</kbd>
+            </div>
+            <input type="password" class="form-control" id="old_password_input" maxlength="255" placeholder="Nhập mật khẩu cũ">
+        </div>
+
+        <div class="form-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="mb-0" for="new_password_input">Mật khẩu mới</label>
+                <kbd id="new_password_counter" class="mb-0 small">0/256</kbd>
+            </div>
+            <input type="password" class="form-control" id="new_password_input" maxlength="255" placeholder="Nhập mật khẩu mới">
+        </div>
+
+        <div class="form-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="mb-0" for="retype_password_input">Xác nhận mật khẩu mới</label>
+                <kbd id="retype_password_counter" class="mb-0 small">0/256</kbd>
+            </div>
+            <input type="password" class="form-control" id="retype_password_input" maxlength="255" placeholder="Nhập lại mật khẩu mới">
+        </div>
+    `);
+
+    utils.set_char_count("#old_password_input", "#old_password_counter");
+    utils.set_char_count("#new_password_input", "#new_password_counter");
+    utils.set_char_count("#retype_password_input", "#retype_password_counter");
+
+    $("#modal_footer").append(
+        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+    );
+
+    $("#modal_id").modal("show");
+
+    $("#modal_submit_btn").click(async function (){
+        let oldPasswd = $("#old_password_input").val();
+        let newPasswd = $("#new_password_input").val();
+        let retypePasswd = $("#retype_password_input").val();
+        
+        // Biểu thức chính quy kiểm tra tiếng Việt
+        const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
+
+        if (!oldPasswd || oldPasswd.trim() === "") {
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng nhập mật khẩu"
+            });
+            return;
+        }
+        
+        if (!newPasswd || newPasswd.trim() === "") {
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng nhập mật khẩu mới"
+            });
+            return;
+        }
+        
+        if (newPasswd.length < 8) {
+            Toast.fire({
+                icon: "warning",
+                title: "Mật khẩu phải có tối thiểu 8 ký tự"
+            });
+            return;
+        }
+        
+        if (!retypePasswd || retypePasswd.trim() === "") {
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng nhập lại mật khẩu mới"
+            });
+            return;
+        }
+        
+        if (newPasswd !== retypePasswd) {
+            Toast.fire({
+                icon: 'warning',
+                title: 'Mật khẩu chưa trùng khớp'
+            });
+            return;
+        }
+
+        // Kiểm tra nếu mật khẩu chứa ký tự tiếng Việt
+        if (vietnamesePattern.test(newPasswd)) {
+            Toast.fire({
+                icon: "warning",
+                title: "Mật khẩu không được chứa ký tự tiếng Việt"
+            });
+            return;
+        }
+
+        let warning = await Swal.fire({
+            title: "Đổi mật khẩu?",
+            html: `Đổi mật khẩu cho tài khoản<br><b>${userInfo.accounts[0].email}</b>`,
+            icon: "warning",
+            showCancelButton: true,
+            showConfirmButton: true,
+            cancelButtonText: "Hủy",
+            confirmButtonText: "Đồng ý",
+            reverseButtons: true
+        });
+        
+        if (!warning.isConfirmed) {
+            return;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/api/accounts/change-password",
+            headers: utils.defaultHeaders(),
+            data: JSON.stringify({
+                accountId: userInfo.accounts[0].id,
+                oldPassword: oldPasswd,
+                newPassword: newPasswd,
+            }),
+            beforeSend: function () {
+                Swal.showLoading();
+            },
+            success: async function (res) {
+                Swal.close();
+                if (res.code == 1000) {
+                    await loadUserInfo();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Đã đổi mật khẩu thành công!",
+                        showCancelButton: false
+                    });
+                    $("#modal_id").modal("hide");
+                }
+                else {
+                    Toast.fire({
+                        icon: "error",
+                        title: utils.getErrorMessage(res)
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message
+                });
+            }
+        });
     });
 });

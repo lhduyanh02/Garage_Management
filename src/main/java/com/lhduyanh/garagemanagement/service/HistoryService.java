@@ -18,6 +18,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,11 +42,16 @@ public class HistoryService {
 
     HistoryMapper historyMapper;
 
+    public Long getHistoryQuantity() {
+        return historyRepository.getHistoryQuantity();
+    }
+
     public List<HistoryResponse> getAllHistoryByCarId(String id) {
         List<HistoryResponse> response = historyRepository.findAllHistoryByCarId(id)
                 .stream()
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
                 .toList();
 
         return response;
@@ -100,6 +106,26 @@ public class HistoryService {
         return response;
     }
 
+    public List<HistoryResponse> getAllHistoryByTimeRange(LocalDateTime start, LocalDateTime end, Integer status) {
+        return historyRepository.getAllHistoryByTimeRange(start, end, status)
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
+                .toList();
+    }
+
+    public List<HistoryResponse> getAllProceedingHistory() {
+        List<HistoryResponse> response = historyRepository.getAllHistoryByStatus(HistoryStatus.PROCEEDING.getCode())
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
+                .toList();
+
+        return response;
+    }
+
     @Transactional
     public HistoryResponse newHistory(HistoryCreationRequest request) {
         Car car = carRepository.findById(request.getCarId())
@@ -115,7 +141,7 @@ public class HistoryService {
         }
 
         User advisor = userRepository.findById(request.getAdvisorId())
-                .filter(u -> securityExpression.hasPermission(u.getId(), List.of("SIGN_SERVICE", "UPDATE_PROGRESS", "CANCEL_SERVICE")))
+                .filter(u -> securityExpression.hasPermission(u.getId(), List.of("SIGN_SERVICE", "CANCEL_SERVICE")))
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_ADVISOR));
 
         CommonParameter tax = commonParameterRepository.findByKey("TAX")

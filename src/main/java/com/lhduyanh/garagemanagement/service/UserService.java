@@ -272,7 +272,7 @@ public class UserService {
         var UUID = getUUIDFromJwt();
         User user = userRepository.findByIdFullInfo(UUID)
                 .filter(u -> u.getStatus() >= UserStatus.CONFIRMED.getCode())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         if (user.getStatus() == 9999) {
             return new ArrayList<>(permissionRepository.findAll().stream().map(Permissions::getPermissionKey).toList());
@@ -338,6 +338,8 @@ public class UserService {
         
         if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+        } else {
+            request.setPhone(null);
         }
 
         User user = userMapper.toUser(request);
@@ -501,13 +503,21 @@ public class UserService {
             throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
         }
 
-        if (request.getPhone() != null) {
+        if (request.getTelegramId() != null) {
+            if (userRepository.findByTelegramId(request.getTelegramId()).filter(u -> !u.getId().equals(user.getId())).isPresent()) {
+                throw new AppException(ErrorCode.TELEGRAM_ID_EXISTED);
+            }
+        }
+
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             // Xóa ký tự khoảng trắng , . -
             request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
             if(request.getPhone().length()<6) {
                 throw new AppException(ErrorCode.INVALID_PHONE_NUMBER);
             }
-        };
+        } else {
+            request.setPhone(null);
+        }
 
         userMapper.updateUser(user, request);
 
@@ -546,13 +556,21 @@ public class UserService {
                 .filter( u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if (request.getPhone() != null) {
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             // Xóa ký tự khoảng trắng , . -
             request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
             if(request.getPhone().length()<6) {
                 throw new AppException(ErrorCode.INVALID_PHONE_NUMBER);
             }
-        };
+        } else {
+            request.setPhone(null);
+        }
+
+        if (request.getTelegramId() != null) {
+            if (userRepository.findByTelegramId(request.getTelegramId()).filter(u -> !u.getId().equals(user.getId())).isPresent()) {
+                throw new AppException(ErrorCode.TELEGRAM_ID_EXISTED);
+            }
+        }
 
         userMapper.updateUser(user, request);
 
@@ -729,18 +747,13 @@ public class UserService {
                 .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        if(user.getStatus() != UserStatus.CONFIRMED.getCode()) {
-            throw new AppException(ErrorCode.DISABLED_USER);
-        }
-
         Car car = carRepository.findById(request.getCarId())
                 .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
 
         Set<Car> carSet = user.getCars();
 
-        var findCar = carSet.stream().filter(c -> c.getId().equals(car.getId()))
-                .findFirst();
+        var findCar = carSet.stream().filter(c -> c.getId().equals(car.getId())).findFirst();
 
         if(findCar.isPresent()) {
             carSet.remove(findCar.get());

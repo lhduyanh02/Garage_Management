@@ -133,6 +133,33 @@ public class AuthenticationService {
     }
 
     @Transactional
+    public IntrospectResponse customerIntrospect(IntrospectRequest request) {
+        try{
+            var token = request.getToken();
+            boolean result = true;
+            try {
+                verifyToken(token);
+                SignedJWT signedJWT = SignedJWT.parse(token);
+                String uuid = signedJWT.getJWTClaimsSet().getStringClaim("UUID");
+
+                userRepository.findById(uuid).filter(u -> u.getStatus() >= UserStatus.CONFIRMED.getCode())
+                        .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+                result = true;
+            } catch (Exception e) {
+                result = false;
+            }
+
+            return IntrospectResponse.builder()
+                    .valid(result)
+                    .build();
+        }
+        catch (Exception e){
+            throw new AppException(ErrorCode.INTROSPECT_EXCEPTION);
+        }
+    }
+
+    @Transactional
     public IntrospectResponse introspectPermissions(String permissionKey) {
         try{
             String uid = getUUIDFromJwt();

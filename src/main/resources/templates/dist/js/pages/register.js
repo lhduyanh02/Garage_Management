@@ -159,6 +159,8 @@ var register = function () {
     let passwd = $('#password').val();
     let passwdRetype = $('#password-retype').val();
 
+    const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
+
     if (!validatePhoneNumber(phoneNumber)){
         Toast.fire({
             icon: 'warning',
@@ -172,6 +174,15 @@ var register = function () {
             icon: 'warning',
             title: 'Mật khẩu chưa trùng khớp'
         })
+        return;
+    }
+
+    // Kiểm tra nếu mật khẩu chứa ký tự tiếng Việt
+    if (vietnamesePattern.test(passwd)) {
+        Toast.fire({
+            icon: "warning",
+            title: "Mật khẩu không được chứa ký tự tiếng Việt"
+        });
         return;
     }
 
@@ -385,9 +396,6 @@ function OTPInput(email, passwd) {
     $('#validate-otp-btn').click(function () { 
         let otpCode = $('#first').val() + $('#second').val() + $('#third').val() + 
                         $('#fourth').val() + $('#fifth').val() + $('#sixth').val();
-
-        console.log(otpCode);
-
 
         $.ajax({
             type: "POST",

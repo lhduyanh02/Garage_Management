@@ -73,5 +73,7 @@ public interface UserRepository extends JpaRepository<User, String> {
             "WHERE r.roleKey = :roleKey AND u.status = :status")
     long countByRoleKeyAndStatus(@Param("roleKey") String roleKey,
                                  @Param("status") int status);
+
+    Optional<User> findByTelegramId(Long telegramId);
 }
 

@@ -16,7 +16,7 @@ public class UserCreationRequest {
     @NotBlank(message = "BLANK_NAME")
     String name;
 
-    @Pattern(regexp = "^(0|\\+[0-9]{1,3})[0-9 ]{6,15}$", message = "INVALID_PHONE_NUMBER")
+    @Pattern(regexp = "^$|^(0|\\+[0-9]{1,3})[0-9 ]{6,15}$", message = "INVALID_PHONE_NUMBER")
     @Size(max = 50, message = "PHONE_NUMBER_LENGTH")
     String phone;
 

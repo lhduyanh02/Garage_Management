@@ -64,19 +64,20 @@ public class EmailSenderService {
 
     }
 
-    public String getHtmlContent(String Hoten, String otp) {
+    public String getHtmlContent(String Hoten, String otp, String facilityName) {
         Context context = new Context();
         context.setVariable("hoten", Hoten);
         context.setVariable("otpcode", otp);
+        context.setVariable("facilityName", facilityName);
         return templateEngine.process("OTPMailTemplate", context);
     }
 
     @Async
     public void sendOTPEmail(String to, String hoten, String otp) throws MessagingException {
-        // Tạo nội dung HTML
-        String htmlContent = getHtmlContent(hoten, otp);
+        String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
 
-        String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue().toUpperCase();
+        // Tạo nội dung HTML
+        String htmlContent = getHtmlContent(hoten, otp, facilityName);
 
         // Tạo một đối tượng MimeMessage
         MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -84,7 +85,7 @@ public class EmailSenderService {
 
         // Thiết lập thông tin cho email
         helper.setTo(to);
-        helper.setSubject("["+facilityName+"] VERIFY YOUR EMAIL");
+        helper.setSubject("["+facilityName.toUpperCase()+"] XÁC NHẬN EMAIL CỦA BẠN");
         helper.setText(htmlContent, true); // true để gửi email dưới dạng HTML
 
         // Gửi email

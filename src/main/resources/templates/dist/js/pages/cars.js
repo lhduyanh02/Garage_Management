@@ -1131,7 +1131,9 @@ $("#user-mapping-btn").click(function () {
                         
                         if (selectedRow.length > 0) {
                             Swal.fire({
-                                title: `Xác nhận hồ sơ<br>${userData.name} quản lý xe<br>${carModel} ${carPlate}`,
+                                icon: "question",
+                                title: "Xác nhận đăng ký",
+                                html: `Xác nhận hồ sơ <b>${userData.name}</b><br>quản lý xe <b>${carModel} ${carPlate}</b>`,
                                 showDenyButton: false,
                                 showCancelButton: true,
                                 confirmButtonText: "Xác nhận",
@@ -1147,24 +1149,30 @@ $("#user-mapping-btn").click(function () {
                                             userId: userData.id,
                                             carId: carId
                                         }),
+                                        beforeSend: function () {
+                                            Swal.showLoading();
+                                        },
                                         success: function (response) {
+                                            Swal.close();
                                             if(response.code == 1000 && response.data == true) {
                                                 Toast.fire({
                                                     icon: "success",
-                                                    title: "Cập nhật thành công"
+                                                    title: "Đăng ký quản lý xe thành công"
                                                 });
                                                 $("#modal_id").modal("hide");
                                                 dataTable.ajax.reload();
                                             }
                                             else {
+                                                console.error(response);
                                                 Toast.fire({
                                                     icon: "error",
-                                                    title: response.message
+                                                    title: utils.getErrorMessage(response.code)
                                                 })
                                             }
                                         },
                                         error: function(xhr, status, error) {
-                                            console.log(xhr);
+                                            Swal.close();
+                                            console.error(xhr);
                                             Toast.fire({
                                                 icon: "error",
                                                 title: utils.getXHRInfo(xhr).message

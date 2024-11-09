@@ -29,6 +29,7 @@ public class SecurityConfig {
     private final String[] PUBLIC_POST_ENDPOINTS = {
             "/auth/token",
             "/auth/introspect",
+            "/auth/customer-introspect",
             "/auth/logout",
             "/auth/refresh",
             "/auth/logout",
@@ -36,6 +37,9 @@ public class SecurityConfig {
             "/accounts/register",
             "/accounts/verify-account",
             "/accounts/regenerate-otp",
+            "/accounts/send-otp/**",
+            "/accounts/verify-email",
+            "/accounts/password-recovery",
             "/common-param/list-param",
     };
 
@@ -56,6 +60,9 @@ public class SecurityConfig {
             "/common-param/**",
             "/appointment",
             "/appointment/**",
+            "/history/get-quantity",
+            "/telegram",
+            "/telegram/**",
     };
 
     @Autowired

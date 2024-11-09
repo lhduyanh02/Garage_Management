@@ -147,9 +147,16 @@ public enum ErrorCode {
     USER_NOT_CUSTOMER(1117, "This user does not have role customer", HttpStatus.BAD_REQUEST),
     NOT_YOUR_APPOINTMENT(1118, "This appointment is not your, you can not update it", HttpStatus.BAD_REQUEST),
 
-    ACTIVE_ACCOUNT(1119, "The selected account is currently active and cannot perform this action", HttpStatus.BAD_REQUEST),
+    ACTIVE_ACCOUNT(1119, "The account is currently active and cannot perform this action", HttpStatus.BAD_REQUEST),
     EMPTY_ROLE_USER(1120, "Role list of this user is empty", HttpStatus.BAD_REQUEST),
     EMPTY_PERMISSION_USER(1121, "Permission list of this user is empty", HttpStatus.BAD_REQUEST),
+    INACTIVE_ACCOUNT(1122, "This account is not currently active", HttpStatus.BAD_REQUEST),
+    INCORRECT_PASSWORD(1123, "Incorrect password", HttpStatus.BAD_REQUEST),
+    NOT_YOUR_ACCOUNT(1124, "This is not your account, you cannot edit it", HttpStatus.BAD_REQUEST),
+    BLOCKED_ACCOUNT(1125, "This account has been blocked", HttpStatus.BAD_REQUEST),
+    BLANK_OTP(1126, "OTP can not be blank", HttpStatus.BAD_REQUEST),
+    INCORRECT_OTP(1127, "Incorrect OTP", HttpStatus.BAD_REQUEST),
+    TELEGRAM_ID_EXISTED(1128, "This telegram ID has been used by another user", HttpStatus.BAD_REQUEST),
 
     ;
 

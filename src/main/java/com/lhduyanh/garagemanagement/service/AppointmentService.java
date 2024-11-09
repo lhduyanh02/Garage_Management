@@ -1,5 +1,6 @@
 package com.lhduyanh.garagemanagement.service;
 
+import com.lhduyanh.garagemanagement.configuration.SecurityExpression;
 import com.lhduyanh.garagemanagement.dto.request.AppointmentCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.AppointmentUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.DetailAppointmentCreationRequest;
@@ -51,6 +52,7 @@ public class AppointmentService {
 
     EmailSenderService emailSenderService;
     TelegramService telegramService;
+    private final SecurityExpression securityExpression;
 
     public List<AppointmentResponse> getAllAppointments() {
         return appointmentRepository.findAllFetchData()
@@ -375,10 +377,10 @@ public class AppointmentService {
         AppointmentResponse response = updateListDetailAppointment(appointment.getId(), request.getDetails(), false);
 
         String body = """   
-                        <b>YÊU CẦU ĐẶT HẸN MỚI</b>
+                        <b>💭 YÊU CẦU ĐẶT HẸN MỚI</b>
                        
                         <u>Khách hàng:</u>
-                        <pre><code><b>Họ tên: </b>{0}\n
+                        <pre><code><b>Họ tên: </b>{0}
                         <b>SĐT: </b>{1}
                         <b>Địa chỉ: </b>{2}
                         <b>Email: </b>{3}</code></pre>
@@ -424,7 +426,7 @@ public class AppointmentService {
                 response.getCreateAt().format(formatter)
                 );
 
-        var chatID = commonParameterRepository.findByKey("NEW_APPOINTMENT_NOTIFY").orElse(null);
+        var chatID = commonParameterRepository.findByKey("APPOINTMENT_NOTIFY").orElse(null);
 
         if (chatID != null) {
             try {
@@ -673,19 +675,22 @@ public class AppointmentService {
             throw new AppException(ErrorCode.PAST_APPOINTMENT);
         }
 
+        String title = "❌ KHÁCH HÀNG HỦY YÊU CẦU ĐẶT HẸN";
+
+        if (appointment.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
+            title =  "❌ KHÁCH HÀNG HỦY LỊCH HẸN ĐÃ XÁC NHẬN";
+        }
+
         if (appointment.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode() ||
             appointment.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
             appointment.setStatus(AppointmentStatus.CANCELLED.getCode());
             appointmentRepository.save(appointment);
 
-            String title = appointment.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode() ?
-                    "KHÁCH HÀNG HỦY YÊU CẦU ĐẶT HẸN" : "KHÁCH HÀNG HỦY LỊCH HẸN ĐÃ XÁC NHẬN";
-
             String body = """   
                         <b>{0}</b>
                        
                         <u>Khách hàng:</u>
-                        <pre><code><b>Họ tên: </b>{1}\n
+                        <pre><code><b>Họ tên: </b>{1}
                         <b>SĐT: </b>{2}
                         <b>Địa chỉ: </b>{3}
                         <b>Email: </b>{4}</code></pre>
@@ -758,5 +763,114 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
         appointmentRepository.delete(appointment);
+    }
+
+    // TELEGRAM ZONE
+    public String getAllAppointmentsByTimeRangeTelegram(LocalDateTime start, LocalDateTime end, Long chatId) {
+        User user = userRepository.findByTelegramId(chatId).orElse(null);
+
+        if (user == null) {
+            return "<b><i>Không tìm thấy Telegram ID của bạn trên hệ thống!</i></b>";
+        }
+
+        if (!securityExpression.hasPermission(user.getId(), List.of("GET_ALL_APPOINTMENT"))) {
+            return "<b><i>Bạn không có phân quyền xem tất cả cuộc hẹn</i></b>";
+        }
+
+        List<AppointmentResponse> appointments = appointmentRepository.findAllByTimeRangeFetchData(start, end)
+                .stream()
+                .filter(a -> a.getStatus() != AppointmentStatus.DELETED.getCode())
+                .map(appointment -> {
+                    AppointmentResponse response = appointmentMapper.toResponse(appointment);
+
+                    UserWithAccountsResponse customer = response.getCustomer();
+                    List<AccountSimpleResponse> acc1 = customer.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList();
+                    customer.setAccounts(acc1);
+                    response.setCustomer(customer);
+
+                    if (response.getAdvisor() != null) {
+                        UserWithAccountsResponse advisor = response.getAdvisor();
+                        List<AccountSimpleResponse> acc2 = advisor.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList();
+                        advisor.setAccounts(acc2);
+                        response.setAdvisor(advisor);
+                    }
+
+                    List<DetailAppointmentResponse> details = detailAppointmentRepository.findAllByAppointmentId(response.getId())
+                            .stream()
+                            .map(detailAppointmentMapper::toResponse)
+                            .sorted(Comparator.comparing(DetailAppointmentResponse::getServiceName, vietnameseCollator))
+                            .toList();
+
+                    response.setDetails(details);
+
+                    return response;
+                })
+                .sorted(Comparator.comparing(AppointmentResponse::getTime).reversed())
+                .toList();
+
+        StringBuilder message = new StringBuilder("Chưa có cuộc hẹn nào");
+
+        if (!appointments.isEmpty()) {
+            message = new StringBuilder("<b>📋 DANH SÁCH YÊU CẦU ĐẶT HẸN</b>");
+            String body = """
+                        
+                        <b>{9}.</b>
+                        <pre><code><u>Khách hàng:</u>
+                        <b>Họ tên: </b>{0}
+                        <b>SĐT: </b>{1}
+                        <b>Địa chỉ: </b>{2}
+                        <b>Email: </b>{3}
+                        <u>Thông tin chi tiết yêu cầu:</u>
+                        <b>Thời gian: </b>{4}
+                        <b>Liên hệ: </b>{5}
+                        <b>Ghi chú: </b>{6}
+                        <u>Dịch vụ đã chọn:</u>
+                        {7}
+                        <i>Đã tạo lúc: {8}.</i></code></pre>
+                        """;
+
+            int index = 1;
+            for (AppointmentResponse appointment : appointments) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+                String serviceList = "";
+                List<DetailAppointmentResponse> details = appointment.getDetails();
+                if (!details.isEmpty()) {
+                    int count = 1;
+                    for (DetailAppointmentResponse detail : details) {
+                        String optionHtml = "";
+                        if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                            optionHtml = " <i>("+detail.getOptionName()+")</i>";
+                        }
+                        serviceList += count +". "+detail.getServiceName() + optionHtml+"\n";
+                        count++;
+                    }
+                } else {
+                    serviceList = "Trống\n";
+                }
+                UserWithAccountsResponse customer = appointment.getCustomer();
+
+                String appointmentText = MessageFormat.format(body,
+                        customer.getName(),
+                        customer.getPhone()!=null ? customer.getPhone() : "Không có",
+                        customer.getAddress()!=null ? customer.getAddress().getAddress() : "Không có",
+                        customer.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).toList().getFirst().getEmail(),
+                        appointment.getTime().format(formatter),
+                        appointment.getContact(),
+                        appointment.getDescription(),
+                        serviceList,
+                        appointment.getCreateAt().format(formatter),
+                        index++
+                );
+//
+//                log.info(appointmentText);
+
+                message.append(appointmentText);
+            }
+            return message.toString();
+        }
+
+
+        return message.toString();
     }
 }

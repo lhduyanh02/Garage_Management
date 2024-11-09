@@ -1,7 +1,7 @@
 const ErrorCode = {
     UNCATEGORIZED_EXCEPTION: { code: 9999, message: "Lỗi không xác định", statusCode: 500 },
     INVALID_MESSAGE_KEY: { code: 8888, message: "MESSAGE_KEY không xác định", statusCode: 400 },
-    UNAUTHENTICATED: { code: 1001, message: "Không thể xác thực, vui lòng đăng nhập lại", statusCode: 401 },
+    UNAUTHENTICATED: { code: 1001, message: "Xác thực không thành công, vui lòng kiểm tra lại", statusCode: 401 },
     UNAUTHORIZED: { code: 1002, message: "Bạn không có phân quyền", statusCode: 403 },
     INTROSPECT_EXCEPTION: { code: 1003, message: "Lỗi introspect", statusCode: 500 },
     TOKEN_DECODE_ERROR: { code: 1004, message: "Lỗi giải mã token", statusCode: 500 },
@@ -120,6 +120,17 @@ const ErrorCode = {
     CLOSING_TIME_APPOINTMENT: { code: 1116, message: "Thời gian đã chọn nằm trong giờ đóng cửa", status: 400 },
     USER_NOT_CUSTOMER: { code: 1117, message: "Người dùng này không có vai trò khách hàng", status: 400 },
     NOT_YOUR_APPOINTMENT: { code: 1118, message: "Cuộc hẹn này không phải của bạn, bạn không thể cập nhật", status: 400 },
+
+    ACTIVE_ACCOUNT: { code: 1119, message: "Tài khoản hiện đang hoạt động, không thể thực hiện hành động này", status: 400 },
+    EMPTY_ROLE_USER: { code: 1120, message: "Danh sách vai trò của người dùng này đang trống", status: 400 },
+    EMPTY_PERMISSION_USER: { code: 1121, message: "Danh sách phân quyền của người dùng này đang trống", status: 400 },
+    INACTIVE_ACCOUNT: { code: 1122, message: "Tài khoản này đang không hoạt động", status: 400 },
+    INCORRECT_PASSWORD: { code: 1123, message: "Mật khẩu không đúng", status: 400 },
+    NOT_YOUR_ACCOUNT: { code: 1124, message: "Đây không phải tài khoản của bạn, bạn không thể chỉnh sửa", status: 400 },
+    BLOCKED_ACCOUNT: { code: 1125, message: "Tài khoản này đã bị khóa", status: 400 },
+    BLANK_OTP: { code: 1126, message: "OTP không được để trống", status: 400 },
+    INCORRECT_OTP: { code: 1127, message: "OTP không chính xác, vui lòng kiểm tra lại", status: 400 },
+    TELEGRAM_ID_EXISTED: { code: 1128, message: "Telegram ID này đã được đăng ký bởi một hồ sơ khác", status: 400 },
 
 };
 

@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -101,6 +100,38 @@ public class AccountController {
                 .build();
     }
 
+    @PostMapping("/change-password")
+    public ApiResponse<Boolean> changePassword(@RequestBody @Valid PasswordChangeRequest request) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.changePassword(request))
+                .build();
+    }
+
+    @PostMapping("/send-otp/{email}") // Gui OTP den email
+    public ApiResponse<Boolean> sendOtpCodeToEmail(@PathVariable String email) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.sendOtpToEmail(email))
+                .build();
+    }
+
+    @PostMapping("/verify-email") // Xac thuc OTP cho tai khoan - user dang hoat dong
+    public ApiResponse<AccountVerifyResponse> accountEmailVerify(@RequestBody @Valid AccountVerifyRequest request) {
+        return ApiResponse.<AccountVerifyResponse>builder()
+                .code(1000)
+                .data(accountService.accountEmailVerify(request))
+                .build();
+    }
+
+    @PostMapping("/password-recovery") // Xac thuc OTP va cap nhat mat khau
+    public ApiResponse<Boolean> passwordRecovery(@RequestBody @Valid PasswordRecoveryRequest request) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.passwordRecovery(request))
+                .build();
+    }
+
     @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> disableAccount(@PathVariable String id) {
@@ -153,7 +184,7 @@ public class AccountController {
     public ApiResponse<Boolean> resetCustomerPassword(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
                 .code(1000)
-                .data(accountService.resetPasswordCustomer(id))
+                .data(accountService.resetCustomerPassword(id))
                 .build();
     }
 

@@ -300,13 +300,9 @@ $('#role-filter').on('change', applyFilters);
 $('#status-filter').on('change', applyFilters);
 
 function applyFilters() {
-    console.log(userList);
-    
     let targetRoleId = $('#role-filter').val();
-    console.log(targetRoleId);
     
     let targetStatus = $('#status-filter').val();
-    console.log(targetStatus);
     
 
     let filteredData = userList.filter(function (user) {
@@ -316,7 +312,6 @@ function applyFilters() {
 
         return roleMatch && statusMatch;
     });
-    console.log(filteredData);
     
 
     // Chuyển đổi dữ liệu đã lọc thành mảng đối tượng cho DataTable
@@ -329,7 +324,8 @@ function applyFilters() {
         status: user.status,
         address: user.address,
         roles: user.roles,
-        cars: user.cars
+        cars: user.cars,
+        accounts: user.accounts
     }));
     
     // Cập nhật DataTable với dữ liệu đã lọc

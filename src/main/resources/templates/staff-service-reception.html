@@ -78,6 +78,26 @@
     .select2-results__option--highlighted small {
         color: white !important; /* Giá cũng đổi thành trắng */
     }
+
+    .small-box .inner h4,
+    .small-box .inner span,
+    .small-box .inner p {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .small-box .inner span {
+        display: block;
+        max-width: 100%; /* Giới hạn độ rộng */
+        word-wrap: break-word; /* Tự ngắt dòng khi vượt quá độ rộng */
+        overflow-wrap: break-word;
+        overflow: hidden; /* Ẩn phần tràn */
+        text-overflow: ellipsis; /* Thêm dấu "..." nếu cần */
+    }
+
   </style>
 </head>
 
@@ -158,7 +178,8 @@
                           <label>Tìm biển số xe</label>
                           <div class="input-group">
                             <input id="num-plate-search-input" type="text" class="form-control" placeholder="Nhập biển kiểm soát">
-                            <span class="input-group-append">
+                            <span class="input-group-append" data-toggle="tooltip" 
+                            title="Nhấn để tìm kiếm xe">
                               <button id="num-plate-search-btn" type="button" class="btn btn-default"
                               ><i class="fa-solid fa-magnifying-glass fa-beat-fade" style="color: #007bff;"></i></button>
                             </span>
@@ -479,7 +500,7 @@
                       <label class="image-card-btn btn-upload-submit custom-green-btn mr-2" data-target="pre-service-image" hidden>
                         <span>Lưu</span>
                       </label>
-                      <label class="image-card-btn images-delete-btn custom-red-btn" data-target="post-service-image" hidden>
+                      <label class="image-card-btn images-delete-btn custom-red-btn" data-target="pre-service-image" hidden>
                         <span>Xóa tất cả</span>
                       </label>
                     </div>
@@ -516,6 +537,10 @@
                 </div>
               </div>
             </div>  
+
+            <div id="proceeding-orders" class="row">
+              
+            </div>
 
           </div><!-- /.col -->
         </div><!-- /.row -->

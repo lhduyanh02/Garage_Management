@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.configuration;
 
 import com.lhduyanh.garagemanagement.entity.Role;
 import com.lhduyanh.garagemanagement.enums.RoleStatus;
+import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.repository.RoleRepository;
@@ -43,7 +44,7 @@ public class SecurityExpression { // Định nghĩa phương thức dùng cho x�
         if(user.getStatus() == 9999)
             return true;
 
-        if (user.getStatus() != 1)
+        if (user.getStatus() != UserStatus.CONFIRMED.getCode())
             return false;
 
         var roleIds = user.getRoles()

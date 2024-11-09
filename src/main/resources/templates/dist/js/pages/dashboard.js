@@ -9,7 +9,8 @@ var Toast = Swal.mixin({
     timer: 3000,
 });
 
-var ServiceDataTable;
+var serviceDataTable;
+var serviceList = [];
 
 $(function () {
     "use strict";
@@ -21,19 +22,51 @@ $(function () {
             "Content-Type": "application/json",
         },
         success: function (res) {
-            $("#user_quantity").text(res.data);
+            if (res.code == 1000) {
+                $("#user_quantity").text(res.data);
+            }
         },
         error: function (xhr, status, error) {
             console.error(xhr);
         },
     });
 
+    $.ajax({
+        type: "GET",
+        url: "/api/cars/get-quantity",
+        headers: utils.noAuthHeaders(),
+        dataType: "json",
+        success: function (res) {
+            if (res.code == 1000) {
+                $("#car_quantity").text(res.data);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr);
+        },
+    });
 
+    $.ajax({
+        type: "GET",
+        url: "/api/history/get-quantity",
+        headers: utils.noAuthHeaders(),
+        dataType: "json",
+        success: function (res) {
+            if (res.code == 1000) {
+                $("#history_quantity").text(res.data);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(xhr);
+        },
+    });
 
-    ServiceDataTable = $("#services-table").DataTable({
+    serviceDataTable = $("#services-table").DataTable({
         responsive: true,
         lengthChange: true,
         autoWidth: false,
+        pageLength: 5, 
+        lengthMenu: [ [5, 10, 25, 50, -1], [5, 10, 25, 50, "Tất cả"] ],
         language: {
             paginate: {
                 next: "Sau",
@@ -44,7 +77,7 @@ $(function () {
             infoEmpty: "Không có dữ liệu để hiển thị",
             infoFiltered: "(Lọc từ _MAX_ mục)",
             emptyTable: "Không có dữ liệu",
-            search: "Tìm kiếm:",
+            search: "Tìm kiếm dịch vụ:",
             loadingRecords: "Đang tải dữ liệu...",
             zeroRecords: "Không tìm thấy dữ liệu",
         },
@@ -58,6 +91,13 @@ $(function () {
             },
             { extend: "print", text: "In" },
             { extend: "colvis", text: "Hiển thị" },
+        ], 
+        columnDefs: [
+            { targets: 0, width: "5%", class: "text-center"},       // Số thứ tự
+            { targets: 1, width: "23%" },      // Tên dịch vụ
+            { targets: 2,  },      // Tên tùy chọn width: "15%"
+            // { targets: 3, width: "10%", class: "text-right" },      // Giá tùy chọn
+            { targets: 3, width: "37%" },      // Mô tả
         ],
         ajax: {
             type: "GET",
@@ -66,9 +106,12 @@ $(function () {
             headers: utils.noAuthHeaders(),
             dataSrc: function (res) {
                 if (res.code == 1000 && res.data) {
+                    serviceList = res.data;
                     var data = [];
-                    var counter = 1;
+                    var counter = 0;
+                    var serviceCounter = 1;
                     res.data.forEach(function (service) {
+                        serviceCounter++;
                         data.push({
                             number: counter++, // Số thứ tự tự động tăng
                             id: service.id,
@@ -78,8 +121,9 @@ $(function () {
                             optionPrices: service.optionPrices,
                         });
                     });
+                    $('#service_quantity').text(serviceCounter);
 
-                    return null; // Trả về dữ liệu đã được xử lý
+                    return data;
                 } else {
                     Toast.fire({
                         icon: "error",
@@ -96,74 +140,58 @@ $(function () {
             },
         },
         columns: [
-            { data: "number" },
+            { data: null },
             {
-                data: null,
+                data: "name",
                 render: function (data, type, row) {
-                    let html = `<label>${row.roleName}</label><br><span class="font-italic font-weight-light">${row.roleKey}</span>`;
+                    return `<b>${data}</b>`;
+                },
+            },
+            {
+                data: "optionPrices",
+                render: function (data, type, row) {
+                    let html = "";
+
+                    if (data.length > 0) {
+                        html += `<div class="table-responsive">
+                        <table class="table mb-0" style="border-collapse: collapse;">`;
+
+                        data.forEach(function (val) {
+                            html += `
+                            <tr class="row w-100" style="background-color: transparent;">
+                                <th class="col-12 col-lg-5 d-inline-block py-1 px-2 px-lg-2 border-0">${val.name}</th>
+                                <td class="col-12 col-lg-5 d-inline-block py-1 px-2 px-lg-2 border-0 text-right">${utils.formatVNDCurrency(val.price)}</td>
+                            </tr>`
+                        });
+                        html += `</table></div>`;
+                    }
+
                     return html;
                 },
             },
+            // {
+            //     data: "optionPrice",
+            //     render: function (data, type, row) {
+            //         if (data) {
+            //             if (type === "display" || type === "filter") {
+            //                 // Hiển thị số tiền theo định dạng tiền tệ VN
+            //                 return data.price.toLocaleString("vi-VN", {
+            //                     style: "currency",
+            //                     currency: "VND",
+            //                 });
+            //             }
+            //             // Trả về giá trị nguyên gốc cho sorting và searching
+            //             return data.price;
+            //         }
+            //         return "";
+            //     },
+            // },
             {
-                data: "functions",
+                data: "description",
                 render: function (data, type, row) {
-                    if (data != null && Array.isArray(data)) {
-                        let html = "";
-                        $.each(data, function (idx, func) {
-                            if (func.name != "UNCATEGORIZED") {
-                                let funcName = func.functionName;
-                                let permissionsHtml = "";
-                                $.each(
-                                    func.permissions,
-                                    function (index, permission) {
-                                        if (index != 0) {
-                                            permissionsHtml += "<br>";
-                                        }
-                                        permissionsHtml +=
-                                            "- " + permission.name;
-                                    }
-                                );
-
-                                html += `
-                            <details>
-                                <summary><b>${funcName}</b></summary>
-                                <p>
-                                    ${permissionsHtml}
-                                </p>
-                            </details>
-                            `;
-                            }
-                        });
-                        return html;
+                    if (data) {
+                        return `<div class="d-inline-block">${data.replace("\n","<br>")}</div>`
                     }
-                    return "";
-                },
-            },
-            {
-                data: "status",
-                render: function (data, type, row) {
-                    if (data == 1) {
-                        return '<center><span class="badge badge-success"><i class="fa-solid fa-check"></i> Đang sử dụng</span></center>';
-                    } else {
-                        return '<center><span class="badge badge-danger"><i class="fa-solid fa-xmark"></i>&nbsp;Ngưng sử dụng</span></center>';
-                    }
-                },
-            },
-            {
-                data: "id",
-                render: function (data, type, row) {
-                    let html = `<a class="btn btn-info btn-sm" id="editBtn" data-id="${data}">
-                    <i class="fas fa-pencil-alt"></i></a>`;
-
-                    if (row.status == 1) {
-                        html += ` <a class="btn btn-danger btn-sm" id="disableBtn" data-id="${data}">
-                        <i class="fa-solid fa-ban"></i></a>`;
-                    }
-                    if (row.status == 0) {
-                        html += ` <a class="btn btn-success btn-sm" id="enableBtn" data-id="${data}">
-                        <i class="fa-regular fa-circle-check"></i></a>`;
-                    }
-                    return "<center>" + html + "</center>";
                 },
             },
         ],
@@ -182,24 +210,10 @@ $(function () {
                 .buttons()
                 .container()
                 .appendTo("#data-table_wrapper .col-md-6:eq(0)");
-            $("#data-table tbody").on(
-                "dblclick",
-                "td:nth-child(3)",
-                function () {
-                    var row = $(this).closest("tr");
-
-                    // Tìm tất cả các thẻ <details> trong hàng đó và chuyển đổi trạng thái mở/đóng
-                    row.find("details").each(function () {
-                        if ($(this).attr("open")) {
-                            $(this).removeAttr("open");
-                        } else {
-                            $(this).attr("open", true);
-                        }
-                    });
-                }
-            );
         },
     });
+
+    
 
     var salesChartCanvas = $("#salesChart").get(0).getContext("2d");
 
@@ -216,9 +230,9 @@ $(function () {
         datasets: [
             {
                 label: "Digital Goods",
-                backgroundColor: "rgba(60,141,188,0.9)",
+                backgroundColor: "rgba(60,141,188, 0.8)",
                 borderColor: "rgba(60,141,188,0.8)",
-                pointRadius: false,
+                pointRadius: true,
                 pointColor: "#3b8bba",
                 pointStrokeColor: "rgba(60,141,188,1)",
                 pointHighlightFill: "#fff",
@@ -229,7 +243,7 @@ $(function () {
                 label: "Electronics",
                 backgroundColor: "rgba(210, 214, 222, 1)",
                 borderColor: "rgba(210, 214, 222, 1)",
-                pointRadius: false,
+                pointRadius: true,
                 pointColor: "rgba(210, 214, 222, 1)",
                 pointStrokeColor: "#c1c7d1",
                 pointHighlightFill: "#fff",
@@ -270,6 +284,13 @@ $(function () {
         data: salesChartData,
         options: salesChartOptions,
     });
+
+
+
+
+
+
+    
 
     //---------------------------
     // - END MONTHLY SALES CHART -

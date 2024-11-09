@@ -492,7 +492,6 @@ $("#data-table tbody").on("dblclick", "tr", async function () {
     });
 });
 
-
 $(document).on('click', '#modal_print_btn', async function () { 
     if (!selectedInvoice || !selectedInvoice.id) {
         Swal.fire({
@@ -724,7 +723,6 @@ function calculateImageSize(base64Image) {
         (base64Image.endsWith('==') ? 2 : base64Image.endsWith('=') ? 1 : 0);
     return (sizeInBytes / (1024 * 1024)).toFixed(2); // Trả về kích thước MB
 }
-
 
 $(document).on('click', '#save-info-btn', async function () {
     const id = utils.getHashParam(HASH_CAR);

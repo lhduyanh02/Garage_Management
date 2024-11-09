@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -24,7 +25,7 @@ public class HistoryController {
 
     HistoryService historyService;
 
-    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE', 'UPDATE_PROGRESS', 'GET_ALL_HISTORY'})")
+    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE', 'UPLOAD_IMAGE', 'GET_ALL_HISTORY'})")
     @GetMapping("/get-by-car/{id}")
     public ApiResponse<List<HistoryResponse>> getAllHistoryByCarId(@PathVariable String id) {
         return ApiResponse.<List<HistoryResponse>>builder()
@@ -33,7 +34,7 @@ public class HistoryController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE', 'UPDATE_PROGRESS', 'GET_ALL_HISTORY'})")
+    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE', 'UPLOAD_IMAGE', 'GET_ALL_HISTORY', 'STATISTICS'})")
     @GetMapping("/{id}")
     public ApiResponse<HistoryWithDetailsResponse> getHistoryById(@PathVariable String id) {
         return ApiResponse.<HistoryWithDetailsResponse>builder()
@@ -57,6 +58,38 @@ public class HistoryController {
                 .data(historyService.customerGetHistoryById(id))
                 .build();
     }
+
+    @GetMapping("/get-quantity")
+    public ApiResponse<Long> getHistoryQuantity() {
+        return ApiResponse.<Long>builder()
+                .code(1000)
+                .data(historyService.getHistoryQuantity())
+                .build();
+    }
+
+
+    @PreAuthorize("@securityExpression.hasPermission({'STATISTICS'})")
+    @GetMapping("/all-history-by-time-range")
+    public ApiResponse<List<HistoryResponse>> getAllHistoryByTimeRange(@RequestParam("start") LocalDateTime start,
+                                                                       @RequestParam("end") LocalDateTime end,
+                                                                       @RequestParam(value = "status", required = false) Integer status) {
+        return ApiResponse.<List<HistoryResponse>>builder()
+                .code(1000)
+                .data(historyService.getAllHistoryByTimeRange(start, end, status))
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE', 'UPLOAD_IMAGE', 'GET_ALL_HISTORY'})")
+    @GetMapping("/get-all-proceeding")
+    public ApiResponse<List<HistoryResponse>> getAllProceedingHistory() {
+        return ApiResponse.<List<HistoryResponse>>builder()
+                .code(1000)
+                .data(historyService.getAllProceedingHistory())
+                .build();
+    }
+
+
+    // POST REQUEST
 
     @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE'})")
     @PostMapping("/new-history")

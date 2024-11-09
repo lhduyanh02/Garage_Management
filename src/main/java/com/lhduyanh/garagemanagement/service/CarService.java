@@ -41,6 +41,10 @@ public class CarService {
             .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS)));
     }
 
+    public Long getCarQuantity() {
+        return carRepository.countAllCar();
+    }
+
     public List<CarResponse> getAllCar() {
         return carRepository.findAll()
                 .stream()

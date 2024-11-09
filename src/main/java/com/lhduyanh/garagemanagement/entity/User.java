@@ -45,7 +45,7 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     Set<Account> accounts;
 
-    @Column(name = "telegram_id", nullable = true)
+    @Column(name = "telegram_id", nullable = true, unique = true)
     Long telegramId;
 
     @ManyToMany(fetch = FetchType.LAZY)

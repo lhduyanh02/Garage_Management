@@ -104,7 +104,7 @@ export function introspect(bool) {
     if (token) {
         $.ajax({
             type: "POST",
-            url: "/api/auth/introspect",
+            url: "/api/auth/customer-introspect",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -285,7 +285,6 @@ export function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email); // Trả về true nếu email hợp lệ
 }
-
 
 export function defaultHeaders() {
     return {
