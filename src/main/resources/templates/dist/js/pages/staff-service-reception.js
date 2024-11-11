@@ -340,7 +340,7 @@ $(document).ready(function () {
                     <strong id="company-name">${COMPANY_NAME}</strong><br>
                     <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
                     </span>
-                    Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+                    SĐT: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
                     Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
                 `);
                 $('.upload__inputfile').data('max_length', maxNumberOfImage);
@@ -1233,7 +1233,7 @@ function clearInvoiceCard() {
         <strong id="company-name">${COMPANY_NAME}</strong><br>
         <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
         </span>
-        Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+        SĐT: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
         Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
     `);
 
@@ -2692,7 +2692,7 @@ function loadCustomerInfo() {
         ? formatAddress(customer.address.address) + "<br>"
         : "";
     let phoneHtml = customer.phone
-        ? `Phone: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>`
+        ? `SĐT: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>`
         : "";
     let mailHtml = customer.accounts[0]
         ? `Email: <a href="mailto:${customer.accounts[0].email}" class="text-dark hover-underline">${customer.accounts[0].email}</a>`
@@ -2715,7 +2715,7 @@ function loadAdvisorInfo() {
     let phone = advisor.phone || "";
     let email = advisor.accounts[0] ? advisor.accounts[0].email : "";
 
-    let contactHtml = `<b>Contact: </b>`;
+    let contactHtml = `<b>Liên hệ: </b>`;
     if (phone !== "") {
         if (email !== "") {
             contactHtml += phone + " - " + email;
@@ -2730,7 +2730,7 @@ function loadAdvisorInfo() {
         }
     }
 
-    $("#advisor-name").html(`<b>Advisor: </b>${advisor.name}`);
+    $("#advisor-name").html(`<b>Cố vấn DV: </b>${advisor.name}`);
     $("#advisor-contact").html(contactHtml);
 }
 

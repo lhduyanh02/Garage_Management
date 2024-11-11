@@ -143,7 +143,7 @@ public class UserController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'EDIT_USER'})")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_USER', 'EDIT_USER'})")
     @PutMapping("/{userId}")
     public ApiResponse<UserResponse> updateUser(@PathVariable String userId, @RequestBody @Valid UserUpdateRequest request) {
         var result = userService.updateUser(userId, request);
@@ -153,6 +153,7 @@ public class UserController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_CUSTOMER', 'EDIT_USER'})")
     @PutMapping("/update-customer/{id}")
     public ApiResponse<UserResponse> updateCustomer(@PathVariable String id, @RequestBody @Valid CustomerCreationRequest request) {
         return ApiResponse.<UserResponse>builder()

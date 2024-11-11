@@ -270,7 +270,7 @@ $("#data-table").on("click", "#editBtn", function () {
                     </div>
 
                     <div class="input_wrap form-group">
-                        <label>Danh sách tùy chọn</label>
+                        <label class="mb-0">Danh sách tùy chọn</label>
                         <div id="option-wrapper">
                             <!--<div class="row my-2">
                                 <div class="col-md-7">
@@ -867,7 +867,7 @@ $("#new-service-btn").click(function () {
             </div>
 
             <div class="input_wrap form-group">
-                <label>Danh sách tùy chọn</label>
+                <label class="mb-0">Danh sách tùy chọn</label>
                 <div id="option-wrapper">
                     <div class="row my-2">
                         <div class="col-md-7">
@@ -1130,7 +1130,9 @@ $("#new-service-btn").click(function () {
                 } else if (response.code == 1044) {
                     // Tham chiếu từ ErrorCode
                     Swal.fire({
-                        title: `Tên dịch vụ này đã tồn tại, vẫn thêm mới dịch vụ<br>${name}?`,
+                        icon: "warning",
+                        title: "Trùng lặp tên dịch vụ",
+                        html: `Tên dịch vụ đã tồn tại, vẫn thêm mới dịch vụ <b>${name}</b>?`,
                         showDenyButton: false,
                         showCancelButton: true,
                         confirmButtonText: "Đồng ý",
@@ -1263,7 +1265,7 @@ $("#copy-service-btn").click(function () {
                             </div>
         
                             <div class="input_wrap form-group">
-                                <label>Danh sách tùy chọn</label>
+                                <label class="mb-0">Danh sách tùy chọn</label>
                                 <div id="option-wrapper">
                                     <!--<div class="row my-2">
                                         <div class="col-md-7">

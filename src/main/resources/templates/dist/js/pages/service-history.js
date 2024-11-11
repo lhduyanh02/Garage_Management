@@ -159,6 +159,11 @@ async function loadCarList() {
     $('#service-history-wrapper').prop('hidden', true);
 
     if (carList==null || carList.length == 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Chưa đăng ký xe",
+            html: `Vui lòng liên hệ với cố vấn dịch vụ<br>để đăng ký quản lý xe của bạn`
+        })
         return;
     }
 

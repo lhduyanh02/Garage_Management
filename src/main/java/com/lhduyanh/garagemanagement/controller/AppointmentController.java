@@ -117,6 +117,7 @@ public class AppointmentController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_APPOINTMENT'})")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteAppointment(@PathVariable String id) {
         appointmentService.deleteappointment(id);

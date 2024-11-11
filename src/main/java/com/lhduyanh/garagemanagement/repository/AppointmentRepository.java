@@ -62,4 +62,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, String
         """)
     List<Appointment> findAllByCreateTimeRangeFetchData(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    @Query("""
+        SELECT a FROM Appointment a
+        JOIN FETCH a.customer c
+        LEFT JOIN FETCH a.advisor ad
+        LEFT JOIN FETCH c.address
+        LEFT JOIN FETCH ad.address
+        WHERE a.status = 1
+        """)
+    List<Appointment> findAllUpcomingAppointments();
+
 }

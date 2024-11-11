@@ -52,7 +52,9 @@ public class AppointmentService {
 
     EmailSenderService emailSenderService;
     TelegramService telegramService;
-    private final SecurityExpression securityExpression;
+    AppointmentReminderService appointmentReminderService;
+
+    SecurityExpression securityExpression;
 
     public List<AppointmentResponse> getAllAppointments() {
         return appointmentRepository.findAllFetchData()
@@ -298,6 +300,80 @@ public class AppointmentService {
 
         AppointmentResponse response = updateListDetailAppointment(appointment.getId(), appointmentRequest.getDetails(), true);
 
+        // GUI EMAIL THONG BAO
+        List<Account> acc = appointment.getCustomer().getAccounts()
+                .stream()
+                .filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode())
+                .toList();
+        if (!acc.isEmpty()) {
+            String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+
+            String body = """
+                            <p>Xin chào <strong>{0}</strong>,</p>
+                            <p>Lịch hẹn của bạn đã được tạo bởi nhân viên cố vấn dịch vụ <b>{9}</b> vào lúc {1}.</p>
+                            <p><u>Thông tin chi tiết lịch hẹn:</u></p>
+                            <ul>
+                                <li><b>Thời gian:</b> {2}</li>
+                                <li><b>Địa chỉ:</b> {3}</li>
+                                <li><b>Liên hệ:</b> {4}</li>
+                                <li><b>Ghi chú:</b><br> {5}</li>
+                            </ul>
+                            
+                            <p><u>Dịch vụ đã chọn:</u></p>
+                            <ul>
+                            {7}
+                            </ul>
+                            <p>Mọi thắc mắc vui lòng liên hệ <b>{8}</b>. Xin cảm ơn.</p>
+                            <p>{6},<br><i>Trân trọng.</i></p>
+                            """;
+
+            String customerName = appointment.getCustomer().getName();
+            String contact = appointment.getContact();
+            if (contact == null || contact.isEmpty()) {
+                contact = "<i>Không có</i>";
+            }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+            String createAt = appointment.getCreateAt().format(formatter);
+            String time = appointment.getTime().format(formatter);
+
+            String facilityAddress = commonParameterRepository.findByKey("FACILITY_ADDRESS").get().getValue();
+            String facilityPhone = commonParameterRepository.findByKey("FACILITY_PHONE_NUMBER").get().getValue();
+            String description =  appointment.getDescription().isEmpty() ? "Không có ghi chú." : appointment.getDescription().replace("\n", "<br>");;
+
+            String services = "";
+            List<DetailAppointment> details = detailAppointmentRepository.findAllByAppointmentId(appointment.getId());
+            if (!details.isEmpty()) {
+                for (DetailAppointment detail : details) {
+                    String optionHtml = "";
+                    if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                        optionHtml = "<i>("+detail.getOptionName()+")</i>";
+                    }
+                    services += "<li><b>"+detail.getServiceName()+"</b> "+optionHtml+"</li>";
+                }
+            }
+
+            String htmlBody = MessageFormat.format(body,
+                    customerName,
+                    createAt,
+                    time,
+                    facilityAddress,
+                    contact,
+                    description,
+                    facilityName,
+                    services,
+                    facilityPhone,
+                    advisor.getName());
+
+            emailSenderService.sendHtmlEmail(acc.getFirst().getEmail(), "[" + facilityName.toUpperCase() + "] THÔNG BÁO ĐẶT HẸN", htmlBody);
+        }
+
+        try {
+            appointmentReminderService.refreshListAppointments();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return response;
     }
 
@@ -437,6 +513,12 @@ public class AppointmentService {
             }
         }
 
+        try {
+            appointmentReminderService.refreshListAppointments();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return response;
     }
 
@@ -566,6 +648,12 @@ public class AppointmentService {
 
         appointmentRepository.save(appointment);
 
+        try {
+            appointmentReminderService.refreshListAppointments();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return updateListDetailAppointment(id, request.getDetails(), hardUpdate);
     }
 
@@ -616,12 +704,16 @@ public class AppointmentService {
                             <ul>
                             {7}
                             </ul>
-                            <p>Xin cảm ơn.</p>
+                            <p>Mọi thắc mắc vui lòng liên hệ <b>{8}</b>. Xin cảm ơn.</p>
                             <p>{6},<br><i>Trân trọng.</i></p>
                             """;
 
                     // 0 là tên customer, 1 là creatAt, 2 là time, 3 địa chỉ cơ sở, 4 là liên hệ, 5 là ghi chú
                     String customerName = appointment.getCustomer().getName();
+                    String contact = appointment.getContact();
+                    if (contact == null || contact.isEmpty()) {
+                        contact = "<i>Không có</i>";
+                    }
 
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
                     String createAt = appointment.getCreateAt().format(formatter);
@@ -643,9 +735,9 @@ public class AppointmentService {
                         }
                     }
 
-                    String htmlBody = MessageFormat.format(body, customerName, createAt, time, facilityAddress, facilityPhone, description, facilityName, services);
+                    String htmlBody = MessageFormat.format(body, customerName, createAt, time, facilityAddress, contact , description, facilityName, services, facilityPhone);
 
-                    emailSenderService.sendHtmlEmail(acc.getFirst().getEmail(), "[" + facilityName.toUpperCase() + "] THÔNG BÁO ĐẶT HẸN", htmlBody);
+                    emailSenderService.sendHtmlEmail(acc.getFirst().getEmail(), "[" + facilityName.toUpperCase() + "] YÊU CẦU ĐẶT HẸN ĐÃ XÁC NHẬN", htmlBody);
                 }
             }
         } else if (status < 1 || status > 4) {
@@ -655,6 +747,68 @@ public class AppointmentService {
         }
 
         appointmentRepository.save(appointment);
+
+        if (status == AppointmentStatus.CANCELLED.getCode()) {
+            List<Account> acc = appointment.getCustomer().getAccounts()
+                    .stream()
+                    .filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode())
+                    .toList();
+            if (!acc.isEmpty()) {
+                String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+
+                String body = """
+                            <p>Xin chào <strong>{0}</strong>,</p>
+                            <p>Yêu cầu đặt hẹn vào lúc {1} của bạn đã bị từ chối!</p>
+                            <p><u>Thông tin chi tiết lịch hẹn:</u></p>
+                            <ul>
+                                <li><b>Thời gian:</b> {2}</li>
+                                <li><b>Địa chỉ:</b> {3}</li>
+                                <li><b>Liên hệ:</b> {4}</li>
+                                <li><b>Ghi chú của khách hàng:</b><br> {5}</li>
+                            </ul>
+                            <p>Mọi thắc mắc vui lòng liên hệ <b>{7}</b>. Cảm ơn bạn đã sử dụng dịch vụ.</p>
+                            <p>{6},<br><i>Trân trọng.</i></p>
+                            """;
+
+                // 0 là tên customer, 1 là creatAt, 2 là time, 3 địa chỉ cơ sở, 4 là liên hệ, 5 là ghi chú
+                String customerName = appointment.getCustomer().getName();
+                String contact = appointment.getContact();
+                if (contact == null || contact.isEmpty()) {
+                    contact = "<i>Không có</i>";
+                }
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+                String createAt = appointment.getCreateAt().format(formatter);
+                String time = appointment.getTime().format(formatter);
+
+                String facilityAddress = commonParameterRepository.findByKey("FACILITY_ADDRESS").get().getValue();
+                String facilityPhone = commonParameterRepository.findByKey("FACILITY_PHONE_NUMBER").get().getValue();
+                String description =  appointment.getDescription().isEmpty() ? "Không có ghi chú." : appointment.getDescription().replace("\n", "<br>");;
+
+                String services = "";
+                List<DetailAppointment> details = detailAppointmentRepository.findAllByAppointmentId(appointment.getId());
+                if (!details.isEmpty()) {
+                    for (DetailAppointment detail : details) {
+                        String optionHtml = "";
+                        if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                            optionHtml = "<i>("+detail.getOptionName()+")</i>";
+                        }
+                        services += "<li><b>"+detail.getServiceName()+"</b> "+optionHtml+"</li>";
+                    }
+                }
+
+                String htmlBody = MessageFormat.format(body, customerName, createAt, time, facilityAddress, contact , description, facilityName, facilityPhone);
+
+                emailSenderService.sendHtmlEmail(acc.getFirst().getEmail(), "[" + facilityName.toUpperCase() + "] YÊU CẦU ĐẶT HẸN BỊ TỪ CHỐI", htmlBody);
+            }
+        }
+
+        try {
+            appointmentReminderService.refreshListAppointments();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return true;
     }
 
@@ -753,6 +907,12 @@ public class AppointmentService {
                 }
             }
 
+            try {
+                appointmentReminderService.refreshListAppointments();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return true;
         } else {
             throw new AppException(ErrorCode.INVALID_STATUS);
@@ -762,6 +922,13 @@ public class AppointmentService {
     public void deleteappointment(String id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.APPOINTMENT_NOT_EXIST));
+
+        try {
+            appointmentReminderService.refreshListAppointments();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         appointmentRepository.delete(appointment);
     }
 

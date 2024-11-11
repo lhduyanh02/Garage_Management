@@ -312,19 +312,19 @@
               <!-- info row -->
               <div class="row invoice-info">
                 <div class="col-sm-4 invoice-col">
-                  From
+                  Công ty
                   <address id="facility-info">
                     <strong id="company-name">Company Name</strong><br>
                     <span id="facility-address">Facility<br>
                                                 Address<br>
                     </span>
-                    Phone: <a id="facility-phone" class="text-dark hover-underline">Phone number</a><br>
+                    SĐT: <a id="facility-phone" class="text-dark hover-underline">Phone number</a><br>
                     Email: <a id="facility-email" class="text-dark hover-underline">Email</a>
                   </address>
                 </div>
                 <!-- /.col -->
                 <div class="col-sm-4 invoice-col">
-                  To<button id="edit-user-btn" type="button" class="btn btn-sm btn-outline-dark ml-2 py-0" data-state="add">Sửa</button>
+                  Khách hàng<button id="edit-user-btn" type="button" class="btn btn-sm btn-outline-dark ml-2 py-0" data-state="add">Sửa</button>
                   <address id="customer-info">
                     <strong><span id="customer-name">Khách vãng lai</span></strong><br>
                     <span id="customer-address"><br></span>
@@ -335,7 +335,7 @@
                 <!-- /.col -->
                 <div class="col-sm-4 invoice-col" id="advisor-invoice-info">
                   <b><span id="invoice-id"></span></b><br>
-                  <b>Service Date: </b><span id="history-date"></span><br>
+                  <b>Ngày tiếp nhận: </b><span id="history-date"></span><br>
 
                   <div class=" hover-underline-animation left" role="button">
                     <b style="display: inline-block; margin-right: 3px;">Odo:</b>
@@ -343,7 +343,7 @@
                           placeholder="Không xác định" style="border: none;" maxlength="15">
                   </div><br>
                   
-                  <span id="advisor-name">Advisor: </span><br>
+                  <span id="advisor-name">Cố vấn DV: </span><br>
                   <span id="advisor-contact">Email: </span><br>
                 </div>
                 <!-- /.col -->
@@ -357,11 +357,11 @@
                     <thead>
                     <tr>
                       <th width="5%">#</th>
-                      <th min-width="20%">Service</th>
-                      <th width="15%">Unit Price</th>
-                      <th width="10%">Qty</th>
-                      <th width="15%">Discount (%)</th>
-                      <th width="15%">Total Price</th>
+                      <th min-width="20%">Dịch vụ</th>
+                      <th width="15%">Đơn giá</th>
+                      <th width="10%">Số lượng</th>
+                      <th width="15%">Giảm giá (%)</th>
+                      <th width="15%">Thành tiền</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -375,7 +375,7 @@
               <div class="row">
                 <!-- accepted payments column -->
                 <div class="col-12 col-lg-4">
-                  <p class="lead">Summary:</p>
+                  <p class="lead">Tóm tắt vấn đề:</p>
                   <textarea wrap="soft" 
                             class="form-control" 
                             id="summary-input" 
@@ -386,7 +386,7 @@
                 <!-- /.col -->
 
                 <div class="col-12 col-lg-4">
-                  <p class="lead">Diagnose:</p>
+                  <p class="lead">Chẩn đoán, đề xuất:</p>
                   <textarea wrap="soft" 
                             class="form-control" 
                             id="diagnose-input" 
@@ -396,16 +396,16 @@
                 </div>
 
                 <div class="col-12 col-lg-4">
-                  <p class="lead">Payment</p>
+                  <p class="lead">Thanh toán</p>
 
                   <div class="table-responsive">
                     <table class="table">
                       <tr class="row w-100">
-                        <th class="col-sm-5 col-12">Subtotal:</th>
-                        <td class="col-sm-7 col-12" id="total-amount-info">-1</td>
+                        <th class="col-sm-5 col-12">Tổng cộng:</th>
+                        <td class="col-sm-7 col-12" id="total-amount-info"></td>
                     </tr>
                     <tr class="row w-100">
-                      <th class="col-sm-5 col-12">Tax (%)</th>
+                      <th class="col-sm-5 col-12">Thuế GTGT (%)</th>
                       <td class="col-sm-7 col-12">
                         <div class="dropdown w-100" s>
                           <input id="tax-info" type="text" class="form-control dropdown-toggle h-auto w-100 p-0" placeholder="0" 
@@ -420,7 +420,7 @@
                       </td>
                     </tr>
                     <tr class="row w-100">
-                        <th class="col-sm-5 col-12">Discount (%)</th>
+                        <th class="col-sm-5 col-12">Giảm giá (%)</th>
                         <td class="col-sm-7 col-12">
                           <div class="dropdown w-100">
                             <input id="discount-info" type="text" class="form-control dropdown-toggle h-auto w-100 p-0" placeholder="0" 
@@ -441,7 +441,7 @@
                         <td>$5.80</td>
                     </tr> -->
                     <tr class="row w-100">
-                        <th class="col-sm-5 col-12">Amount Due:</th>
+                        <th class="col-sm-5 col-12">Cần thanh toán:</th>
                         <td class="col-sm-7 col-12" id="payable-amount-info">-1</td>
                     </tr>
                     </table>
@@ -458,11 +458,11 @@
                      class="btn btn-outline-success mr-md-2" 
                      data-toggle="tooltip" 
                      title="Lưu thông tin odo, tóm tắt, phân tích và giảm giá (% discount)">
-                    <i class="fa-regular fa-floppy-disk"></i> Save
+                    <i class="fa-regular fa-floppy-disk"></i> Lưu thông tin
                   </a>
                   <a role="button" rel="noopener" id="print-btn" 
                      class="btn btn-outline-info">
-                  <i class="fas fa-print"></i> Print
+                  <i class="fas fa-print"></i> In đơn
                   </a>
                 </div>
                 
