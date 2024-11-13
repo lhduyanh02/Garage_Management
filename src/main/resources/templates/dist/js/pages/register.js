@@ -29,12 +29,12 @@ $(document).ready(function () {
 
     $(".select2").select2({
         allowClear: true,
-        // dropdownParent: $('#modal_body'),
         theme: "bootstrap",
-        // tokenSeparators: [",", " "],
         closeOnSelect: true,
         language: "vi",
     });
+
+    $('#gender-select').val("").trigger('change');
     
     $.ajax({
         type: "GET",
@@ -197,6 +197,9 @@ var register = function () {
             "Content-Type": "application/json",
             "Authorization": ""
         },
+        beforeSend: function() {
+            Swal.showLoading();
+        },
         data: JSON.stringify({
             email: email,
             password: passwd,
@@ -207,6 +210,7 @@ var register = function () {
         }),
         success: function (res) {
             if (res.code == 1000) {
+                Swal.close();
                 Toast.fire({
                     icon: "success",
                     title: "Đã gửi OTP"
@@ -215,6 +219,7 @@ var register = function () {
                 OTPInput(email, passwd);
             }
             else {
+                Swal.close();
                 Toast.fire({
                     icon: "error",
                     title: res.message || "Đã xảy ra lỗi"
@@ -222,6 +227,7 @@ var register = function () {
             }
         },
         error: function(xhr, status, error){
+            Swal.close();
             console.error(xhr);
             Toast.fire({
                 icon: "error",

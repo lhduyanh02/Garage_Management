@@ -711,7 +711,7 @@ $("#car-mapping-btn").click(async function () {
                         </div>
                         <div class="col-md-6 d-flex">
                             <button id="car-select-btn" type="button" class="btn btn-outline-primary ml-auto mt-auto mb-3 px-3">Chọn</button>
-                            <button id="remove-mapping-btn" type="button" class="btn btn-outline-danger ml-2 mt-auto mb-3 px-3" hidden>Gỡ</button>
+                            <button id="remove-mapping-btn" type="button" class="btn btn-danger ml-2 mt-auto mb-3 px-3" hidden>Gỡ</button>
                         </div>
                     </div>
                     <table id="car-table" class="table table-bordered table-striped">

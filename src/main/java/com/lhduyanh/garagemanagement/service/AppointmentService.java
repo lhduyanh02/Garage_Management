@@ -1037,7 +1037,6 @@ public class AppointmentService {
             return message.toString();
         }
 
-
         return message.toString();
     }
 }

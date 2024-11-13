@@ -1105,6 +1105,7 @@ $("#user-mapping-btn").click(function () {
                             $(this).removeClass('selected');
                             $('#user-remove-btn').prop('hidden', true);
                         } else {
+                            $('#user-remove-btn').prop('hidden', true);
                             $('#user-table tbody tr').removeClass('selected');
                             $(this).addClass('selected');
                             if (listCars.length > 0) {
@@ -1113,7 +1114,6 @@ $("#user-mapping-btn").click(function () {
                                         $('#user-remove-btn').prop('hidden', false);
                                         return;
                                     }
-                                    $('#user-remove-btn').prop('hidden', true);
                                 });
                             } else {
                                 $('#user-remove-btn').prop('hidden', true);

@@ -104,10 +104,9 @@ $(document).ready(function () {
                     let html = "";
                     html += `<b>${data}<br></b>`;
                     if (row.description != "") {
-                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace(
-                            "\n",
-                            "<br>"
-                        )}<br></div>`;
+                        console.log(row.description);
+                        
+                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace(/\n/g, "<br>")}<br></div>`;
                     }
 
                     return html;

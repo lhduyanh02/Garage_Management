@@ -71,7 +71,6 @@ public class UserController {
     @GetMapping("/all-customers")
     @PreAuthorize("""
         @securityExpression.hasPermission({'GET_ALL_CUSTOMER', 'GET_ALL_USER', 'EDIT_USER',
-                                            'MAP_USER_CAR',
                                             'BOOKING', 'EDIT_APPOINTMENT'})
         """)
     public ApiResponse<List<UserFullResponse>> getAllCustomers() {

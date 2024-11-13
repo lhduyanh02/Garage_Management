@@ -294,7 +294,7 @@ public class AccountService {
                 String body = """
                         <p>Xin chào <strong>{0}</strong>,</p>
                         <p>Bạn đã tạo thành công tài khoản mới trên Hệ thống chăm sóc ô tô <b>{1}</b> vào lúc {2}.</p>
-                        <p>Xin cảm ơn.</p>
+                        <p>Đăng nhập vào website <b>{3}</b> để đặt lịch hẹn, kiểm tra lịch sử dịch vụ và xem bảng giá dịch vụ.</p>
                         <p>{1},<br><i>Trân trọng.</i></p>
                         """;
 
@@ -303,9 +303,10 @@ public class AccountService {
                 String message = MessageFormat.format(body,
                         user.getName(), // 0
                         facilityName, // 1
-                        LocalDateTime.now().format(formatter));  // 2
+                        LocalDateTime.now().format(formatter),  // 2
+                        facilityName);
 
-                emailSenderService.sendHtmlEmail(account.getEmail(), "Chào mừng bạn đến với" + facilityName, message);
+                emailSenderService.sendHtmlEmail(account.getEmail(), "Chào mừng bạn đến với " + facilityName, message);
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error("Error in sending message after customer verified account");
