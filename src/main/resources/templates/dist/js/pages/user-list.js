@@ -76,7 +76,7 @@ $(document).ready(async function () {
                 text: "PDF",
             },
             { extend: "print", text: "Print" },
-            { extend: "colvis", text: "Column Visibility" },
+            { extend: "colvis", text: "Hiển thị" },
         ],
         columnDefs: [
             { orderable: false, targets: 6 }, // Vô hiệu hóa sort cho cột Thao tác (index 6)
@@ -360,21 +360,17 @@ $("#data-table").on("click", "#editBtn", function () {
             $("#modal_title").text("Sửa thông tin người dùng");
             $("#modal_body").append(`
                 <div class="form-group">
-                    <div class="container mt-3 mb-0">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_name_input">Họ tên</label>
-                            <kbd id="modal_name_counter" class="mb-0 small">0/255</kbd>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_name_input">Họ tên</label>
+                        <kbd id="modal_name_counter" class="mb-0 small">0/255</kbd>
                     </div>
                     <input type="text" class="form-control" id="modal_name_input" maxlength="255" placeholder="Nhập tên người dùng">
                 </div>
 
                 <div class="form-group">
-                    <div class="container mt-3 mb-0">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="mb-0" for="modal_phone_input">Số điện thoại</label>
-                            <kbd id="modal_phone_counter" class="mb-0 small">0/50</kbd>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_phone_input">Số điện thoại</label>
+                        <kbd id="modal_phone_counter" class="mb-0 small">0/50</kbd>
                     </div>
                     <input type="text" class="form-control" id="modal_phone_input" maxlength="50" placeholder="Nhập số điện thoại"
                         data-toggle="tooltip"
@@ -397,6 +393,14 @@ $("#data-table").on("click", "#editBtn", function () {
                     <label>Địa chỉ</label>
                     <select id="address-select" class="form-control select2bs4" style="width: 100%;">
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="mb-0" for="modal_telegramid_input">Telegram ID</label>
+                        <kbd id="modal_telegramid_counter" class="mb-0 small">0/255</kbd>
+                    </div>
+                    <input type="text" class="form-control" id="modal_telegramid_input" maxlength="255" placeholder="Nhập ID Telegram người dùng">
                 </div>
 
                 <div class="form-group">
@@ -489,9 +493,11 @@ $("#data-table").on("click", "#editBtn", function () {
 
             $("#modal_name_input").val(res.data.name);
             $("#modal_phone_input").val(res.data.phone);
+            $("#modal_telegramid_input").val(res.data.telegramId);
             
             utils.set_char_count("#modal_name_input", "#modal_name_counter");
             utils.set_char_count("#modal_phone_input", "#modal_phone_counter");
+            utils.set_char_count("#modal_telegramid_input", "#modal_telegramid_counter");
 
             $("#gender-select").val(res.data.gender).trigger('change');
 
@@ -503,6 +509,7 @@ $("#data-table").on("click", "#editBtn", function () {
                 let gender = $("#gender-select").val();
                 let address = $("#address-select").val();
                 let roles = $("#roles-select").val();
+                let telegramId = $("#modal_telegramid_input").val().trim();
 
                 if(!utils.validatePhoneNumber(phone)){
                     Toast.fire({
@@ -516,6 +523,17 @@ $("#data-table").on("click", "#editBtn", function () {
                     phone = null;
                 }
 
+                if (telegramId) {
+                    if (!/^-?\d+$/.test(telegramId) || Number(telegramId) > Number.MAX_SAFE_INTEGER || Number(telegramId) < Number.MIN_SAFE_INTEGER) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Telegram ID không hợp lệ!",
+                            text: "Telegram ID phải là chuỗi số nguyên"
+                        });
+                        return;
+                    }
+                }
+
                 $.ajax({
                     type: "PUT",
                     url: "/api/users/"+id,
@@ -525,7 +543,8 @@ $("#data-table").on("click", "#editBtn", function () {
                         phone: phone, 
                         gender: gender,
                         addressId: address,
-                        roleIds: roles
+                        roleIds: roles,
+                        telegramId: telegramId
                     }),
                     success: function (response) {
                         if(response.code == 1000){
@@ -575,6 +594,7 @@ $("#data-table").on("click", "#deleteBtn", function () {
     let name = rowData.name;
 
     Swal.fire({
+        icon: "warning",
         title: `Xóa người dùng</br>${name}?`,
         text: "Xóa người dùng sẽ xóa tất cả tài khoản được liên kết!",
         showDenyButton: false,
@@ -778,7 +798,7 @@ $("#new-user-btn").click(function () {
 
     $("#modal_footer").append(
         '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
-        );
+    );
     $("#gender-select").select2({
         allowClear: true,
         theme: "bootstrap",

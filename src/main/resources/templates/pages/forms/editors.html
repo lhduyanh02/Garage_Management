@@ -949,7 +949,14 @@
 <script>
   $(function () {
     // Summernote
-    $('#summernote').summernote()
+    $('#summernote').summernote({
+  toolbar: [
+    // [groupName, [list of button]]
+    ['font', ['bold', 'italic', 'underline', 'clear']],
+    ['view', ['fullscreen', 'codeview', 'help']],
+    ['insert', ['link']],
+  ]
+});
 
     // CodeMirror
     CodeMirror.fromTextArea(document.getElementById("codeMirrorDemo"), {

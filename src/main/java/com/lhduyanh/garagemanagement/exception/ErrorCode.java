@@ -157,6 +157,11 @@ public enum ErrorCode {
     BLANK_OTP(1126, "OTP can not be blank", HttpStatus.BAD_REQUEST),
     INCORRECT_OTP(1127, "Incorrect OTP", HttpStatus.BAD_REQUEST),
     TELEGRAM_ID_EXISTED(1128, "This telegram ID has been used by another user", HttpStatus.BAD_REQUEST),
+    BLANK_TITLE(1129, "Title of message must not be blank", HttpStatus.BAD_REQUEST),
+    BLANK_CONTENT(1130, "Content of message must not be blank", HttpStatus.BAD_REQUEST),
+    TELEGRAM_MESSAGE_NOT_EXIST(1131, "This telegram message does not exist", HttpStatus.BAD_REQUEST),
+    NOT_DRAFT_MESSAGE(1132, "This message is not draft, cannot be edited", HttpStatus.BAD_REQUEST),
+    NO_RECEIVER(1133, "This message has no receiver", HttpStatus.BAD_REQUEST),
 
     ;
 

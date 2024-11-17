@@ -167,6 +167,21 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserWithAccountsResponse> getAllUserHasTelegramID(){
+        List<User> users = userRepository.findAllHasTelegram();
+        return users.stream()
+                .filter(user -> user.getStatus() >= UserStatus.CONFIRMED.getCode())
+                .map( u-> {
+                    UserWithAccountsResponse response = userMapper.toUserWithAccountsResponse(u);
+                    response.setAccounts(response.getAccounts().stream()
+                            .filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode())
+                            .collect(Collectors.toList()));
+                    return response;
+                })
+                .sorted(Comparator.comparing(UserWithAccountsResponse::getName, vietnameseCollator))
+                .toList();
+    }
+
     public UserFullResponse getUserById(String id){
         return userRepository.findByIdFullInfo(id)
                 .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
@@ -236,7 +251,7 @@ public class UserService {
     public UserFullResponse getMyUserInfo(){
         var UUID = getUUIDFromJwt();
         return userRepository.findByIdFullInfo(UUID)
-                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode())
                 .map(u -> {
                     Set<Role> listRole = new HashSet<>();
                     for(Role r : u.getRoles()){
@@ -553,7 +568,7 @@ public class UserService {
     public UserFullResponse userSelfUpdate(UserUpdateRequest request){
         String id = getUUIDFromJwt();
         User user = userRepository.findById(id)
-                .filter( u -> u.getStatus() != UserStatus.DELETED.getCode())
+                .filter( u -> u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (request.getPhone() != null && !request.getPhone().isEmpty()) {

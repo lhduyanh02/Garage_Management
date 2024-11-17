@@ -48,7 +48,7 @@ $(document).ready(function () {
         text: "PDF",
       },
       { extend: "print", text: "Print" },
-      { extend: "colvis", text: "Column Visibility" },
+      { extend: "colvis", text: "Hiển thị" },
     ],
     columnDefs: [
       { orderable: false, targets: 3 }, // Vô hiệu hóa sort cho cột Thao tác (index 3)

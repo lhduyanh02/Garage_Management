@@ -103,12 +103,12 @@ public class RoleService {
         Role role = roleRepository.findByIdFetchPermissions(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_EXISTED));
 
-        // Cấm edit các roles cơ bản
-//        List<String> notEditRoles = List.of("ADMIN", "KTV", "CUSTOMER", "CVDV");
-//
-//        if (notEditRoles.contains(request.getRoleKey())) {
-//            throw new AppException(ErrorCode.ROLE_CAN_NOT_EDIT);
-//        }
+//         Cấm edit các roles cơ bản
+        List<String> notEditRoles = List.of("ADMIN", "KTV", "CUSTOMER", "CVDV");
+
+        if (notEditRoles.contains(role.getRoleKey())) {
+            throw new AppException(ErrorCode.ROLE_CAN_NOT_EDIT);
+        }
 
         request.setRoleName(request.getRoleName().trim());
         request.setRoleKey(request.getRoleKey().trim());

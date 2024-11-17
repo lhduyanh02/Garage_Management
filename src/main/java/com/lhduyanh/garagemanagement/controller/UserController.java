@@ -67,7 +67,6 @@ public class UserController {
                 .build();
     }
 
-    // Api quản lý hồ sơ khách hàng
     @GetMapping("/all-customers")
     @PreAuthorize("""
         @securityExpression.hasPermission({'GET_ALL_CUSTOMER', 'GET_ALL_USER', 'EDIT_USER',
@@ -88,7 +87,6 @@ public class UserController {
                 .data(userService.getCustomerById(id))
                 .build();
     }
-    // End quản lý hồ sơ khách hàng
 
     @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_ACCOUNT', 'EDIT_USER', 'BOOKING', 'EDIT_APPOINTMENT'})")
     @GetMapping("/with-accounts")
@@ -96,6 +94,15 @@ public class UserController {
         return ApiResponse.<List<UserWithAccountsResponse>>builder()
                 .code(1000)
                 .data(userService.getAllUserWithAccounts())
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_ACCOUNT', 'GET_ALL_USER', 'SEND_TELEGRAM_MESSAGE', 'GET_ALL_TELEGRAM_MESSAGE'})")
+    @GetMapping("/user-has-telegram")
+    public ApiResponse<List<UserWithAccountsResponse>> getAllUserHasTelegramID(){
+        return ApiResponse.<List<UserWithAccountsResponse>>builder()
+                .code(1000)
+                .data(userService.getAllUserHasTelegramID())
                 .build();
     }
 

@@ -43,7 +43,7 @@ public class RoleController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE', 'GET_ALL_USER', 'SEND_TELEGRAM_MESSAGE'})")
     @GetMapping
     public ApiResponse<List<RoleSimpleResponse>> getAllEnableRoles() {
         return ApiResponse.<List<RoleSimpleResponse>>builder()

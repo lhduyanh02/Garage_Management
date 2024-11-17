@@ -22,6 +22,15 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.address LEFT JOIN FETCH u.accounts")
     List<User> findAllWithAccounts();
 
+    @Query("""
+            SELECT u FROM User u 
+            LEFT JOIN FETCH u.address 
+            LEFT JOIN u.accounts a
+            WHERE u.status >= 1 
+            AND u.telegramId IS NOT NULL
+            """)
+    List<User> findAllHasTelegram();
+
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.address")
     List<User> findAllWithAddress();
 
