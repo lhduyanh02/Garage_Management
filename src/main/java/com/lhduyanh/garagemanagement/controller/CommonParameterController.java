@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +22,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommonParameterController {
 
-    private static final Logger log = LoggerFactory.getLogger(CommonParameterController.class);
     CommonParameterService service;
 
     @GetMapping("/{key}")
@@ -34,7 +34,6 @@ public class CommonParameterController {
 
     @PostMapping("/list-param")
     public ApiResponse<List<CommonParameterResponse>> getParamByListKey(@RequestBody List<String> keys) {
-        log.info(keys.toString());
         return ApiResponse.<List<CommonParameterResponse>>builder()
                 .code(1000)
                 .data(service.getCommonParameterByListKey(keys))
@@ -42,14 +41,15 @@ public class CommonParameterController {
     }
 
     @GetMapping
-    public ApiResponse<CommonParameterResponse> getParamById(@RequestParam("id") String id) {
+    public ApiResponse<CommonParameterResponse> getParamById(@RequestParam(value = "id") String id) {
         return ApiResponse.<CommonParameterResponse>builder()
                 .code(1000)
                 .data(service.getCommonParameterById(id))
                 .build();
     }
 
-    @GetMapping("all-param")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_PARAM', 'EDIT_PARAM'})")
+    @GetMapping("all")
     public ApiResponse<List<CommonParameterResponse>> getAllParam() {
         return ApiResponse.<List<CommonParameterResponse>>builder()
                 .code(1000)
@@ -57,6 +57,7 @@ public class CommonParameterController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_PARAM'})")
     @PutMapping("/{id}")
     public ApiResponse<List<CommonParameterResponse>> updateParameter(@PathVariable String id,
                                                                       @RequestBody @Valid CommonParameterEditRequest request) {

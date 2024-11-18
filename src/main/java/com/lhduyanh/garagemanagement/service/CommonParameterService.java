@@ -14,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -29,6 +30,7 @@ public class CommonParameterService {
         return commonParameterRepository.findAll()
                 .stream()
                 .map(commonParameterMapper::toResponse)
+                .sorted(Comparator.comparing(CommonParameterResponse::getKey))
                 .toList();
     }
 
@@ -36,7 +38,11 @@ public class CommonParameterService {
         CommonParameter parameter = commonParameterRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PARAMETER_NOT_EXIST));
 
-        commonParameterMapper.updateCommonParameter(parameter, request);
+        if (request.getValue() == null || request.getValue().isBlank()) {
+            throw new AppException(ErrorCode.BLANK_VALUE);
+        }
+
+        parameter.setValue(request.getValue());
         commonParameterRepository.save(parameter);
         return getAllCommonParameter();
     }

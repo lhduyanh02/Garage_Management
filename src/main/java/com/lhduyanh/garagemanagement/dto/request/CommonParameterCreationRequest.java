@@ -18,8 +18,8 @@ public class CommonParameterCreationRequest {
     @NotBlank
     String key;
 
-    @NotNull(message = "BLANK_DESCRIPTION")
-    @NotBlank(message = "BLANK_DESCRIPTION")
+    @NotNull
+    @NotBlank
     String description;
 
     @NotNull(message = "BLANK_VALUE")

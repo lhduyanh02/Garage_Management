@@ -1,9 +1,6 @@
 package com.lhduyanh.garagemanagement.mapper;
 
-import com.lhduyanh.garagemanagement.dto.request.UserRegisterRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserAccountCreationReq;
-import com.lhduyanh.garagemanagement.dto.request.UserCreationRequest;
-import com.lhduyanh.garagemanagement.dto.request.UserUpdateRequest;
+import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.User;
 import org.mapstruct.Mapper;
@@ -14,6 +11,8 @@ import org.mapstruct.MappingTarget;
 public interface UserMapper {
 
     User toUser(UserCreationRequest request);
+
+    User toUser(CustomerCreationRequest request);
 
     @Mapping(target = "roles", source = "roles")
     @Mapping(target = "cars", source = "cars")

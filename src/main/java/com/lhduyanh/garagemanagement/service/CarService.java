@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -41,12 +41,25 @@ public class CarService {
             .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS)));
     }
 
+    public Long getCarQuantity() {
+        return carRepository.countAllCar();
+    }
+
     public List<CarResponse> getAllCar() {
         return carRepository.findAll()
                 .stream()
-                .filter(car -> car.getStatus() == CarStatus.NOT_USE.getCode() || car.getStatus() == CarStatus.USING.getCode())
+                .filter(car -> car.getStatus() != CarStatus.DELETED.getCode())
                 .map(carMapper::toCarResponse)
                 .sorted(Comparator.comparing(CarResponse::getCreateAt).reversed())
+                .toList();
+    }
+
+    public List<CarResponse> getAllMyManagedCar() {
+        String uid = getUUIDFromJwt();
+        return carRepository.findAllByManager(uid)
+                .stream()
+                .filter(c -> c.getStatus() == CarStatus.USING.getCode())
+                .map(carMapper::toCarResponse)
                 .toList();
     }
 
@@ -89,7 +102,7 @@ public class CarService {
 
         List<CarResponse> cars = carRepository.searchCars(numPlate, plateType, brand, model)
                 .stream()
-                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .filter(c -> c.getStatus() == CarStatus.USING.getCode())
                 .map(carMapper::toCarResponse)
                 .toList();
 
@@ -123,10 +136,8 @@ public class CarService {
         }
 
         PlateType plateType = plateTypeRepository.findById(request.getPlateType())
+                .filter(pt -> pt.getStatus() == PlateTypeStatus.USING.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS));
-        if (plateType.getStatus() == PlateTypeStatus.NOT_USE.getCode()) {
-            throw new AppException(ErrorCode.PLATE_TYPE_NOT_EXISTS);
-        }
 
         Model model = modelRepository.findById(request.getModel())
                 .orElseThrow(() -> new AppException(ErrorCode.MODEL_NOT_EXISTS));
@@ -142,6 +153,7 @@ public class CarService {
 
     public CarResponse updateCar(String id, CarRequest request) {
         Car car = carRepository.findById(id)
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
 
         if (request.getNumPlate().matches(".*[\\u00C0-\\u1EF9].*")) { // Kiểm tra ký tự tiếng Việt
@@ -169,6 +181,26 @@ public class CarService {
         carMapper.updateCar(car, request);
         car.setPlateType(plateType);
         car.setModel(model);
+        return carMapper.toCarResponse(carRepository.save(car));
+    }
+
+    public CarResponse customerUpdateCar(String id, CarRequest request) {
+        String uid = getUUIDFromJwt();
+
+        Car car = carRepository.findById(id)
+                .filter(c -> c.getStatus() != CarStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.CAR_NOT_EXISTS));
+
+        boolean hasManaged = carRepository.findAllByManager(uid)
+                .stream()
+                .anyMatch(c -> c.getId().equals(car.getId()));
+
+        if (!hasManaged) {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
+        car.setColor(request.getColor());
+        car.setCarDetail(request.getCarDetail());
         return carMapper.toCarResponse(carRepository.save(car));
     }
 

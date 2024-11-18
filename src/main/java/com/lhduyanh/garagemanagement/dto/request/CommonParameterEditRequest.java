@@ -14,10 +14,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CommonParameterEditRequest {
 
-    @NotNull(message = "BLANK_DESCRIPTION")
-    @NotBlank(message = "BLANK_DESCRIPTION")
-    String description;
-
     @NotNull(message = "BLANK_VALUE")
     @NotBlank(message = "BLANK_VALUE")
     String value;

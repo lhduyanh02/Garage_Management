@@ -59,6 +59,23 @@ public class AuthenticationController {
                 .build();
     }
 
+    @PostMapping("/customer-introspect")
+    ApiResponse<IntrospectResponse> CustomerIntrospect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+        var result = authenticationService.customerIntrospect(request);
+        return ApiResponse.<IntrospectResponse>builder()
+                .code(1000)
+                .data(result)
+                .build();
+    }
+
+    @PostMapping("/permission-introspect/{key}")
+    ApiResponse<IntrospectResponse> permissionIntrospect(@PathVariable String key) {
+        return ApiResponse.<IntrospectResponse>builder()
+                .code(1000)
+                .data(authenticationService.introspectPermissions(key))
+                .build();
+    }
+
     @PostMapping("/logout")
     ApiResponse<Void> logout(@RequestBody LogoutRequest logoutRequest) throws ParseException, JOSEException {
         authenticationService.logout(logoutRequest);

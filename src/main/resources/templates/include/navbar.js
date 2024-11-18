@@ -40,6 +40,7 @@ $(document).ready(function(){
               }),
               success: function (res) {
                 if(res.code==1000){
+                  localStorage.setItem("tokenExpirationTime", null);
                   utils.deleteCookie('authToken');
                   utils.setLocalStorageObject('userInfo', null); 
                   Swal.fire({

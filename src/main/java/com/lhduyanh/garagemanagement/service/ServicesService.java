@@ -46,13 +46,15 @@ public class ServicesService {
 
     public ServiceResponse getServiceById(String id) {
         return serviceMapper.toServiceResponse(
-                serviceRepository.findById(id).orElseThrow(
-                        () -> new AppException(ErrorCode.SERVICE_NOT_EXISTS)));
+                serviceRepository.findById(id)
+                        .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
+                        .orElseThrow(() -> new AppException(ErrorCode.SERVICE_NOT_EXISTS)));
     }
 
     public List<ServiceResponse> getAllServicesWithPrice() {
         return serviceRepository.findAll()
                 .stream()
+                .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
                 .map(service -> {
                     ServiceResponse response = serviceMapper.toServiceResponse(service);
                     response.setOptionPrices(response.getOptionPrices().stream()
@@ -79,7 +81,7 @@ public class ServicesService {
 
                     return res;
                 })
-                .filter(s -> s.getOptionPrices().size() > 0)
+                .filter(s -> !s.getOptionPrices().isEmpty())
                 .sorted(Comparator.comparing(ServiceResponse::getName, vietnameseCollator))
                 .toList();
     }
@@ -95,6 +97,7 @@ public class ServicesService {
     public List<ServiceSimpleResponse> getAllServices() {
         return serviceRepository.findAll()
                 .stream()
+                .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
                 .map(serviceMapper::toSimpleResponse)
                 .sorted(Comparator.comparing(ServiceSimpleResponse::getName, vietnameseCollator))
                 .toList();
@@ -200,18 +203,14 @@ public class ServicesService {
         return serviceMapper.toServiceResponse(service);
     }
 
-    public void deleteService(String id) {
+    public Boolean deleteService(String id) {
         Service service = serviceRepository.findById(id)
+                .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.SERVICE_NOT_EXISTS));
 
-        List<Price> prices = priceRepository.findAllByService(service);
-
-        if(!prices.isEmpty()){
-            service.setStatus(ServiceStatus.DELETED.getCode());
-            serviceRepository.save(service);
-            return;
-        }
-        serviceRepository.deleteById(id);
+        service.setStatus(ServiceStatus.DELETED.getCode());
+        serviceRepository.save(service);
+        return true;
     }
 
     public boolean disableService(String id) {

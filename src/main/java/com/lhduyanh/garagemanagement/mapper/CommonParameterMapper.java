@@ -13,10 +13,6 @@ public interface CommonParameterMapper {
 
     CommonParameterResponse toResponse(CommonParameter commonParameter);
 
-    @Mapping(target = "description", source = "description")
-    @Mapping(target = "value", source = "value")
-    void updateCommonParameter(@MappingTarget CommonParameter target, CommonParameterEditRequest request);
-
     CommonParameter toCommonParameter(CommonParameterCreationRequest request);
 
 }

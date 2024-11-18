@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class RoleController {
 
     RoleService roleService;
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @GetMapping("/all")
     public ApiResponse<List<RoleResponse>> getAllRoles() {
         return ApiResponse.<List<RoleResponse>>builder()
@@ -32,6 +34,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @GetMapping("/{id}")
     public ApiResponse<RoleResponse> getRoleById(@PathVariable String id) {
         return ApiResponse.<RoleResponse>builder()
@@ -40,6 +43,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE', 'GET_ALL_USER', 'SEND_TELEGRAM_MESSAGE'})")
     @GetMapping
     public ApiResponse<List<RoleSimpleResponse>> getAllEnableRoles() {
         return ApiResponse.<List<RoleSimpleResponse>>builder()
@@ -48,6 +52,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @PostMapping
     public ApiResponse<RoleResponse> addRole(@RequestBody @Valid RoleCreationRequest roleCreationRequest) {
         return ApiResponse.<RoleResponse>builder()
@@ -56,6 +61,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @PutMapping("/{id}")
     public ApiResponse<RoleResponse> updateRole(@PathVariable String id,
                                                 @RequestBody @Valid RoleUpdateRequest request) {
@@ -65,6 +71,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @PutMapping("/enable/{roleId}")
     public ApiResponse<Boolean> enableRole(@PathVariable String roleId) {
         return ApiResponse.<Boolean>builder()
@@ -73,6 +80,7 @@ public class RoleController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @PutMapping("/disable/{roleId}")
     public ApiResponse<Boolean> disableRole(@PathVariable String roleId) {
         return ApiResponse.<Boolean>builder()

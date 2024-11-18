@@ -104,7 +104,7 @@ export function introspect(bool) {
     if (token) {
         $.ajax({
             type: "POST",
-            url: "/api/auth/introspect",
+            url: "/api/auth/customer-introspect",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -154,6 +154,53 @@ export function introspect(bool) {
     }
 }
 
+export function introspectPermission(key) {  
+    if(!key || key == "") {
+        window.location.href = "/";
+        return;
+    }
+
+    let token = getCookie("authToken");
+
+    if (token) {
+        $.ajax({
+            type: "POST",
+            url: "/api/auth/permission-introspect/" + key,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            data: JSON.stringify({ token: token }),
+            success: function (res) {
+                if (res.code == 1000) {
+                    if (res.data.valid == true) {
+                        return true;
+                    } else {
+                        setLocalStorageObject("userInfo", null)
+                        window.location.href = "/";
+                    }
+                } else {
+                    setLocalStorageObject("userInfo", null)
+                    window.location.href = "/";
+                }
+            },
+            error: function (xhr, status, error) {
+                if (xhr.status >= 500 && xhr.status < 600) {
+                    console.error(xhr);
+                    console.warn("Error in permission introspecting");
+                    return;
+                } else {
+                    console.error(xhr);
+                    setLocalStorageObject('userInfo', null);
+                    window.location.href = "/";
+                }
+            },
+        });
+    } else {
+        window.location.href = "/";
+    }
+}
+
 export function checkLoginStatus() {
     return new Promise((resolve, reject) => {
         let token = getCookie("authToken");
@@ -170,13 +217,10 @@ export function checkLoginStatus() {
                     if (res.code == 1000 && res.data.valid) {
                         resolve(true);
                     } else {
-                        deleteCookie("authToken");
                         resolve(false);
                     }
                 },
                 error: function () {
-                    console.log("Login status: " + loginStatus);
-                    deleteCookie("authToken");
                     resolve(false);
                 },
             });
@@ -233,10 +277,26 @@ export function validatePhoneNumber(phoneNumber) {
     return regex.test(phoneNumber);
 }
 
+export function isValidEmail(email) {
+    if (!email) {
+        return true; // Trả về false nếu email là null hoặc rỗng
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email); // Trả về true nếu email hợp lệ
+}
+
 export function defaultHeaders() {
     return {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + getCookie("authToken")
+    };
+}
+
+export function noAuthHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": ""
     };
 }
 
@@ -347,4 +407,24 @@ export function getHashParam(key) {
     const value = params.has(key) ? params.get(key) : null;
 
     return value !== null && value !== "" ? value : null;
+}
+
+// Thay thế các ký tự tiếng việt thành tiếng anh
+export function removeVietnameseTones(str) {
+    const tones = [
+        { base: 'a', letters: 'áàãảạâấầẫẩậăắằẵẳạ' },
+        { base: 'e', letters: 'éèẽẻẹêếềễểệ' },
+        { base: 'i', letters: 'íìĩỉị' },
+        { base: 'o', letters: 'óòõỏọôốồỗổộơớờỡởợ' },
+        { base: 'u', letters: 'úùũủụưứừữửự' },
+        { base: 'y', letters: 'ýỳỹỷỵ' },
+        { base: 'd', letters: 'đ' },
+    ];
+    
+    tones.forEach(({ base, letters }) => {
+        const regex = new RegExp(`[${letters}]`, 'g');
+        str = str.replace(regex, base);
+    });
+    
+    return str;
 }

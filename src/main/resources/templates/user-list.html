@@ -114,6 +114,28 @@
               </div>
               <!-- /.card-header -->
               <div class="card-body">
+                <div class="row mb-3">
+                  <div class="col-12 col-md-4">
+                    <label>Lọc theo tùy chọn</label>
+                    <select
+                      id="role-filter"
+                      class="form-control select2" data-placeholder="Chọn vai trò">
+                    </select>
+                  </div>
+
+                  <div class="col-12 col-md-4 mt-2 mt-md-0">
+                    <label>Lọc theo trạng thái</label>
+                    <select
+                      id="status-filter"
+                      class="form-control select2" data-placeholder="Chọn trạng thái">
+                      <option selected value="all">Tất cả</option>
+                      <option value="-1">Bị cấm</option>
+                      <option value="0">Chưa xác thực</option>
+                      <option value="1">Đang hoạt động</option>
+                    </select>
+                  </div>
+                </div>
+
                 <table id="data-table" class="table table-bordered table-striped">
                   <thead>
                     <tr>
@@ -201,7 +223,7 @@
 
   <!-- AdminLTE for demo purposes -->
   <script src="/dist/js/demo.js"></script>
-  <script type="module" src="dist/js/pages/user-list.js"></script>
+  <script type="module" src="/dist/js/pages/user-list.js"></script>
 </body>
 
 </html>

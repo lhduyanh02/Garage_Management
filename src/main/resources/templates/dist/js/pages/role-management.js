@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('EDIT_ROLE');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -40,8 +40,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -50,6 +50,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -351,7 +352,7 @@ $("#data-table").on("click", "#editBtn", async function () {
                     permList += `
                     <div class="ml-2 custom-control custom-checkbox">
                       <input class="permission-checker custom-control-input custom-control-input-primary custom-control-input-outline" type="checkbox" id="${perm.permissionKey}" data-function="${functionInfo.id}" data-id="${perm.id}">
-                      <label for="${perm.permissionKey}" class="custom-control-label font-weight-normal">${perm.name}</label>
+                      <label for="${perm.permissionKey}" class="custom-control-label font-weight-normal">${perm.name} (${perm.permissionKey})</label>
                     </div>`
                 });
                 permissionHtml += permList;
@@ -478,7 +479,7 @@ $("#data-table").on("click", "#editBtn", async function () {
                     }),
                     success: function (response) {
                         if(response.code == 1000){
-                            Toast.fire({
+                            Swal.fire({
                                 icon: "success", 
                                 title: "Cập nhật thông tin thành công"
                             });
@@ -488,9 +489,10 @@ $("#data-table").on("click", "#editBtn", async function () {
                     },
                     error: function(xhr, status, error) {
                         console.error(xhr);
-                        Toast.fire({
+                        Swal.fire({
                             icon: "error",
-                            title: utils.getXHRInfo(xhr).message
+                            title: "Đã xảy ra lỗi",
+                            text: utils.getXHRInfo(xhr).message
                         });
                         dataTable.ajax.reload();
                     }
@@ -501,7 +503,7 @@ $("#data-table").on("click", "#editBtn", async function () {
         error: function(xhr, status, error) {
             Swal.close();
             console.error(xhr);
-            Toast.fire({
+            Swal.fire({
                 icon: "error",
                 title: utils.getXHRInfo(xhr).message
             });
@@ -605,7 +607,7 @@ $('#new-role-btn').click(async function () {
             permList += `
             <div class="ml-2 custom-control custom-checkbox">
                 <input class="permission-checker custom-control-input custom-control-input-primary custom-control-input-outline" type="checkbox" id="${perm.permissionKey}" data-function="${functionInfo.id}" data-id="${perm.id}">
-                <label for="${perm.permissionKey}" class="custom-control-label font-weight-normal">${perm.name}</label>
+                <label for="${perm.permissionKey}" class="custom-control-label font-weight-normal">${perm.name} (${perm.permissionKey})</label>
             </div>`
         });
         permissionHtml += permList;
@@ -717,11 +719,10 @@ $('#new-role-btn').click(async function () {
             },
             error: function(xhr, status, error) {
                 console.error(xhr);
-                Toast.fire({
+                Swal.fire({
                     icon: "error",
                     title: utils.getXHRInfo(xhr).message
                 });
-                dataTable.ajax.reload();
             }
         });
     });
@@ -767,7 +768,7 @@ $("#data-table").on("click", "#disableBtn", function () {
                         dataTable.ajax.reload();
                     } else {
                         console.error(res);
-                        Toast.fire({
+                        Swal.fire({
                             icon: "error",
                             title: utils.getErrorMessage(res.code),
                         });
@@ -775,7 +776,7 @@ $("#data-table").on("click", "#disableBtn", function () {
                 },
                 error: function (xhr, status, error) {
                     console.error(xhr);
-                    Toast.fire({
+                    Swal.fire({
                         icon: "error",
                         title: utils.getXHRInfo(xhr).message
                     });

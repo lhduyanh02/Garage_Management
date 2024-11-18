@@ -23,7 +23,7 @@ public class PermissionController {
 
     PermissionService permissionService;
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_PERMISSIONS'})")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ROLE'})")
     @GetMapping
     public ApiResponse<List<PermissionResponse>> getAllPermissions() {
         return ApiResponse.<List<PermissionResponse>>builder()
@@ -31,22 +31,22 @@ public class PermissionController {
                 .data(permissionService.getAllPermissions())
                 .build();
     }
-
-    @PostMapping
-    public ApiResponse<PermissionResponse> addPermission(@RequestBody @Valid PermissionRequest request) {
-        return ApiResponse.<PermissionResponse>builder()
-                .code(1000)
-                .data(permissionService.addPermission(request))
-                .build();
-    }
-
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deletePermission(@PathVariable("id") String id) {
-        permissionService.deletePermission(id);
-        return ApiResponse.<Void>builder()
-                .code(1000)
-                .message("Permission deleted successfully")
-                .build();
-    }
+//
+//    @PostMapping
+//    public ApiResponse<PermissionResponse> addPermission(@RequestBody @Valid PermissionRequest request) {
+//        return ApiResponse.<PermissionResponse>builder()
+//                .code(1000)
+//                .data(permissionService.addPermission(request))
+//                .build();
+//    }
+//
+//    @DeleteMapping("/{id}")
+//    public ApiResponse<Void> deletePermission(@PathVariable("id") String id) {
+//        permissionService.deletePermission(id);
+//        return ApiResponse.<Void>builder()
+//                .code(1000)
+//                .message("Permission deleted successfully")
+//                .build();
+//    }
 
 }

@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_HISTORY');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -75,13 +75,14 @@ $(document).ready(function () {
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "",
             infoFiltered: "(Lọc từ _MAX_ mục)",
-            emptyTable: "Không có dữ liệu",
+            emptyTable: "Chưa có đơn dịch vụ",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: false,
         columnDefs: [
-            { orderable: false, targets: 0 },
+            { orderable: false, targets: [0, 2] },
             { targets: 0, className: "text-center" },
             { targets: 1, className: "text-center" },
         ],
@@ -90,10 +91,13 @@ $(document).ready(function () {
             {
                 data: "serviceDate",
                 render: function (data, type, row) {
-                    let time = utils.getTimeAsJSON(data);
-                    let html = `${time.hour}:${time.min}, ${time.date}/${time.mon}/${time.year}`;
+                    if (type === "display" || type === "filter") {
+                        let time = utils.getTimeAsJSON(data);
+                        let html = `${time.hour}:${time.min}, ${time.date}/${time.mon}/${time.year}`;
 
-                    return `<b>${html}</b>`;
+                        return `<b>${html}</b>`;
+                    }
+                    return data;
                 },
             },
             {
@@ -124,6 +128,9 @@ $(document).ready(function () {
                 },
             },
         ],
+        headerCallback: function (thead) {
+            $(thead).find("th").addClass("text-center"); // Thêm class 'text-center' cho header
+        },
         drawCallback: function (settings) {
             // Số thứ tự không thay đổi khi sort hoặc paginations
             var api = this.api();
@@ -158,9 +165,10 @@ $(document).ready(function () {
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
             infoEmpty: "",
             infoFiltered: "(Lọc từ _MAX_ mục)",
-            emptyTable: "Không có dữ liệu",
+            emptyTable: "Không có dịch vụ nào được chọn",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         columns: [
             { data: "number", className: "text-center", width: "5%" },
@@ -234,6 +242,7 @@ $(document).ready(function () {
             }
         },
     });
+
     $.ajax({
         type: "GET",
         url: "/api/plate-types",
@@ -264,7 +273,6 @@ $(document).ready(function () {
         type: "GET",
         url: "/api/services/enable-with-price",
         dataType: "json",
-        headers: utils.defaultHeaders(),
         success: function (res) {
             if (res.code == 1000 && res.data) {
                 serviceOptionList = res.data;
@@ -290,7 +298,14 @@ $(document).ready(function () {
         let invoiceId = utils.getHashParam(hash_invoice);
         if (invoiceId) {
             loadInvoiceById(invoiceId);
+        } else {
+            $('#proceeding-orders').prop("hidden", false);
+            reloadProceedingOrder();
         }
+    } else {
+        utils.setHashParam(hash_car, null);
+        utils.setHashParam(hash_invoice, null);
+        reloadProceedingOrder();
     }
 
     $.ajax({
@@ -325,7 +340,7 @@ $(document).ready(function () {
                     <strong id="company-name">${COMPANY_NAME}</strong><br>
                     <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
                     </span>
-                    Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+                    SĐT: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
                     Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
                 `);
                 $('.upload__inputfile').data('max_length', maxNumberOfImage);
@@ -755,6 +770,15 @@ function openCarSelectionTable() {
 }
 
 async function openUserSelectionTable() {
+    if (selectedInvoice.status != 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Không thể chỉnh sửa",
+            text: "Hóa đơn đã đóng, không thể chỉnh sửa!",
+        });
+        return;
+    }
+
     try {
         if (customerList.length == 0) {
             const res = await $.ajax({
@@ -1200,6 +1224,7 @@ function clearInvoiceCard() {
 
     $(TABLE_DETAILS).DataTable().clear().draw();
     INVOICE_CARD.prop("hidden", true);
+    $('#proceeding-orders').prop("hidden", false);
     IMAGE_CARDS.prop("hidden", true);
 
     $('#facility-name').text(FACILITY_NAME);
@@ -1208,7 +1233,7 @@ function clearInvoiceCard() {
         <strong id="company-name">${COMPANY_NAME}</strong><br>
         <span id="facility-address">${formatAddress(FACILITY_ADDRESS)}<br>
         </span>
-        Phone: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
+        SĐT: <a id="facility-phone" href="tel:${FACILITY_PHONE}" class="text-dark hover-underline">${FACILITY_PHONE}</a><br>
         Email: <a id="facility-email" href="mailto:${FACILITY_EMAIL}" class="text-dark hover-underline">${FACILITY_EMAIL}</a>
     `);
 
@@ -1307,6 +1332,8 @@ $("#reset-btn").click(function (e) {
     utils.setHashParam(hash_car, null);
     selectedInvoice = null;
     utils.setHashParam(hash_invoice, null);
+    
+    reloadProceedingOrder();
 });
 
 $("#save-btn").click(function () {
@@ -1568,6 +1595,23 @@ $("#add-detail-btn").click(async function () {
             <div class="input_wrap form-group">
                 <label>Chọn dịch vụ - Option - Số lượng - Giảm giá (%)</label><br>
                 <span class="font-weight-light font-italic">*Mặc định số lượng là "1" và % giảm giá là "0"</span>
+                <div class="row my-2 pb-1 border-bottom d-none d-md-flex">
+                    <div class="col-12 col-md-4 mb-1 mb-md-0">
+                        <label class="mb-0">Chọn dịch vụ</label>
+                    </div>
+
+                    <div class="col-12 col-md-4 mb-1 mb-md-0">
+                        <label class="mb-0">Chọn tùy chọn</label>
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="mb-0">Số lượng</label>
+                    </div>
+
+                    <div class="col-6 col-md-2">
+                        <label class="mb-0">Giảm giá (%)</label>
+                    </div>
+                </div>
                 <div id="service-wrapper" class="mt-2">
                     
                 </div>
@@ -2223,8 +2267,20 @@ $("#new-history-btn").click(async function () {
     }
     let res;
 
-    console.log(selectedCar.id, userInfo.id);
-    
+    let warning = await Swal.fire({
+        icon: "question",
+        title: "Thêm mới đơn dịch vụ?",
+        html: "Đơn dịch vụ sau khi được thêm sẽ <b>không được xóa</b>",
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy",
+        reverseButtons: true
+    });
+
+    if (!warning.isConfirmed) {
+        return;
+    }
 
     try {
         res = await $.ajax({
@@ -2261,6 +2317,8 @@ $("#new-history-btn").click(async function () {
         loadInvoiceInfo(res.data);
     } else {
         INVOICE_CARD.prop("hidden", true);
+        $('#proceeding-orders').prop("hidden", false);
+        reloadProceedingOrder();
         IMAGE_CARDS.prop("hidden", true);
         clearInvoiceCard();
         Swal.fire({
@@ -2487,6 +2545,7 @@ function loadListDetailsHistory(details) {
     if (details.length == 0) {
         return;
     }
+    $('#delete-detail-btn').prop("hidden", true);
 
     let data = [];
     let counter = 1;
@@ -2510,6 +2569,8 @@ function loadListDetailsHistory(details) {
 
 function loadInvoiceInfo(invoice) {
     INVOICE_CARD.prop("hidden", false);
+    $('#delete-detail-btn').prop("hidden", true);
+    $('#proceeding-orders').prop("hidden", true);
     IMAGE_CARDS.prop("hidden", false);
 
     if (selectedInvoice) {
@@ -2529,15 +2590,18 @@ function loadInvoiceInfo(invoice) {
 
     if (invoice.status == 0) {
         $('#confirm-order-btn').prop('hidden', false);
+        $('#vnpay-pay').prop('hidden', false);
         $('#cancel-order-btn').prop('hidden', false);
         $('#add-detail-btn').prop('hidden', false);
         $('#save-invoice-info-btn').prop('hidden', false);
         $('#invoice-status-info').html('');
     } else {
         $('#confirm-order-btn').prop('hidden', true);
+        $('#vnpay-pay').prop('hidden', true);
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
         $('#save-invoice-info-btn').prop('hidden', true);
+        $('#delete-detail-btn').prop("hidden", true);
         if (invoice.status == 1) {
             $('#invoice-status-info').html(`
                 <a type="button" class="btn btn-success">
@@ -2630,7 +2694,7 @@ function loadCustomerInfo() {
         ? formatAddress(customer.address.address) + "<br>"
         : "";
     let phoneHtml = customer.phone
-        ? `Phone: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>`
+        ? `SĐT: <a href="tel:${customer.phone}" class="text-dark hover-underline">${customer.phone}</a><br>`
         : "";
     let mailHtml = customer.accounts[0]
         ? `Email: <a href="mailto:${customer.accounts[0].email}" class="text-dark hover-underline">${customer.accounts[0].email}</a>`
@@ -2653,7 +2717,7 @@ function loadAdvisorInfo() {
     let phone = advisor.phone || "";
     let email = advisor.accounts[0] ? advisor.accounts[0].email : "";
 
-    let contactHtml = `<b>Contact: </b>`;
+    let contactHtml = `<b>Liên hệ: </b>`;
     if (phone !== "") {
         if (email !== "") {
             contactHtml += phone + " - " + email;
@@ -2668,7 +2732,7 @@ function loadAdvisorInfo() {
         }
     }
 
-    $("#advisor-name").html(`<b>Advisor: </b>${advisor.name}`);
+    $("#advisor-name").html(`<b>Cố vấn DV: </b>${advisor.name}`);
     $("#advisor-contact").html(contactHtml);
 }
 
@@ -2772,7 +2836,6 @@ function ImgUpload() {
 function updateImageArray(parentCard) {
     const imgArray = parentCard === "pre-service-image" ? updatePreServiceImages() : updatePostServiceImages();
 }
-
 
 // send image
 $(".btn-upload-submit").on("click", function () {
@@ -2922,10 +2985,6 @@ async function handleUpload(cardId) {
                 image: image.image,
             }))
         );
-
-        console.log(type);
-        console.log(url);
-        console.log(payload);
         
         const response = await $.ajax({
             type: type,
@@ -2992,6 +3051,7 @@ async function loadPreImageByHistoryId() {
             timer: 2000,
             showConfirmButton: false,
         });
+        return;
     }
     
     Swal.close();
@@ -3034,6 +3094,7 @@ async function loadPostImageByHistoryId() {
             timer: 2000,
             showConfirmButton: false,
         });
+        return;
     }
     
     Swal.close();
@@ -3166,7 +3227,6 @@ function updatePreServiceImages() {
 
     // Cập nhật lại mảng preServiceImages
     preServiceImages = updatedImages;
-    console.log('Cập nhật preServiceImages:', preServiceImages);
 }
 
 function updatePostServiceImages() {
@@ -3187,7 +3247,6 @@ function updatePostServiceImages() {
 
     // Cập nhật lại mảng postServiceImages
     postServiceImages = updatedImages;
-    console.log('Cập nhật postServiceImages:', postServiceImages);
 }
 
 // Handle paste event for pre-service and post-service images
@@ -3329,13 +3388,13 @@ async function showConfirmOrderDialog() {
                 <td class="col-6" id="modal-total-amount">${utils.formatVNDCurrency(selectedInvoice.totalAmount)}</td>
             </tr>
             <tr class="row w-100">
+                <th class="col-6">Thuế (%):</th>
+                <td class="col-6" id="modal-tax">${selectedInvoice.tax} %</td>
+            </tr>
+            <tr class="row w-100">
                 <th class="col-6">Giảm giá (%):</th>
                 <td class="col-6" id="modal-discount">${selectedInvoice.discount} %</td>
             </tr>
-            <!-- <tr class="row w-100">
-                <th class="col-6">Thuế (%):</th>
-                <td class="col-6">0</td>
-            </tr> -->
             <tr class="row w-100">
                 <th class="col-6">Tổng thanh toán:</th>
                 <td class="col-6" id="modal-payable-amount">${utils.formatVNDCurrency(selectedInvoice.payableAmount)}</td>
@@ -3471,6 +3530,131 @@ $(document).on('click', '#cancel-order-btn', async function () {
                         showCancelButton: false,
                     });
                     loadInvoiceInfo(res.data);
+                } else {
+                    Swal.close();
+                    console.error(res);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Đã xảy ra lỗi",
+                        text: utils.getErrorMessage(res.code),
+                        showCancelButton: false,
+                        timer: 3000
+                    });
+                    return;
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message,
+                    showCancelButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    } else {
+        return;
+    }
+});
+
+
+async function reloadProceedingOrder() {
+    $('#proceeding-orders').html("");
+
+    let res;
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/history/get-all-proceeding",
+            headers: utils.defaultHeaders(),
+            dataType: "json"
+        });
+    } catch (error) {
+        console.error(error);
+    }
+
+    if (!res) return;
+
+    if (res.code == 1000) {
+        if (res.data.length <= 0) return;
+
+        let html = "";
+        res.data.forEach(function(order) {
+            let numPlate = order.car.numPlate;
+            let plateType = order.car.plateType.type;
+            let color = order.car.color;
+            let model = order.car.model.brand.brand + " " + order.car.model.model;
+            let time = utils.getTimeAsJSON(order.serviceDate);
+            let timeHtml = `${time.hour}:${time.min}, ngày ${time.date}/${time.mon}/${time.year}`;
+
+            html += `
+                <div class="col-lg-3 col-6">
+                    <div role="button" class="small-box bg-white proceeding-history-card" data-invoice="${order.id}" data-car="${order.car.id}">
+                        <div class="inner">
+                            <h4>${numPlate} - ${plateType}</h4>
+                            <b>${model}</b>
+                            <span>${color}</span><br>
+                            <b>${timeHtml}</b>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-solid fa-car"></i>
+                        </div>
+                        <a role="button" class="small-box-footer">
+                        Xe đang thi công <i class="fas fa-arrow-circle-right"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+
+        $('#proceeding-orders').html(html);
+        $('#proceeding-orders').prop("hidden", false);
+    } else {
+        console.error(res);
+    }
+}
+
+$(document).on('click', '.proceeding-history-card', function () {
+    let orderID = $(this).data("invoice");
+    let carID = $(this).data("car");
+
+    if (carID == null || carID == "") return;
+    utils.setHashParam(hash_car, carID);
+    loadCarInfoHistoryListByCarID(carID);
+
+    if (orderID == null || orderID == "") return;
+    utils.setHashParam(hash_car, orderID);
+    loadInvoiceById(orderID);
+});
+
+$(document).on('click', '#vnpay-pay', async function () {
+    let warning = await Swal.fire({
+        icon: "warning",
+        title: "Thanh toán VNPAY",
+        html: `Thanh toán đơn dịch vụ thông qua VNPAY`,
+        confirmButtonText: "Đồng ý",
+        showConfirmButton: true,
+        cancelButtonText: "Hủy",
+        showCancelButton: true,
+        reverseButtons: true
+    });
+
+    if (warning.isConfirmed) {
+        $.ajax({
+            type: "GET",
+            url: "/api/vnpay/create-payment/"+selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code == 1000 && res.data) {
+                    window.open(res.data, '_blank');
                 } else {
                     Swal.close();
                     console.error(res);

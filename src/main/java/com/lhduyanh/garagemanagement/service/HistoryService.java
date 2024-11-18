@@ -7,6 +7,7 @@ import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
 import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
 import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
 import com.lhduyanh.garagemanagement.entity.*;
+import com.lhduyanh.garagemanagement.enums.CarStatus;
 import com.lhduyanh.garagemanagement.enums.HistoryStatus;
 import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -17,11 +18,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -39,7 +42,31 @@ public class HistoryService {
 
     HistoryMapper historyMapper;
 
+    public Long getHistoryQuantity() {
+        return historyRepository.getHistoryQuantity();
+    }
+
     public List<HistoryResponse> getAllHistoryByCarId(String id) {
+        List<HistoryResponse> response = historyRepository.findAllHistoryByCarId(id)
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
+                .toList();
+
+        return response;
+    }
+
+    public List<HistoryResponse> customerGetAllHistoryByCarId(String id) {
+        String uid = getUUIDFromJwt();
+
+        List<Car> cars = carRepository.findAllByManager(uid);
+        boolean hasCar = cars.stream().anyMatch(c -> c.getId().equals(id));
+
+        if (!hasCar) {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
         List<HistoryResponse> response = historyRepository.findAllHistoryByCarId(id)
                 .stream()
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
@@ -53,6 +80,48 @@ public class HistoryService {
         HistoryWithDetailsResponse response = historyMapper.toHistoryWithDetailsResponse(historyRepository.findByIdFetchDetails(id)
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS)));
+
+        return response;
+    }
+
+    public HistoryWithDetailsResponse customerGetHistoryById(String id) {
+        String uid = getUUIDFromJwt();
+
+        History history = historyRepository.findByIdFetchDetails(id)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        String carID = history.getCar().getId();
+
+        List<Car> cars = carRepository.findAllByManager(uid);
+
+        boolean hasCar = cars.stream().anyMatch(c -> c.getId().equals(carID));
+
+        if (!hasCar) {
+            throw new AppException(ErrorCode.USER_NOT_MANAGE_CAR);
+        }
+
+        HistoryWithDetailsResponse response = historyMapper.toHistoryWithDetailsResponse(history);
+
+        return response;
+    }
+
+    public List<HistoryResponse> getAllHistoryByTimeRange(LocalDateTime start, LocalDateTime end, Integer status) {
+        return historyRepository.getAllHistoryByTimeRange(start, end, status)
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
+                .toList();
+    }
+
+    public List<HistoryResponse> getAllProceedingHistory() {
+        List<HistoryResponse> response = historyRepository.getAllHistoryByStatus(HistoryStatus.PROCEEDING.getCode())
+                .stream()
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .map(historyMapper::toHistoryResponse)
+                .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
+                .toList();
 
         return response;
     }
@@ -72,7 +141,7 @@ public class HistoryService {
         }
 
         User advisor = userRepository.findById(request.getAdvisorId())
-                .filter(u -> securityExpression.hasPermission(u.getId(), List.of("SIGN_SERVICE", "UPDATE_PROGRESS", "CANCEL_SERVICE")))
+                .filter(u -> securityExpression.hasPermission(u.getId(), List.of("SIGN_SERVICE", "CANCEL_SERVICE")))
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_ADVISOR));
 
         CommonParameter tax = commonParameterRepository.findByKey("TAX")

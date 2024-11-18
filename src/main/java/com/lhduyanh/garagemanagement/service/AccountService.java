@@ -12,10 +12,7 @@ import com.lhduyanh.garagemanagement.exception.AppException;
 import com.lhduyanh.garagemanagement.exception.ErrorCode;
 import com.lhduyanh.garagemanagement.mapper.AccountMapper;
 import com.lhduyanh.garagemanagement.mapper.UserMapper;
-import com.lhduyanh.garagemanagement.repository.AccountRepository;
-import com.lhduyanh.garagemanagement.repository.AddressRepository;
-import com.lhduyanh.garagemanagement.repository.RoleRepository;
-import com.lhduyanh.garagemanagement.repository.UserRepository;
+import com.lhduyanh.garagemanagement.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,8 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Collator;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Objects.isNull;
@@ -47,7 +46,9 @@ public class AccountService {
     RoleRepository roleRepository;
     PasswordEncoder passwordEncoder;
     OtpService otpService;
-    private final Collator vietnameseCollator;
+    Collator vietnameseCollator;
+    CommonParameterRepository commonParameterRepository;
+    EmailSenderService emailSenderService;
 
     @NonFinal
     @Value("${app.admin-email}")
@@ -128,11 +129,17 @@ public class AccountService {
 
     @Transactional
     public AccountResponse newAccount(AccountCreationRequest request, boolean confirm) {
-        Account account = new Account();
-        accountRepository.findByEmail(request.getEmail().trim())
-                .ifPresent(acc -> {
+        Optional<Account> a = accountRepository.findByEmail(request.getEmail().trim());
+            if (a.isPresent()) {
+                if (a.get().getStatus() == AccountStatus.NOT_CONFIRM.getCode()) {
+                    accountRepository.delete(a.get());
+                }
+                else {
                     throw new AppException(ErrorCode.ACCOUNT_EXISTED);
-                });
+                }
+            }
+
+        Account account = new Account();
         account.setEmail(request.getEmail().trim());
 
         var password = DEFAULT_PASSWORD;
@@ -148,6 +155,7 @@ public class AccountService {
         account.setPassword(password);
 
         var user = userRepository.findById(request.getUserId())
+                .filter(u -> u.getStatus() != UserStatus.DELETED.getCode() && u.getStatus() != UserStatus.NOT_CONFIRM.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if(user.getStatus() == 9999){
@@ -156,7 +164,10 @@ public class AccountService {
             throw new AppException(ErrorCode.DISABLED_USER);
         }
 
-        List<Account> accounts = accountRepository.findAllByUserId(request.getUserId());
+        List<Account> accounts = accountRepository.findAllByUserId(request.getUserId())
+                .stream()
+                .filter(acc -> acc.getStatus() == AccountStatus.CONFIRMED.getCode())
+                .toList();
         if (!accounts.isEmpty()) {
             if(!confirm) {
                 throw new AppException(ErrorCode.DISABLE_ACCOUNT_WARNING);
@@ -168,7 +179,42 @@ public class AccountService {
         account.setUser(user);
         account.setStatus(request.getStatus());
 
-        return accountMapper.toAccountResponse(accountRepository.save(account));
+        var response = accountMapper.toAccountResponse(accountRepository.save(account));
+
+        try {
+            String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+
+            String body = """
+                        <p>Xin chào <strong>{0}</strong>,</p>
+                        <p>Tài khoản của bạn đã được khởi tạo trên Hệ thống chăm sóc ô tô <b>{1}</b> vào lúc {4}.</p>
+                        <p><u>Thông tin đăng nhập:</u></p>
+                        <ul>
+                            <li><b>Email:</b> {2}</li>
+                            <li><b>Mật khẩu mặc định:</b> {3}</li>
+                        </ul>
+                        
+                        <p><i>*Lưu ý: Vui lòng đổi mật khẩu sau khi đăng nhập để bảo mật thông tin cá nhân của bạn.</i></p>
+
+                        <p>Xin cảm ơn.</p>
+                        <p>{1},<br><i>Trân trọng.</i></p>
+                        """;
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+            String message = MessageFormat.format(body,
+                    user.getName(), // 0
+                    facilityName, // 1
+                    account.getEmail(), // 2
+                    DEFAULT_PASSWORD, // 3
+                    LocalDateTime.now().format(formatter));  // 4
+
+            emailSenderService.sendHtmlEmail(account.getEmail(), "[" + facilityName.toUpperCase() + "] Tài khoản của bạn đã được tạo", message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error in sending message while creating new account");
+        }
+
+        return response;
     }
 
     // User register with only role: CUSTOMER
@@ -181,15 +227,17 @@ public class AccountService {
                 }
                 accountRepository.delete(acc.get());
             }
-            else if (acc.get().getStatus() == AccountStatus.CONFIRMED.getCode()){
+            else {
                 throw new AppException(ErrorCode.ACCOUNT_EXISTED);
             }
         }
 
         request.setEmail(request.getEmail().trim());
-        if (request.getPhone() != null) {
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
             // Xóa ký tự khoảng trắng , . -
             request.setPhone(request.getPhone().replaceAll("[,\\.\\-\\s]", ""));
+        } else {
+            request.setPhone(null);
         }
 
         User user = userMapper.toUser(request);
@@ -229,15 +277,41 @@ public class AccountService {
         if (result) {
             Account account = accountRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
-            if (account.getStatus() == AccountStatus.NOT_CONFIRM.getCode()) // Chỉ xác thực cho account có status = 0
+            if (account.getStatus() == AccountStatus.NOT_CONFIRM.getCode()) { // Chỉ xác thực cho account có status = 0
                 account.setStatus(AccountStatus.CONFIRMED.getCode());
+            }
             accountRepository.save(account);
 
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if (user.getStatus() == UserStatus.NOT_CONFIRM.getCode()) // Chỉ xác thực cho user có status = 0
-                user.setStatus(UserStatus.CONFIRMED.getCode());
+
+            user.setStatus(UserStatus.CONFIRMED.getCode());
             userRepository.save(user);
+
+            try { // Gửi email thông báo đã tạo tài khoản thành công
+                String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+
+                String body = """
+                        <p>Xin chào <strong>{0}</strong>,</p>
+                        <p>Bạn đã tạo thành công tài khoản mới trên Hệ thống chăm sóc ô tô <b>{1}</b> vào lúc {2}.</p>
+                        <p>Đăng nhập vào website <b>{3}</b> để đặt lịch hẹn, kiểm tra lịch sử dịch vụ và xem bảng giá dịch vụ.</p>
+                        <p>{1},<br><i>Trân trọng.</i></p>
+                        """;
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+                String message = MessageFormat.format(body,
+                        user.getName(), // 0
+                        facilityName, // 1
+                        LocalDateTime.now().format(formatter),  // 2
+                        facilityName);
+
+                emailSenderService.sendHtmlEmail(account.getEmail(), "Chào mừng bạn đến với " + facilityName, message);
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("Error in sending message after customer verified account");
+            }
+
             return AccountVerifyResponse.builder().result(true).build();
         }
         return AccountVerifyResponse.builder().result(false).build();
@@ -254,6 +328,78 @@ public class AccountService {
         else {
             throw new AppException(ErrorCode.CANNOT_REGENERATE_OTP);
         }
+    }
+
+    public Boolean sendOtpToEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+            throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+        }
+
+        // Kiểm tra cách 1 phút kể từ lần gửi email trước
+        if((account.getStatus() >= AccountStatus.CONFIRMED.getCode()) && (Duration.between(account.getGeneratedAt(), LocalDateTime.now()).toMinutes() > 1)) {
+            otpService.createSendOtpCode(account);
+        }
+        else {
+            throw new AppException(ErrorCode.OTP_SEND_TIMER);
+        }
+        return true;
+    }
+
+    public AccountVerifyResponse accountEmailVerify (AccountVerifyRequest request) {
+        boolean result = otpService.VerifyOtpCode(request.getEmail(), request.getOtpCode());
+        if (result) {
+            Account account = accountRepository.findByEmail(request.getEmail())
+                    .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+            if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if (user.getStatus() == UserStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_USER);
+            }
+
+            return AccountVerifyResponse.builder().result(true).build();
+        }
+        throw new AppException(ErrorCode.INCORRECT_OTP);
+    }
+
+    public Boolean passwordRecovery (PasswordRecoveryRequest request) {
+        boolean result = otpService.VerifyOtpCode(request.getEmail(), request.getOtpCode());
+        if (result) {
+            Account account = accountRepository.findByEmail(request.getEmail())
+                    .filter(a -> a.getStatus() != AccountStatus.NOT_CONFIRM.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+            if (account.getStatus() == AccountStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_ACCOUNT);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .filter(u -> u.getStatus() != UserStatus.DELETED.getCode())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if (user.getStatus() == UserStatus.BLOCKED.getCode()) {
+                throw new AppException(ErrorCode.BLOCKED_USER);
+            }
+
+            account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            account.setOtpCode(otpService.generateOtp());
+            account.setGeneratedAt(LocalDateTime.now());
+            accountRepository.save(account);
+
+            return true;
+        }
+        throw new AppException(ErrorCode.INCORRECT_OTP);
     }
 
     public boolean disableAccount(String id) {
@@ -297,19 +443,19 @@ public class AccountService {
         }
 
         if(account.getUser().getStatus() == 9999) {
-            var uid = getUUIDFromJwt();
-            var user = userRepository.findById(uid).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-            if(user.getStatus() != 9999){
-                throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
-            }
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
         }
 
         if(emailChange) {
-            accountRepository.findByEmail(request.getEmail())
-                    .filter(acc -> !acc.getId().equals(id))
-                    .ifPresent(acc -> {
-                        throw new AppException(ErrorCode.ACCOUNT_EXISTED);
-                    });
+            Optional<Account> acc = accountRepository.findByEmail(request.getEmail())
+                    .filter(a -> !a.getId().equals(id));
+            if (acc.isPresent()) {
+                if (acc.get().getStatus() == AccountStatus.NOT_CONFIRM.getCode()) {
+                    accountRepository.delete(acc.get());
+                } else {
+                    throw new AppException(ErrorCode.ACCOUNT_EXISTED);
+                }
+            }
             account.setEmail(request.getEmail());
         }
 
@@ -337,17 +483,102 @@ public class AccountService {
         return accountMapper.toAccountResponse(accountRepository.save(account));
     }
 
+    public Boolean changePassword(PasswordChangeRequest request) {
+        String uid = getUUIDFromJwt();
+
+        User user = userRepository.findById(uid)
+                .filter(u -> u.getStatus() >= UserStatus.CONFIRMED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        Account account = accountRepository.findById(request.getAccountId())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if(user.getAccounts().stream().noneMatch(a -> a.getId().equals(account.getId()))) {
+            throw new AppException(ErrorCode.NOT_YOUR_ACCOUNT);
+        }
+
+        if (account.getStatus() != AccountStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.INACTIVE_ACCOUNT);
+        }
+
+        boolean authenticated = passwordEncoder.matches(request.getOldPassword(), account.getPassword());
+
+        if (!authenticated) {
+            throw new AppException(ErrorCode.INCORRECT_PASSWORD);
+        }
+
+        if (request.getNewPassword().isEmpty() || request.getNewPassword().length() < 8) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+        return true;
+    }
+
     public Boolean resetPasswordById(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getUser().getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
+
         account.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         accountRepository.save(account);
+        return true;
+    }
+
+    public Boolean resetCustomerPassword(String id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getUser().getStatus() == 9999) {
+            throw new AppException(ErrorCode.CAN_NOT_EDIT_ADMIN);
+        }
+
+        if (account.getUser().getRoles().stream().noneMatch(r -> r.getRoleKey().equals("CUSTOMER"))) {
+            throw new AppException(ErrorCode.USER_NOT_CUSTOMER);
+        }
+
+        account.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+        accountRepository.save(account);
+
+        try { // Gửi email thông báo đã đặt lại mật khẩu
+            String facilityName = commonParameterRepository.findByKey("FACILITY_NAME").get().getValue();
+            User user = account.getUser();
+
+            String body = """
+                        <p>Xin chào <strong>{0}</strong>,</p>
+                        <p>Tài khoản của bạn đã được đặt lại mật khẩu vào lúc {1}.<br>Mật khẩu mặc định là: <i>{3}</i></p>
+                        <p>Xin cảm ơn.</p>
+                        <p>{2},<br><i>Trân trọng.</i></p>
+                        """;
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+            String message = MessageFormat.format(body,
+                    user.getName(), // 0
+                    LocalDateTime.now().format(formatter), // 1
+                    facilityName, // 2
+                    DEFAULT_PASSWORD);  // 3
+
+            emailSenderService.sendHtmlEmail(account.getEmail(), "[" + facilityName.toUpperCase() + "] ĐẶT LẠI MẬT KHẨU", message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error in sending message after customer verified account");
+        }
+
         return true;
     }
 
     public boolean hardDeleteAccount(String id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+
+        if (account.getStatus() == AccountStatus.CONFIRMED.getCode()) {
+            throw new AppException(ErrorCode.ACTIVE_ACCOUNT);
+        }
 
         if (account.getEmail().equals(ADMIN_EMAIL)){
             throw new AppException(ErrorCode.CAN_NOT_DISABLE_ADMIN);

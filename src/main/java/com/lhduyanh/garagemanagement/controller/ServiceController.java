@@ -3,10 +3,8 @@ package com.lhduyanh.garagemanagement.controller;
 import com.lhduyanh.garagemanagement.dto.request.ServiceCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.ServiceUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
-import com.lhduyanh.garagemanagement.dto.response.PriceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceResponse;
 import com.lhduyanh.garagemanagement.dto.response.ServiceSimpleResponse;
-import com.lhduyanh.garagemanagement.service.PriceService;
 import com.lhduyanh.garagemanagement.service.ServicesService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -24,7 +22,6 @@ import java.util.List;
 public class ServiceController {
 
     ServicesService servicesService;
-    PriceService priceService;
 
     @GetMapping("/{id}")
     public ApiResponse<ServiceResponse> getServiceById(@PathVariable String id) {
@@ -42,8 +39,8 @@ public class ServiceController {
                 .build();
     }
 
-    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_SERVICES)'})")
-    @GetMapping("/all")
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_SERVICES', 'EDIT_SERVICE'})")
+    @GetMapping("/all") // Lấy danh sách tất cả dịch vụ mà không có giá, options
     public ApiResponse<List<ServiceSimpleResponse>> getAllServices() {
         return ApiResponse.<List<ServiceSimpleResponse>>builder()
                 .code(1000)
@@ -51,6 +48,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_SERVICES', 'EDIT_SERVICE'})")
     @GetMapping("/all-with-price")
     public ApiResponse<List<ServiceResponse>> getAllServicesWithPrice() {
         return ApiResponse.<List<ServiceResponse>>builder()
@@ -67,6 +65,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_SERVICE'})")
     @PostMapping
     public ApiResponse<ServiceResponse> newService(@RequestBody @Valid ServiceCreationRequest request) {
         return ApiResponse.<ServiceResponse>builder()
@@ -75,6 +74,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_SERVICE'})")
     @PostMapping("/confirm")
     public ApiResponse<ServiceResponse> newConfirmedService(@RequestBody @Valid ServiceCreationRequest request) {
         return ApiResponse.<ServiceResponse>builder()
@@ -83,6 +83,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_SERVICE'})")
     @PutMapping("/{id}")
     public ApiResponse<ServiceResponse> updateService(@PathVariable String id,
                                                             @RequestBody @Valid ServiceUpdateRequest request) {
@@ -92,6 +93,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_SERVICE'})")
     @PutMapping("/confirm/{id}")
     public ApiResponse<ServiceResponse> confirmUpdateService(@PathVariable String id,
                                                       @RequestBody @Valid ServiceUpdateRequest request) {
@@ -101,14 +103,17 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_SERVICE'})")
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteService(@PathVariable String id) {
-        servicesService.deleteService(id);
-        return ApiResponse.<Void>builder()
-                .code(1000)
+    public ApiResponse<Boolean> deleteService(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000).
+                data(servicesService.deleteService(id))
                 .build();
     }
 
+
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_SERVICE'})")
     @PutMapping("/enable/{id}")
     public ApiResponse<Boolean> enableService(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
@@ -117,6 +122,7 @@ public class ServiceController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_SERVICE'})")
     @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> unableService(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()

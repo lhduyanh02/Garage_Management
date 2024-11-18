@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -47,7 +45,7 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     Set<Account> accounts;
 
-    @Column(name = "telegram_id", nullable = true)
+    @Column(name = "telegram_id", nullable = true, unique = true)
     Long telegramId;
 
     @ManyToMany(fetch = FetchType.LAZY)

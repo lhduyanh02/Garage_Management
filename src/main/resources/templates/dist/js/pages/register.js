@@ -29,12 +29,12 @@ $(document).ready(function () {
 
     $(".select2").select2({
         allowClear: true,
-        // dropdownParent: $('#modal_body'),
         theme: "bootstrap",
-        // tokenSeparators: [",", " "],
         closeOnSelect: true,
         language: "vi",
     });
+
+    $('#gender-select').val("").trigger('change');
     
     $.ajax({
         type: "GET",
@@ -77,9 +77,15 @@ $(document).ready(function () {
             transport: function (params, success, failure) {
                 let results = [];
 
-                // Lọc các address từ addressOptions dựa vào từ khóa người dùng nhập vào
+                let keyword = params.data.q || "";
+
                 var filtered = addressOptions.filter(function (option) {
-                    return option.address.toLowerCase().indexOf(params.data.term.toLowerCase()) > -1;
+                    let normalizedName = utils.removeVietnameseTones(option.address.toLowerCase()); // Tên đã loại bỏ dấu
+                    let termNormalized = utils.removeVietnameseTones(keyword.toLowerCase()); // Searching key đã loại bỏ dấu
+                    
+                    let nameMatch = normalizedName.includes(termNormalized);
+                   
+                    return nameMatch;
                 });
 
                 results = filtered.map(function (option) {
@@ -153,6 +159,8 @@ var register = function () {
     let passwd = $('#password').val();
     let passwdRetype = $('#password-retype').val();
 
+    const vietnamesePattern = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]/;
+
     if (!validatePhoneNumber(phoneNumber)){
         Toast.fire({
             icon: 'warning',
@@ -169,15 +177,14 @@ var register = function () {
         return;
     }
 
-    // console.table({
-    //     'fullname': fullName,
-    //     'phone': phoneNumber,
-    //     'gender': gender,
-    //     'address': address,
-    //     'email': email,
-    //     'password': passwd,
-    //     'retype': passwdRetype
-    // });
+    // Kiểm tra nếu mật khẩu chứa ký tự tiếng Việt
+    if (vietnamesePattern.test(passwd)) {
+        Toast.fire({
+            icon: "warning",
+            title: "Mật khẩu không được chứa ký tự tiếng Việt"
+        });
+        return;
+    }
 
     if(gender == null) {
         gender = -1;
@@ -190,6 +197,9 @@ var register = function () {
             "Content-Type": "application/json",
             "Authorization": ""
         },
+        beforeSend: function() {
+            Swal.showLoading();
+        },
         data: JSON.stringify({
             email: email,
             password: passwd,
@@ -200,6 +210,7 @@ var register = function () {
         }),
         success: function (res) {
             if (res.code == 1000) {
+                Swal.close();
                 Toast.fire({
                     icon: "success",
                     title: "Đã gửi OTP"
@@ -208,6 +219,7 @@ var register = function () {
                 OTPInput(email, passwd);
             }
             else {
+                Swal.close();
                 Toast.fire({
                     icon: "error",
                     title: res.message || "Đã xảy ra lỗi"
@@ -215,6 +227,7 @@ var register = function () {
             }
         },
         error: function(xhr, status, error){
+            Swal.close();
             console.error(xhr);
             Toast.fire({
                 icon: "error",
@@ -389,9 +402,6 @@ function OTPInput(email, passwd) {
     $('#validate-otp-btn').click(function () { 
         let otpCode = $('#first').val() + $('#second').val() + $('#third').val() + 
                         $('#fourth').val() + $('#fifth').val() + $('#sixth').val();
-
-        console.log(otpCode);
-
 
         $.ajax({
             type: "POST",

@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_OPTION');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -19,7 +19,6 @@ function clear_modal() {
 
 var dataTable;
 var dataTableCard = $("#data-table-card");
-var userList = [];
 
 $("#tableCollapseBtn").click(function (e) {
     if (dataTableCard.hasClass("collapsed-card")) {
@@ -34,8 +33,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -44,6 +43,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -54,7 +54,7 @@ $(document).ready(function () {
                 text: "PDF",
             },
             { extend: "print", text: "Print" },
-            { extend: "colvis", text: "Column Visibility" },
+            { extend: "colvis", text: "Hiển thị" },
         ],
         columnDefs: [
             { orderable: false, targets: 4 }, // Vô hiệu hóa sort cho cột Thao tác (index 4)
@@ -188,25 +188,6 @@ $(document).ready(function () {
             });
         },
     });
-
-    $.ajax({
-        type: "GET",
-        url: "/api/users/with-accounts",
-        dataType: "json",
-        headers: utils.defaultHeaders(),
-        success: function (response) {
-            if(response.code == 1000) {
-                userList = response.data;
-            }
-        }, 
-        error: function(xhr, status, error) {
-            console.log(xhr);
-            Toast.fire({
-                icon: "error",
-                title: utils.getXHRInfo(xhr).message
-            });
-        }
-    });
 });
 
 $("#data-table").on("click", "#editBtn", function () {
@@ -287,24 +268,27 @@ $("#data-table").on("click", "#editBtn", function () {
                     }),
                     success: function (response) {
                         if(response.code == 1000){
-                            Toast.fire({
+                            Swal.fire({
                                 icon: "success", 
                                 title: "Đã cập nhật tùy chọn<br>" + name
                             });
                             $("#modal_id").modal("hide");
                             dataTable.ajax.reload();
                         } else {
-                            Toast.fire({
+                            console.error(response);
+                            Swal.fire({
                                 icon: "warning",
-                                title: utils.getErrorMessage(response.code)
+                                title: "Đã xảy ra lỗi",
+                                text: utils.getErrorMessage(response.code)
                             })
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.log(xhr);
-                        Toast.fire({
+                        console.error(xhr);
+                        Swal.fire({
                             icon: "error",
-                            title: utils.getXHRInfo(xhr).message
+                            title: "Đã xảy ra lỗi",
+                            text: utils.getXHRInfo(xhr).message
                         });
                     }
                 });
@@ -312,10 +296,10 @@ $("#data-table").on("click", "#editBtn", function () {
 
         },
         error: function(xhr, status, error) {
-            let response = utils.getXHRInfo(xhr);
-            Toast.fire({
+            Swal.fire({
                 icon: "error",
-                title: response.message
+                title: "Đã xảy ra lỗi",
+                text: utils.getXHRInfo(xhr).message
             });
             $("#modal_id").modal("hide");
         }

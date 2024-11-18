@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect();
+utils.introspectPermission('EDIT_MODEL_LIST');
 
 var Toast = Swal.mixin({
   toast: true,
@@ -9,8 +9,6 @@ var Toast = Swal.mixin({
   timer: 3000,
   width: 'auto'
 });
-
-// utils.introspect();
 
 // Clear modal
 function clear_modal() {
@@ -29,8 +27,8 @@ $(document).ready(function () {
     lengthChange: true,
     language: {
       paginate: {
-          next: "Trước",
-          previous: "Sau",
+          next: "Sau",
+          previous: "Trước",
       },
       lengthMenu: "Số dòng: _MENU_",
       info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -39,6 +37,7 @@ $(document).ready(function () {
       emptyTable: "Không có dữ liệu",
       search: "Tìm kiếm:",
       loadingRecords: "Đang tải dữ liệu...",
+      zeroRecords: "Không tìm thấy dữ liệu",
     },
     buttons: [
       { extend: "copy", text: "Copy" },
@@ -49,7 +48,7 @@ $(document).ready(function () {
         text: "PDF",
       },
       { extend: "print", text: "Print" },
-      { extend: "colvis", text: "Column Visibility" },
+      { extend: "colvis", text: "Hiển thị" },
     ],
     columnDefs: [
       { orderable: false, targets: 3 }, // Vô hiệu hóa sort cho cột Thao tác (index 3)
@@ -361,6 +360,8 @@ $("#newBrand_btn").on("click", function () {
               icon: "success",
               title: "Đã thêm hãng<br>" + ten ,
             });
+            $("#modal_id").modal("hide");
+            return;
           }
           else {
             Toast.fire({
@@ -380,7 +381,6 @@ $("#newBrand_btn").on("click", function () {
           dataTable.ajax.reload();
         }
       });
-      $("#modal_id").modal("hide");
     }
   });
 });

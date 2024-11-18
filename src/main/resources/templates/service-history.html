@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lịch sử dịch vụ | Spring Detailing</title>
+  
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"/>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css"/>
+  <!-- overlayScrollbars -->
+  <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css"/>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+  
+  <!-- EKKOLightbox CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.css" integrity="sha512-Velp0ebMKjcd9RiCoaHhLXkR1sFoCCWXNp6w4zj1hfMifYB5441C+sKeBl/T/Ka6NjBiRfBBQRaQq65ekYz3UQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Select2 CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
+    integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/include/customize.css">
+  <style>
+    .small-box .inner h4,
+    .small-box .inner span,
+    .small-box .inner p {
+        max-width: 100%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .small-box .inner span {
+        display: block;
+        max-width: 100%; /* Giới hạn độ rộng */
+        word-wrap: break-word; /* Tự ngắt dòng khi vượt quá độ rộng */
+        overflow-wrap: break-word;
+        overflow: hidden; /* Ẩn phần tràn */
+        text-overflow: ellipsis; /* Thêm dấu "..." nếu cần */
+    }
+
+    #data-table tr {
+      cursor: pointer;
+    }
+  </style>
+  </head>
+
+<body class="hold-transition sidebar-mini layout-navbar-fixed">
+<!-- Site wrapper -->
+<div class="wrapper">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__wobble" src="dist/img/SpringDetailingLogo.png" alt="SpringDetailingLogo" height="250" width="250">
+  </div>
+  <!-- Navbar -->
+  <nav id="navbar" class="main-header navbar navbar-expand navbar-dark"></nav>
+  </nav>
+  <script>
+    $("#navbar").load("include/navbar.html");
+  </script>
+  <!-- /.navbar -->
+
+  <!-- sidebar -->
+    <!-- Main Sidebar Container -->
+    <aside id="sidebar"  class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- AdminLTE App -->
+      <script src="dist/js/adminlte.js" defer></script>
+    </aside>
+    <!-- Font Awesome --><!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+      $("#sidebar").load("/include/sidebar.html", function () {
+        // $('.nav-item').Treeview('init');
+
+      });
+    </script>
+    <!-- /.sidebar -->
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Lịch sử làm dịch vụ</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#" class="text-dark">Trang chủ</a></li>
+              <li class="breadcrumb-item active">Danh sách xe của bạn</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div id="cars-wrapper" class="row">
+      </div>
+
+      <div class="row">
+        <div class="col-12" id="service-history-wrapper" hidden>
+          <hr class="mt-0">
+          <div id="car-info-card" class="card">
+            <div class="card-header d-flex align-items-center">
+              <h3 class="card-title">Thông tin xe</h3>
+              <div class="ml-auto card-tools">
+                <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
+                  title="Collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  
+                  <div class="form-group">
+                    <label>Biển số xe</label>
+                    <input id="num-plate-info" class="form-control bg-white" type="text" readonly>
+                  </div>
+                </div>
+        
+                <div class="col-12 col-md-6">
+                  <div class="form-group">
+                    <label>Loại biển số</label>
+                    <input type="text" class="form-control bg-white" id="plate-type-info" readonly>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <div class="form-group">
+                    <label>Mẫu xe</label>
+                    <input type="text" class="form-control bg-white" id="model-info" readonly>
+                    </select>
+                  </div>
+                </div>
+        
+                <div class="col-12 col-md-6">
+                  <div class="form-group">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="text-truncate mb-0" for="color-input">Mô tả màu sơn/wrap</label>
+                        <kbd id="color-counter" class="py-0 small">0/200</kbd>
+                    </div>
+                    <input id="color-input" type="text" maxlength="200" class="form-control" placeholder="Màu sơn/wrap">
+                  </div>
+                </div>
+              </div>
+        
+              <div class="row">
+                <div class="col-12">
+                  <div class="form-group" width="100%">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="text-truncate mb-0" for="description-input">Mô tả chi tiết</label>
+                        <kbd id="description-counter" class="py-0 small">0/1000</kbd>
+                    </div>
+                    <textarea wrap="soft" 
+                      class="form-control" 
+                      id="description-input" 
+                      rows="5" maxlength="1000" 
+                      placeholder="Mô tả chi tiết"></textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12">
+                  <button id="save-info-btn" type="button" class="btn btn-outline-success float-left" >Cập nhật</button>
+                </div>
+              </div>
+            </div>
+            <!-- /.card-body -->
+          </div>
+
+          <div id="history-table-card" class="card">
+            <div class="card-header d-flex align-items-center">
+              <h3 class="card-title">Lịch sử làm dịch vụ</h3>
+              <span class="font-weight-light font-italic ml-2">*Double-click để xem chi tiết</span>
+              <div class="ml-auto card-tools">
+                <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
+                  title="Collapse">
+                  <i class="fas fa-minus"></i>
+                </button>
+              </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <div class="row">
+                <div class="col-12">
+                  <table id="data-table" class="table table-bordered table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th scope="col" style="text-align: center" width="5%">#</th>
+                        <th scope="col" style="text-align: center" min-width="40%">Thời gian</th>
+                        <th scope="col" style="text-align: center" width="12%">Odo</th>
+                        <th scope="col" style="text-align: center" width="20%">Trạng thái</th>
+                        <th scope="col" style="text-align: center" width="20%">Số tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+              
+            </div>
+            <!-- /.card-body -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+    <!-- /.content -->
+    <div id="modal-card"></div>
+    <script>
+      $("#modal-card").load("/include/modal.html")
+    </script>
+  </div>
+  <!-- /.content-wrapper -->
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+   
+  <!-- Main Footer -->
+  <footer class="main-footer text-sm">
+  </footer>
+  <script>
+    $('footer').load('/include/footer.html');
+  </script>
+</div>
+<!-- ./wrapper -->
+  <!-- REQUIRED SCRIPTS -->
+  <!-- Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+  <!-- overlayScrollbars -->
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+
+  <!-- Select2 JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/vi.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom Input -->
+  <script src="/plugins/bs-custom-file-input/bs-custom-file-input.js"></script>
+  <!-- DataTables  & Plugins -->
+  <script src="/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+  <script src="/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+  <script src="/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+  <script src="/plugins/jszip/jszip.min.js"></script>
+  <script src="/plugins/pdfmake/pdfmake.min.js"></script>
+  <script src="/plugins/pdfmake/vfs_fonts.js"></script>
+  <script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+  <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+  <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+  <!-- ekko-lightbox -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js" integrity="sha512-Y2IiVZeaBwXG1wSV7f13plqlmFOx8MdjuHyYFVoYzhyRr3nH/NMDjTBSswijzADdNzMyWNetbLMfOpIPl6Cv9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+  <!-- PAGE PLUGINS -->
+  <!-- jQuery Mapael -->
+  <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
+  <script src="plugins/raphael/raphael.min.js"></script>
+  <script src="plugins/jquery-mapael/jquery.mapael.min.js"></script>
+  <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
+  <!-- ChartJS -->
+  <script src="plugins/chart.js/Chart.min.js"></script>
+
+  <script src="/dist/js/services/refreshTokenService.js"></script>
+
+  <script src="/dist/js/demo.js" defer></script>
+  <script type="module" src="/dist/js/pages/service-history.js"></script>
+</body>
+</html>

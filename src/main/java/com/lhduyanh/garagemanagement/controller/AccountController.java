@@ -4,17 +4,23 @@ import com.lhduyanh.garagemanagement.dto.request.*;
 import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.service.AccountService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
-public class AccountController {   // for design account controller api
-    @Autowired
-    private AccountService accountService;
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@RequiredArgsConstructor
+public class AccountController {
 
+    AccountService accountService;
+
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_ACCOUNT', 'ADD_ACCOUNT', 'EDIT_ACCOUNT', 'SIGN_SERVICE'})")
     @GetMapping("/{id}")
     public ApiResponse<AccountFullResponse> getAccountById(@PathVariable String id) {
         return ApiResponse.<AccountFullResponse>builder()
@@ -23,6 +29,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_ACCOUNT', 'ADD_ACCOUNT', 'EDIT_ACCOUNT'})")
     @GetMapping
     public ApiResponse<List<AccountResponse>> getAllEnableAccounts() {
         return ApiResponse.<List<AccountResponse>>builder()
@@ -31,6 +38,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'GET_ALL_ACCOUNT'})")
     @GetMapping("/all")
     public ApiResponse<List<AccountResponse>> getAllAccounts() {
         return ApiResponse.<List<AccountResponse>>builder()
@@ -39,6 +47,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_ACCOUNT'})")
     @PostMapping("/new-account")
     public ApiResponse<AccountResponse> createAccount(@RequestBody @Valid AccountCreationRequest request) {
         return ApiResponse.<AccountResponse>builder()
@@ -47,6 +56,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'ADD_ACCOUNT'})")
     @PostMapping("/new-account/confirm")
     public ApiResponse<AccountResponse> confirmCreateAccount(@RequestBody @Valid AccountCreationRequest request) {
         return ApiResponse.<AccountResponse>builder()
@@ -55,13 +65,14 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
-    @PostMapping("/create-user-account")
-    public ApiResponse<UserAccountResponse> createUserAccount(@RequestBody @Valid UserAccountCreationReq req) {
-        return ApiResponse.<UserAccountResponse>builder()
-                .code(1000)
-                .data(accountService.createUserAccount(req))
-                .build();
-    }
+//    @PreAuthorize("@securityExpression.hasPermission({'ADD_USER'})")
+//    @PostMapping("/create-user-account") // Not in use
+//    public ApiResponse<UserAccountResponse> createUserAccount(@RequestBody @Valid UserAccountCreationReq req) {
+//        return ApiResponse.<UserAccountResponse>builder()
+//                .code(1000)
+//                .data(accountService.createUserAccount(req))
+//                .build();
+//    }
 
     @PostMapping("/register")
     public ApiResponse<UserRegisterResponse> accountRegister(@RequestBody @Valid UserRegisterRequest request) {
@@ -89,6 +100,39 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PostMapping("/change-password")
+    public ApiResponse<Boolean> changePassword(@RequestBody @Valid PasswordChangeRequest request) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.changePassword(request))
+                .build();
+    }
+
+    @PostMapping("/send-otp/{email}") // Gui OTP den email
+    public ApiResponse<Boolean> sendOtpCodeToEmail(@PathVariable String email) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.sendOtpToEmail(email))
+                .build();
+    }
+
+    @PostMapping("/verify-email") // Xac thuc OTP cho tai khoan - user dang hoat dong
+    public ApiResponse<AccountVerifyResponse> accountEmailVerify(@RequestBody @Valid AccountVerifyRequest request) {
+        return ApiResponse.<AccountVerifyResponse>builder()
+                .code(1000)
+                .data(accountService.accountEmailVerify(request))
+                .build();
+    }
+
+    @PostMapping("/password-recovery") // Xac thuc OTP va cap nhat mat khau
+    public ApiResponse<Boolean> passwordRecovery(@RequestBody @Valid PasswordRecoveryRequest request) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.passwordRecovery(request))
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping("/disable/{id}")
     public ApiResponse<Boolean> disableAccount(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
@@ -97,6 +141,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping("/active/{id}")
     public ApiResponse<Boolean> enableAccount(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
@@ -105,6 +150,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping("/{id}")
     public ApiResponse<AccountResponse> updateAccount(@PathVariable String id,
                                                       @RequestBody @Valid AccountUpdateRequest request) {
@@ -114,6 +160,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping("/confirm/{id}")
     public ApiResponse<AccountResponse> confirmUpdateAccount(@PathVariable String id,
                                                       @RequestBody @Valid AccountUpdateRequest request) {
@@ -123,6 +170,7 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_ACCOUNT'})")
     @PutMapping(("/reset-password/{id}"))
     public ApiResponse<Boolean> resetPassword(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()
@@ -131,6 +179,16 @@ public class AccountController {   // for design account controller api
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_CUSTOMER', 'EDIT_ACCOUNT'})")
+    @PutMapping(("/reset-customer-password/{id}"))
+    public ApiResponse<Boolean> resetCustomerPassword(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(accountService.resetCustomerPassword(id))
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'DEL_ACCOUNT'})")
     @DeleteMapping("/hard/{id}")
     public ApiResponse<Boolean> hardDeleteAccount(@PathVariable String id) {
         return ApiResponse.<Boolean>builder()

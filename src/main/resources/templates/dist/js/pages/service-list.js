@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_SERVICES');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -33,8 +33,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -43,6 +43,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -53,7 +54,7 @@ $(document).ready(function () {
                 text: "PDF",
             },
             { extend: "print", text: "Print" },
-            { extend: "colvis", text: "Column Visibility" },
+            { extend: "colvis", text: "Hiển thị" },
         ],
         columnDefs: [
             { orderable: false, targets: 4 }, // Vô hiệu hóa sort cho cột Thao tác (index 4)
@@ -103,10 +104,9 @@ $(document).ready(function () {
                     let html = "";
                     html += `<b>${data}<br></b>`;
                     if (row.description != "") {
-                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace(
-                            "\n",
-                            "<br>"
-                        )}<br></div>`;
+                        console.log(row.description);
+                        
+                        html += `<i><u>Mô tả:<br></u></i> <div">${row.description.replace(/\n/g, "<br>")}<br></div>`;
                     }
 
                     return html;
@@ -269,7 +269,7 @@ $("#data-table").on("click", "#editBtn", function () {
                     </div>
 
                     <div class="input_wrap form-group">
-                        <label>Danh sách tùy chọn</label>
+                        <label class="mb-0">Danh sách tùy chọn</label>
                         <div id="option-wrapper">
                             <!--<div class="row my-2">
                                 <div class="col-md-7">
@@ -402,24 +402,6 @@ $("#data-table").on("click", "#editBtn", function () {
                             updateIsSelected(optionList);
                         });
 
-                        $(document).on("click", "#remove-option-btn", function () {
-                                var totalRows = $("#option-wrapper .row").length;
-
-                                if (totalRows == 1) {
-                                    Toast.fire({
-                                        icon: "warning",
-                                        title: "Không thể xóa! Phải có ít nhất một lựa chọn",
-                                    });
-                                    return;
-                                } else {
-                                    $(this).closest(".row").remove();
-
-                                    updateOptions();
-                                    updateIsSelected(optionList);
-                                }
-                            }
-                        );
-
                         $(".price-input").on("input", function () {
                             let inputValue = $(this).val();
 
@@ -432,6 +414,14 @@ $("#data-table").on("click", "#editBtn", function () {
                             updateOptions();
                             updateIsSelected(optionList);
                         });
+                    } else {
+                        console.error(response);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Đã xảy ra lỗi",
+                            text: utils.getErrorMessage(response.code)
+                        });
+                        return;
                     }
                 },
             });
@@ -494,19 +484,29 @@ $("#data-table").on("click", "#editBtn", function () {
                 updateIsSelected(optionList);
                 updateOptions();
 
-                // Xử lý sự kiện nhấn nút xóa bộ chọn option
-                $(document).on("click", "#remove-option-btn", function () {
-                    $(this).closest(".row").remove();
-                    // Cập nhật lại các tùy chọn sau khi xóa
-                    updateOptions();
-                    updateIsSelected(optionList);
-                });
-
                 // Xử lý sự kiện thay đổi cho các select
                 $(document).on("change", ".option-select", function () {
                     updateOptions();
                     updateIsSelected(optionList);
                 });
+            });
+
+            $(document).off('click', '#remove-option-btn');
+            $(document).on("click", "#remove-option-btn", function (e) {
+                var totalRows = $("#option-wrapper .row").length;
+
+                if (totalRows == 1) {
+                    Toast.fire({
+                        icon: "warning",
+                        title: "Không thể xóa! Phải có ít nhất một lựa chọn",
+                    });
+                    return;
+                } else {
+                    $(this).closest(".row").remove();
+
+                    updateOptions();
+                    updateIsSelected(optionList);
+                }
             });
 
             $("#modal_footer").append(
@@ -866,7 +866,7 @@ $("#new-service-btn").click(function () {
             </div>
 
             <div class="input_wrap form-group">
-                <label>Danh sách tùy chọn</label>
+                <label class="mb-0">Danh sách tùy chọn</label>
                 <div id="option-wrapper">
                     <div class="row my-2">
                         <div class="col-md-7">
@@ -1129,7 +1129,9 @@ $("#new-service-btn").click(function () {
                 } else if (response.code == 1044) {
                     // Tham chiếu từ ErrorCode
                     Swal.fire({
-                        title: `Tên dịch vụ này đã tồn tại, vẫn thêm mới dịch vụ<br>${name}?`,
+                        icon: "warning",
+                        title: "Trùng lặp tên dịch vụ",
+                        html: `Tên dịch vụ đã tồn tại, vẫn thêm mới dịch vụ <b>${name}</b>?`,
                         showDenyButton: false,
                         showCancelButton: true,
                         confirmButtonText: "Đồng ý",
@@ -1207,6 +1209,7 @@ $("#copy-service-btn").click(function () {
 
         // Lắng nghe sự kiện click item trong bảng #data-table
         $("#data-table tbody").on("click", "tr", function () {
+            if ($(this).find("td").hasClass("dataTables_empty")) return;
             var rowData = $("#data-table").DataTable().row(this).data();
             var id = rowData.id;
 
@@ -1261,7 +1264,7 @@ $("#copy-service-btn").click(function () {
                             </div>
         
                             <div class="input_wrap form-group">
-                                <label>Danh sách tùy chọn</label>
+                                <label class="mb-0">Danh sách tùy chọn</label>
                                 <div id="option-wrapper">
                                     <!--<div class="row my-2">
                                         <div class="col-md-7">
@@ -1399,29 +1402,6 @@ $("#copy-service-btn").click(function () {
                                     updateIsSelected(optionList);
                                 });
 
-                                $(document).on(
-                                    "click",
-                                    "#remove-option-btn",
-                                    function () {
-                                        var totalRows = $(
-                                            "#option-wrapper .row"
-                                        ).length;
-
-                                        if (totalRows == 1) {
-                                            Toast.fire({
-                                                icon: "warning",
-                                                title: "Không thể xóa! Phải có ít nhất một lựa chọn",
-                                            });
-                                            return;
-                                        } else {
-                                            $(this).closest(".row").remove();
-
-                                            updateOptions();
-                                            updateIsSelected(optionList);
-                                        }
-                                    }
-                                );
-
                                 $(".price-input").on("input", function () {
                                     let inputValue = $(this).val();
 
@@ -1501,18 +1481,6 @@ $("#copy-service-btn").click(function () {
                         updateIsSelected(optionList);
                         updateOptions();
 
-                        // Xử lý sự kiện nhấn nút xóa bộ chọn option
-                        $(document).on(
-                            "click",
-                            "#remove-option-btn",
-                            function () {
-                                $(this).closest(".row").remove();
-                                // Cập nhật lại các tùy chọn sau khi xóa
-                                updateOptions();
-                                updateIsSelected(optionList);
-                            }
-                        );
-
                         // Xử lý sự kiện thay đổi cho các select
                         $(document).on("change", ".option-select", function () {
                             updateOptions();
@@ -1520,6 +1488,25 @@ $("#copy-service-btn").click(function () {
                         });
                     });
 
+                    
+                    $(document).off('click', '#remove-option-btn');
+                    $(document).on("click", "#remove-option-btn", function (e) {
+                        var totalRows = $("#option-wrapper .row").length;
+        
+                        if (totalRows == 1) {
+                            Toast.fire({
+                                icon: "warning",
+                                title: "Không thể xóa! Phải có ít nhất một lựa chọn",
+                            });
+                            return;
+                        } else {
+                            $(this).closest(".row").remove();
+        
+                            updateOptions();
+                            updateIsSelected(optionList);
+                        }
+                    });
+                    
                     $("#modal_footer").append(
                         '<button type="button" form="modal-form" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
                     );

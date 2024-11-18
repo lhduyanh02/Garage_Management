@@ -1,6 +1,6 @@
 import * as utils from "/dist/js/utils.js";
 
-utils.introspect(true);
+utils.introspectPermission('GET_ALL_ACCOUNT');
 
 var Toast = Swal.mixin({
     toast: true,
@@ -36,8 +36,8 @@ $(document).ready(function () {
         autoWidth: false,
         language: {
             paginate: {
-                next: "Trước",
-                previous: "Sau",
+                next: "Sau",
+                previous: "Trước",
             },
             lengthMenu: "Số dòng: _MENU_",
             info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
@@ -46,6 +46,7 @@ $(document).ready(function () {
             emptyTable: "Không có dữ liệu",
             search: "Tìm kiếm:",
             loadingRecords: "Đang tải dữ liệu...",
+            zeroRecords: "Không tìm thấy dữ liệu",
         },
         buttons: [
             { extend: "copy", text: "Copy" },
@@ -56,7 +57,7 @@ $(document).ready(function () {
                 text: "PDF",
             },
             { extend: "print", text: "Print" },
-            { extend: "colvis", text: "Column Visibility" },
+            { extend: "colvis", text: "Hiển thị" },
         ],
         columnDefs: [
             { orderable: false, targets: 5 }, // Vô hiệu hóa sort cho cột Thao tác (index 5)
@@ -157,9 +158,7 @@ $(document).ready(function () {
                 data: "id",
                 render: function (data, type, row) {
                     let html = `<a class="btn btn-info btn-sm" id="editBtn" data-id="${data}">
-                        <i class="fas fa-pencil-alt"></i></a>
-                        <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
-                            <i class="fas fa-trash"></i></a>`;
+                        <i class="fas fa-pencil-alt"></i></a>`;
 
                     if (row.status == 1 && row.user.status != 9999) {
                         html += ` <a class="btn btn-warning btn-sm" id="disableBtn" data-id="${data}">
@@ -168,12 +167,14 @@ $(document).ready(function () {
                     if (row.status == 0 && row.user.status != 9999) {
                         html += ` <a class="btn btn-success btn-sm" id="activateBtn" data-id="${data}">
                             <i class="fas fa-user-check"></i></a>
-                             <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
+                            <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
                             <i class="fas fa-trash"></i></a>`;
                     }
                     if (row.status == -1 && row.user.status != 9999) {
                         html += ` <a class="btn btn-success btn-sm" id="activateBtn" data-id="${data}">
-                            <i class="fas fa-user-check"></i></a>`;
+                            <i class="fas fa-user-check"></i></a>
+                            <a class="btn btn-danger btn-sm" id="deleteBtn" data-id="${data}">
+                            <i class="fas fa-trash"></i></a>`;
                     }
                     return "<center>" + html + "</center>";
                 },
@@ -215,9 +216,15 @@ $(document).ready(function () {
             });
         },
     });
+
+    dataTable.on('xhr', function () {
+        selectedRows = new Set();
+        $("#reset-password-btn").prop("disabled", true);
+    });
 });
 
 $("#data-table tbody").on("click", "tr", function () {
+    if ($(this).find("td").hasClass("dataTables_empty")) return;
     const data = dataTable.row(this).data();
     const rowId = data.id;
 
@@ -238,7 +245,7 @@ $("#data-table tbody").on("click", "tr", function () {
     }
 });
 
-// Draw table wwith selected rows in set selectedRows
+// Draw table with selected rows in set selectedRows
 $(dataTable).on("draw", function () {
     dataTable.rows().every(function () {
         const data = this.data();
@@ -464,6 +471,20 @@ $("#data-table").on("click", "#editBtn", function () {
                                                     title: "Cập nhật tài khoản thành công",
                                                 });
                                             }
+                                            $.ajax({
+                                                type: "GET",
+                                                url: "/api/users/with-accounts",
+                                                dataType: "json",
+                                                headers: utils.defaultHeaders(),
+                                                success: function (resp) {
+                                                    if (resp.code == 1000) {
+                                                        userList = resp.data;
+                                                    }
+                                                },
+                                                error: function (xhr, status, error) {
+                                                    console.error(xhr);
+                                                },
+                                            });
                                             $("#modal_id").modal("hide");
                                             dataTable.ajax.reload();
                                         },
@@ -490,7 +511,6 @@ $("#data-table").on("click", "#editBtn", function () {
                             icon: "error",
                             title: utils.getXHRInfo(xhr).message,
                         });
-                        dataTable.ajax.reload();
                     },
                 });
             });
@@ -539,6 +559,20 @@ $("#data-table").on("click", "#deleteBtn", function () {
                             icon: "success",
                             title: `Đã xóa ${email}`,
                         });
+                        $.ajax({
+                            type: "GET",
+                            url: "/api/users/with-accounts",
+                            dataType: "json",
+                            headers: utils.defaultHeaders(),
+                            success: function (response) {
+                                if (response.code == 1000) {
+                                    userList = response.data;
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr);
+                            },
+                        });
                     } else {
                         Toast.fire({
                             icon: "error",
@@ -586,6 +620,20 @@ $("#data-table").on("click", "#disableBtn", function () {
                         Toast.fire({
                             icon: "success",
                             title: "Đã khóa tài khoản</br>" + email,
+                        });
+                        $.ajax({
+                            type: "GET",
+                            url: "/api/users/with-accounts",
+                            dataType: "json",
+                            headers: utils.defaultHeaders(),
+                            success: function (resp) {
+                                if (resp.code == 1000) {
+                                    userList = resp.data;
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr);
+                            },
                         });
                         dataTable.ajax.reload();
                     }
@@ -640,6 +688,20 @@ $("#data-table").on("click", "#activateBtn", function () {
                         Toast.fire({
                             icon: "success",
                             title: "Đã kích hoạt tài khoản</br>" + email,
+                        });
+                        $.ajax({
+                            type: "GET",
+                            url: "/api/users/with-accounts",
+                            dataType: "json",
+                            headers: utils.defaultHeaders(),
+                            success: function (resp) {
+                                if (resp.code == 1000) {
+                                    userList = resp.data;
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr);
+                            },
                         });
                         dataTable.ajax.reload();
                     }
@@ -696,7 +758,7 @@ $("#new-account-btn").click(function () {
 
         <div class="form-group">
             <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="is-active-switch">
+                <input type="checkbox" class="custom-control-input" id="is-active-switch" checked>
                 <label class="custom-control-label" for="is-active-switch">Kích hoạt</label>
             </div>
         </div>
@@ -709,7 +771,7 @@ $("#new-account-btn").click(function () {
         language: "vi",
         closeOnSelect: true,
     });
-
+                                    
     $("#user-type-select").on("change", function () {
         let selectedValue = $(this).val();
 
@@ -747,9 +809,10 @@ $("#new-account-btn").click(function () {
 
                     // Lọc userList theo cả name và phone
                     let filteredUsers = filteredUserList.filter((user) => {
-                        let nameMatch = user.name
-                            .toLowerCase()
-                            .includes(term.toLowerCase());
+                        let normalizedName = utils.removeVietnameseTones(user.name.toLowerCase()); // Tên đã loại bỏ dấu
+                        let termNormalized = utils.removeVietnameseTones(term.toLowerCase()); // Searching key đã loại bỏ dấu
+
+                        let nameMatch = normalizedName.includes(termNormalized);
                         let phoneMatch =
                             user.phone && user.phone.includes(term);
                         return nameMatch || phoneMatch;
@@ -802,13 +865,33 @@ $("#new-account-btn").click(function () {
                 return `<div>${selection}</div>`;
             },
             language: {
+                errorLoading: function () {
+                    return "Không thể tải kết quả.";
+                },
+                inputTooLong: function (args) {
+                    let overChars = args.input.length - args.maximum;
+                    return `Vui lòng xóa bớt ${overChars} ký tự.`;
+                },
+                inputTooShort: function (args) {
+                    let remainingChars = args.minimum - args.input.length;
+                    return `Vui lòng nhập thêm ${remainingChars} ký tự.`;
+                },
+                loadingMore: function () {
+                    return "Đang tải thêm kết quả...";
+                },
+                maximumSelected: function (args) {
+                    return `Bạn chỉ có thể chọn tối đa ${args.maximum} mục.`;
+                },
+                noResults: function () {
+                    return "Không có kết quả.";
+                },
                 searching: function () {
                     return "Đang tìm kiếm...";
                 },
-                noResults: function () {
-                    return "Không có kết quả";
+                removeAllItems: function () {
+                    return "Xóa tất cả các mục";
                 },
-            },
+            }
         });
     });
 
@@ -887,6 +970,20 @@ $("#new-account-btn").click(function () {
                                             title: "Thêm tài khoản thành công",
                                         });
                                     }
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "/api/users/with-accounts",
+                                        dataType: "json",
+                                        headers: utils.defaultHeaders(),
+                                        success: function (resp) {
+                                            if (resp.code == 1000) {
+                                                userList = resp.data;
+                                            }
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.error(xhr);
+                                        },
+                                    });
                                     $("#modal_id").modal("hide");
                                     dataTable.ajax.reload();
                                 },

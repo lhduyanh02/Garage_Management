@@ -29,25 +29,42 @@ public class SecurityConfig {
     private final String[] PUBLIC_POST_ENDPOINTS = {
             "/auth/token",
             "/auth/introspect",
+            "/auth/customer-introspect",
             "/auth/logout",
             "/auth/refresh",
             "/auth/logout",
             "/auth/refreshToken",
             "/accounts/register",
             "/accounts/verify-account",
-            "/accounts/regenerate-otp"
+            "/accounts/regenerate-otp",
+            "/accounts/send-otp/**",
+            "/accounts/verify-email",
+            "/accounts/password-recovery",
+            "/common-param/list-param",
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-            "/users/get-quantity",
+            "/users",
+            "/users/**",
             "/addresses/**",
             "/brands/**",
             "/models/**",
             "/plate-types/**",
-            "/services/**",
-            "/options/**",
             "/cars/**",
-            "/accounts/**"
+            "/accounts/**",
+            "/services",
+            "/services/**",
+            "/options",
+            "/options/**",
+            "/common-param",
+            "/common-param/**",
+            "/appointment",
+            "/appointment/**",
+            "/history/get-quantity",
+            "/telegram",
+            "/telegram/**",
+            "/vnpay",
+            "/vnpay/**",
     };
 
     @Autowired
