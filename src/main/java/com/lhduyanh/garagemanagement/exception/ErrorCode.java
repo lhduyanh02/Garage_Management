@@ -162,6 +162,7 @@ public enum ErrorCode {
     TELEGRAM_MESSAGE_NOT_EXIST(1131, "This telegram message does not exist", HttpStatus.BAD_REQUEST),
     NOT_DRAFT_MESSAGE(1132, "This message is not draft, cannot be edited", HttpStatus.BAD_REQUEST),
     NO_RECEIVER(1133, "This message has no receiver", HttpStatus.BAD_REQUEST),
+    HISTORY_NO_MONEY(1134, "This order has price equal zero", HttpStatus.BAD_REQUEST),
 
     ;
 

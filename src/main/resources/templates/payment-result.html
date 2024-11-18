@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Giao dịch | Spring Detailing</title>
+  
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"/>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css"/>
+  <!-- overlayScrollbars -->
+  <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css"/>
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/include/customize.css">
+  </head>
+
+<body class="hold-transition sidebar-mini layout-navbar-fixed">
+<!-- Site wrapper -->
+<div class="wrapper">
+  <!-- Preloader -->
+  <div class="preloader flex-column justify-content-center align-items-center">
+    <img class="animation__wobble" src="dist/img/SpringDetailingLogo.png" alt="SpringDetailingLogo" height="250" width="250">
+  </div>
+  <!-- Navbar -->
+  <nav id="navbar" class="main-header navbar navbar-expand navbar-dark"></nav>
+  </nav>
+  <script>
+    $("#navbar").load("include/navbar.html");
+  </script>
+  <!-- /.navbar -->
+
+  <!-- sidebar -->
+    <!-- Main Sidebar Container -->
+    <aside id="sidebar"  class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- AdminLTE App -->
+      <script src="dist/js/adminlte.js" defer></script>
+    </aside>
+    <!-- Font Awesome --><!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+      $("#sidebar").load("/include/sidebar.html", function () {
+        // $('.nav-item').Treeview('init');
+
+      });
+    </script>
+    <!-- /.sidebar -->
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper bg-white">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Kết quả giao dịch</h1>
+          </div>
+          <div class="col-sm-6">
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="error-page">
+        <h2 id="text-status" class="headline">...</h2>
+
+        <div class="error-content">
+          <h3 id="overall-status"><i class="fas fa-exclamation-triangle text-warning"></i> Không xác định</h3>
+
+          <p id="detail-message">
+          </p>
+          <label class="mb-1">Chi tiết giao dịch:</label>
+          <p id="info" class="rounded border p-2">
+
+          </p>
+        </div>
+        <!-- /.error-content -->
+      </div>
+      <!-- /.error-page -->
+    </section>
+    <!-- /.content -->
+
+  </div>
+  <!-- /.content-wrapper -->
+
+
+  <!-- Control Sidebar -->
+  <aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+  </aside>
+  <!-- /.control-sidebar -->
+   
+  <!-- Main Footer -->
+  <footer class="main-footer text-sm">
+  </footer>
+  <script>
+    $('footer').load('/include/footer.html');
+  </script>
+</div>
+<!-- ./wrapper -->
+  <!-- REQUIRED SCRIPTS -->
+  <!-- Bootstrap -->
+  <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- overlayScrollbars -->
+  <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+
+  <!-- PAGE PLUGINS -->
+  <!-- jQuery Mapael -->
+  <script src="plugins/jquery-mousewheel/jquery.mousewheel.js"></script>
+  <script src="plugins/raphael/raphael.min.js"></script>
+  <script src="plugins/jquery-mapael/jquery.mapael.min.js"></script>
+  <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
+  <!-- ChartJS -->
+  <script src="plugins/chart.js/Chart.min.js"></script>
+
+  <script src="/dist/js/services/refreshTokenService.js"></script>
+
+  <script src="/dist/js/demo.js" defer></script>
+  <script type="module" src="/dist/js/pages/payment-result.js"></script>
+</body>
+</html>

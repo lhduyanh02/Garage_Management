@@ -2590,12 +2590,14 @@ function loadInvoiceInfo(invoice) {
 
     if (invoice.status == 0) {
         $('#confirm-order-btn').prop('hidden', false);
+        $('#vnpay-pay').prop('hidden', false);
         $('#cancel-order-btn').prop('hidden', false);
         $('#add-detail-btn').prop('hidden', false);
         $('#save-invoice-info-btn').prop('hidden', false);
         $('#invoice-status-info').html('');
     } else {
         $('#confirm-order-btn').prop('hidden', true);
+        $('#vnpay-pay').prop('hidden', true);
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
         $('#save-invoice-info-btn').prop('hidden', true);
@@ -3626,4 +3628,59 @@ $(document).on('click', '.proceeding-history-card', function () {
     if (orderID == null || orderID == "") return;
     utils.setHashParam(hash_car, orderID);
     loadInvoiceById(orderID);
+});
+
+$(document).on('click', '#vnpay-pay', async function () {
+    let warning = await Swal.fire({
+        icon: "warning",
+        title: "Thanh toán VNPAY",
+        html: `Thanh toán đơn dịch vụ thông qua VNPAY`,
+        confirmButtonText: "Đồng ý",
+        showConfirmButton: true,
+        cancelButtonText: "Hủy",
+        showCancelButton: true,
+        reverseButtons: true
+    });
+
+    if (warning.isConfirmed) {
+        $.ajax({
+            type: "GET",
+            url: "/api/vnpay/create-payment/"+selectedInvoice.id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code == 1000 && res.data) {
+                    window.open(res.data, '_blank');
+                } else {
+                    Swal.close();
+                    console.error(res);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Đã xảy ra lỗi",
+                        text: utils.getErrorMessage(res.code),
+                        showCancelButton: false,
+                        timer: 3000
+                    });
+                    return;
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message,
+                    showCancelButton: false,
+                    timer: 3000
+                });
+            }
+        });
+    } else {
+        return;
+    }
 });

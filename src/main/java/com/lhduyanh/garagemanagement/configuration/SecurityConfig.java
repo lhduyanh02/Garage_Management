@@ -63,6 +63,8 @@ public class SecurityConfig {
             "/history/get-quantity",
             "/telegram",
             "/telegram/**",
+            "/vnpay",
+            "/vnpay/**",
     };
 
     @Autowired
