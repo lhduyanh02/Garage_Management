@@ -28,6 +28,7 @@ var dataTable;
 var dataTableCard = $("#data-table-card");
 var userList = [];
 var roleList = [];
+var messageList = [];
 
 $("#tableCollapseBtn").click(function (e) {
     if (dataTableCard.hasClass("collapsed-card")) {
@@ -39,6 +40,7 @@ $(document).ready(async function () {
     dataTable = await $("#data-table").DataTable({
         responsive: true,
         lengthChange: true,
+        lengthMenu: [ [5, 10, 15, 30, 50, -1], [5, 10, 15, 30, 50, "Tất cả"] ],
         autoWidth: false,
         language: {
             paginate: {
@@ -91,6 +93,8 @@ $(document).ready(async function () {
                             receiverQuantity: message.receiverQuantity
                         });
                     });
+
+                    messageList = data;
 
                     return data; // Trả về dữ liệu đã được xử lý
                 } else {
@@ -154,7 +158,7 @@ $(document).ready(async function () {
                     if (data !== null) {
                         let date = utils.getTimeAsJSON(data);
     
-                        return `<small>${date.hour}:${date.min}, ${date.date}/${date.mon}/${date.year}</small>`;
+                        return `${date.hour}:${date.min}, ${date.date}/${date.mon}/${date.year}`;
                     }
                     return "";
                 },
@@ -208,7 +212,6 @@ $(document).ready(async function () {
     });
 
     dataTable.on('xhr', function () {
-        $('#role-filter').val("all").trigger('change');
         $('#status-filter').val("all").trigger('change');
     });
 
@@ -272,40 +275,17 @@ $(document).ready(async function () {
     }, 1000);
 });
 
-$('#role-filter').on('change', applyFilters);
 $('#status-filter').on('change', applyFilters);
 
 function applyFilters() {
-    let targetRoleId = $('#role-filter').val();
-    
     let targetStatus = $('#status-filter').val();
     
-
-    let filteredData = userList.filter(function (user) {
-        let roleMatch = (targetRoleId === "all" || user.roles.some(role => role.id === targetRoleId));
-
-        let statusMatch = (targetStatus === "all" || user.status == targetStatus);
-
-        return roleMatch && statusMatch;
+    let filteredData = messageList.filter(function (message) {
+        return (targetStatus === "all" || message.status == targetStatus);
     });
     
-
-    // Chuyển đổi dữ liệu đã lọc thành mảng đối tượng cho DataTable
-    let data = filteredData.map((user, index) => ({
-        number: index + 1,
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        gender: user.gender,
-        status: user.status,
-        address: user.address,
-        roles: user.roles,
-        cars: user.cars,
-        accounts: user.accounts
-    }));
-    
     // Cập nhật DataTable với dữ liệu đã lọc
-    $('#data-table').DataTable().clear().rows.add(data).draw();
+    $('#data-table').DataTable().clear().rows.add(filteredData).draw();
 }
 
 $("#new-message-btn").click(function () { 
@@ -315,7 +295,7 @@ $("#new-message-btn").click(function () {
     
     $('#modal_id').modal({
         backdrop: 'static', // Ngăn đóng khi click bên ngoài
-        keyboard: true      // Cho phép đóng khi nhấn Escape
+        keyboard: false      // Cho phép đóng khi nhấn Escape
     });
     $("#modal_body").append(`
         <div class="form-group">
@@ -398,6 +378,8 @@ $("#new-message-btn").click(function () {
             });
             return;
         }
+
+        content = cleanLinks(content);
 
         $.ajax({
             type: "POST",
@@ -960,6 +942,8 @@ $("#data-table").on("click", "#editBtn", async function () {
             return;
         }
 
+        content = cleanLinks(content);
+
         $.ajax({
             type: "PUT",
             url: "/api/telegram-message/update-message/" + id,
@@ -1146,6 +1130,26 @@ $("#data-table").on("click", "#infoBtn", async function () {
     }
 
     let res;
+
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/telegram-message/receivers/" + id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+        });
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Toast.fire({
+            icon: "error",
+            title: utils.getXHRInfo(error).message
+        });
+        return;
+    }
+    if (!res) return;
+    let receivers = res.data;
+
     try {
         res = await $.ajax({
             type: "GET",
@@ -1195,7 +1199,117 @@ $("#data-table").on("click", "#infoBtn", async function () {
             </div>
             <div id="modal_message_input" class="rounded border p-2">${res.data.message.trim()}</div>
         </div>
+
+        <div class="table-responsive">
+            <label class="mb-1">Danh sách người nhận</label>
+            <table id="user-table" class="table table-bordered table-striped table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                        <th scope="col" style="text-align: center" width="4%">#</th>
+                        <th scope="col" style="text-align: center">Người nhận</th>
+                        <th scope="col" style="text-align: center" width="20%">Telegram ID</th>
+                        <th scope="col" style="text-align: center" width="15%">Vai trò</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     `);
+
+    let userInfoTable = $("#user-table").DataTable({
+        responsive: true,
+        autoFill: true,
+        lengthChange: true,
+        lengthMenu: [ [5, 10, 15, 30, -1], [5, 10, 15, 30, "Tất cả"] ],
+        autoWidth: false,
+        buttons: false,
+        pageLength: 5,
+        searching: true,
+        dom: "lrtip", // (l: length, r: processing, t: table, i: information, p: pagination)
+        columnDefs: [
+            { orderable: false, targets: 0 },
+            { orderable: false, targets: 2 },
+            {
+                targets: "_all", // Áp dụng cho tất cả các cột
+                className: "text-center, targets: 0", // Căn giữa nội dung của tất cả các cột
+            },
+        ],
+        language: {
+            paginate: {
+                next: "&raquo;",
+                previous: "&laquo;",
+            },
+            lengthMenu: "Số dòng: _MENU_",
+            info: "Tổng cộng: _TOTAL_ ", // Tùy chỉnh dòng thông tin
+            infoEmpty: "Không có dữ liệu để hiển thị",
+            infoFiltered: "(Lọc từ _MAX_ mục)",
+            emptyTable: "Không có dữ liệu",
+            search: "Tìm kiếm:",
+        },
+        data: userList,
+        columns: [
+            { title: "#", data: null, orderable: false }, // Cột số thứ tự không cho phép sắp xếp
+            {
+                data: "name",
+                render: function (data, type, row) {
+                    let html = "";
+                    html += `${data}`;
+
+                    if (row.gender == 0) {
+                        html +=
+                            ' <span class="badge badge-warning"><i class="fa-solid fa-child-dress"></i>&nbsp;Nữ</span><br>';
+                    } else if (row.gender == 1) {
+                        html +=
+                            ' <span class="badge badge-info"><i class="fa-solid fa-child-reaching"></i>&nbsp;Nam</span><br>';
+                    } else {
+                        html += ` <span class="badge badge-light"><i class="fa-solid fa-mars-and-venus"></i>&nbsp;Khác</span></center><br>`;
+                    }
+
+                    if (row.accounts.length > 0) {
+                        html += `<small>Email: ${row.accounts[0].email}</small>`;
+                    }
+                    return html;
+                },
+            },
+            {
+                data: "telegramId",
+                render: function (data, type, row) {
+                    let html = `<center>`;
+                    if (data) {
+                        html += data;
+                    }
+                    return html + "</center>";
+                },
+            },
+            {
+                data: "roles",
+                render: function (data, type, row) {
+                    if (data != null && Array.isArray(data)) {
+                        let html = "";
+                        $.each(data, function (idx, val) {
+                            if (val.status == 1) {
+                                html += ` <span class="badge badge-light">&nbsp;${val.roleName}</span></br>`;
+                            } else if (val.status == 0) {
+                                html += ` <span class="badge badge-danger">&nbsp;${val.roleName}</span></br>`;
+                            }
+                        });
+                        return "<center>" + html + "</center>";
+                    }
+                    return "";
+                },
+            },
+        ],
+        drawCallback: function (settings) {
+            // Số thứ tự không thay đổi khi sort hoặc paginations
+            var api = this.api();
+            var start = api.page.info().start;
+            api.column(0, { page: "current" })
+                .nodes()
+                .each(function (cell, i) {
+                    cell.innerHTML = start + i + 1;
+                });
+        },
+    });
     
     $("#modal_footer").append(
         '<button type="button" class="btn btn-outline-primary" id="modal_submit_btn">Đóng</button>'
@@ -1209,3 +1323,213 @@ $("#data-table").on("click", "#infoBtn", async function () {
     });
 });
 
+
+$("#data-table").on("click", "#copyBtn", async function () {
+    var id = $(this).data("id");
+
+    if (id == null) {
+        console.warn("null ID");
+        return;
+    }
+
+    Swal.showLoading();
+
+    let res;
+    
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/telegram-message/receivers/" + id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+        });
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Toast.fire({
+            icon: "error",
+            title: utils.getXHRInfo(error).message
+        });
+        return;
+    }
+    if (!res) return;
+    let receivers = res.data;
+
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/telegram-message/get-message/" + id,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+        });
+    } catch (error) {
+        Swal.close();
+        console.error(error);
+        Toast.fire({
+            icon: "error",
+            title: utils.getXHRInfo(error).message
+        });
+        return;
+    }
+
+    Swal.close();
+    if (!res) return;
+
+    clear_modal();
+    $("#modal_title").text("Tạo thông báo mới");
+    $(".modal-dialog").addClass("modal-lg");
+    
+    $('#modal_id').modal({
+        backdrop: 'static', // Ngăn đóng khi click bên ngoài
+        keyboard: false      // Cho phép đóng khi nhấn Escape
+    });
+    $("#modal_body").append(`
+        <div class="form-group">
+            <div class="container mt-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="mb-0" for="modal_title_input">Tiêu đề <span class="text-danger">*</span></label>
+                    <kbd id="modal_title_counter" class="mb-0 small">0/255</kbd>
+                </div>
+            </div>
+            <input type="text" class="form-control" id="modal_title_input" maxlength="255" placeholder="Nhập tiêu đề">
+        </div>
+
+        <div class="form-group">
+            <div class="container mt-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="mb-0" for="modal_message_input">Nội dung <span class="text-danger">*</span></label>
+                </div>
+            </div>
+            <textarea id="modal_message_input">${res.data.message}</textarea>
+        </div>
+    `);
+    
+    $("#modal_footer").append(
+        '<button type="button" class="btn btn-primary" id="modal_submit_btn"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>'
+    );
+
+    $('#modal_message_input').summernote({
+        placeholder: 'Nhập nội dung...',
+        height: 200, 
+        tooltip: false,
+        spellCheck: false,
+        toolbar: [
+            ['font', ['bold', 'italic', 'underline', 'clear']],
+            ['view', ['codeview', 'help']],
+            ['insert', ['link']],
+        ],
+        disableDragAndDrop: true,
+        callbacks: {
+            onPaste: function (e) {
+                e.preventDefault(); // Ngăn dán nội dung gốc
+
+                // Lấy văn bản thuần
+                let plainText = (e.originalEvent || e).clipboardData.getData('text/plain');
+
+                // Chèn nội dung thuần vào Summernote
+                $(this).summernote('pasteHTML', plainText);
+            },
+            onDrop: function (e) {
+                e.preventDefault(); // Ngăn kéo thả gốc
+
+                // Nếu có nội dung thuần, dán vào editor
+                let plainText = (e.originalEvent || e).dataTransfer.getData('text/plain');
+                if (plainText) {
+                    $(this).summernote('pasteHTML', plainText);
+                }
+            }
+        }
+    });
+
+    $("#modal_title_input").val(res.data.title + " (Copy)");
+    utils.set_char_count("#modal_title_input", "#modal_title_counter");
+
+    $("#modal_id").modal("show");
+
+    $("#modal_submit_btn").click(function (){
+        let title = $("#modal_title_input").val().trim();
+        let content = $("#modal_message_input").val().trim().replace(/&nbsp;/g, ' ').trim();
+        
+        if (title == null || title === ""){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng nhập tiêu đề"
+            });
+            return;
+        }
+
+        if (content == null || content === ""){
+            Toast.fire({
+                icon: "warning",
+                title: "Vui lòng nhập nội dung tin nhắn"
+            });
+            return;
+        }
+
+        content = cleanLinks(content);
+
+        $.ajax({
+            type: "POST",
+            url: "/api/telegram-message/new-draft",
+            headers: utils.defaultHeaders(),
+            data: JSON.stringify({
+                title: title,
+                message: content,
+                receivers: receivers.map(user => user.id)
+            }),
+            beforeSend: function() {
+                Swal.showLoading();
+            },
+            success: function (response) {
+                Swal.close();
+                if(response.code == 1000){
+                    Swal.fire({
+                        icon: "success", 
+                        title: "Đã tạo bản nháp mới",
+                        text: `"${title}"`
+                    });
+                    $("#modal_id").modal("hide");
+                    dataTable.ajax.reload();
+                } else {
+                    console.error(response);
+                    Toast.fire({
+                        icon: "error",
+                        title: utils.getErrorMessage(response.code)
+                    });
+                    return;
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                console.error(xhr);
+                Swal.fire({
+                    icon: "error",
+                    title: "Đã xảy ra lỗi",
+                    text: utils.getXHRInfo(xhr).message
+                });
+            }
+        });
+    });
+});
+
+// Hàm xử lý thẻ link trong summernote
+function cleanLinks(content) {
+    if (!content) return ''; // Nếu nội dung rỗng hoặc null, trả về chuỗi rỗng
+  
+    let div = document.createElement('div');
+    div.innerHTML = content;
+  
+    let links = div.querySelectorAll('a'); // Lấy tất cả thẻ <a>
+    
+    links.forEach(link => {
+      let href = link.getAttribute('href'); // Lấy giá trị href
+      // Xóa tất cả các thuộc tính
+      Array.from(link.attributes).forEach(attr => link.removeAttribute(attr.name));
+      // Chỉ thêm lại href nếu có
+      if (href) {
+        link.setAttribute('href', href);
+      }
+    });
+  
+    return div.innerHTML; // Trả về nội dung đã làm sạch
+}

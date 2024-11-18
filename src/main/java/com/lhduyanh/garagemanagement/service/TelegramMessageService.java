@@ -24,8 +24,6 @@ import org.springframework.stereotype.Service;
 import java.text.Collator;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
@@ -56,6 +54,7 @@ public class TelegramMessageService {
 
                     return res;
                 })
+                .sorted(Comparator.comparing(TelegramMessageSimpleResponse::getCreateAt).reversed())
                 .toList();
 
         return response;
@@ -151,11 +150,11 @@ public class TelegramMessageService {
                         .filter(c -> !Objects.isNull(c))
                         .toList();
 
-        String content = telegramMessage.getTitle() + "\n\n" + convertHtmlToMarkdown(telegramMessage.getMessage()
+        String content = "<b>" + telegramMessage.getTitle() + "</b>\n\n" + telegramMessage.getMessage()
                 .replaceAll("<p>", "")
                 .replaceAll("</p>", "\n")
                 .replaceAll("<br>", "\n")
-                .trim());
+                .trim();
 
         telegramService.sendNotificationToManyUsers(chatIds, content);
 
@@ -221,24 +220,6 @@ public class TelegramMessageService {
         message.setStatus(TelegramMessageStatus.DELETED.getCode());
         telegramMessageRepository.save(message);
         return true;
-    }
-
-    // Phương thức chuyển HTML có thẻ <a> thành Markdown
-    public static String convertHtmlToMarkdown(String htmlContent) {
-        // Biểu thức chính quy để tìm các thẻ <a> trong HTML
-        Pattern pattern = Pattern.compile("<a\\s+href=\"([^\"]+)\"[^>]*>(.*?)</a>");
-        Matcher matcher = pattern.matcher(htmlContent);
-
-        // Thay thế các thẻ <a> bằng cú pháp Markdown
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String url = matcher.group(1);   // Lấy URL từ href
-            String text = matcher.group(2);  // Lấy văn bản trong thẻ <a>
-            String markdownLink = "[" + text + "](" + url + ")";  // Chuyển sang Markdown
-            matcher.appendReplacement(result, markdownLink);  // Thay thế
-        }
-        matcher.appendTail(result);  // Thêm phần còn lại của chuỗi không có thẻ <a>
-        return result.toString();
     }
 
 }
