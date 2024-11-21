@@ -466,6 +466,35 @@ $("#discount-info").on("paste", function (e) {
     }, 0);
 });
 
+$("#tax-info").on("paste", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
+    setTimeout(() => {
+        const input = $(this).val();
+
+        if (input.startsWith(".")) {
+            $(this).val("0" + input);
+        }
+        if (!/^\d*\.?\d*$/.test(input)) {
+            $(this).val("10");
+            calculateAmountDue();
+        } else {
+            const parsedValue = parseFloat(input);
+            if (parsedValue > 100) {
+                $(this).val(input.slice(0, -1));
+            } else if (!input.includes(".") && parsedValue == 0) {
+                $(this).val("0");
+            } else {
+                calculateAmountDue();
+            }
+        }
+
+        $(".dropdown-menu").removeClass("show");
+    }, 0);
+});
+
 function calculateAmountDue() {
     if (selectedInvoice.totalAmount > 0) {
         const discountValue =
@@ -1246,7 +1275,7 @@ function clearInvoiceCard() {
 
     $("#advisor-invoice-info").html(`
         <b><span id="invoice-id"></span></b><br>
-        <b>Service Date: </b><span id="history-date"></span><br>
+        <b>Ngày đăng ký: </b><span id="history-date"></span><br>
 
         <div class=" hover-underline-animation left" role="button">
             <b style="display: inline-block; margin-right: 3px;">Odo:</b>
@@ -2597,7 +2626,6 @@ function loadInvoiceInfo(invoice) {
         $('#invoice-status-info').html('');
     } else {
         $('#confirm-order-btn').prop('hidden', true);
-        $('#vnpay-pay').prop('hidden', true);
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
         $('#save-invoice-info-btn').prop('hidden', true);
@@ -2649,9 +2677,9 @@ function loadInvoiceInfo(invoice) {
     let t = utils.getTimeAsJSON(invoice.serviceDate);
     let invoiceIdHtml = "";
     if (invoice.status == 1) {
-        invoiceIdHtml = `Invoice #${invoice.id}`;
+        invoiceIdHtml = `Hóa đơn: #${invoice.id}`;
     } else {
-        invoiceIdHtml = `Order #${invoice.id}`;
+        invoiceIdHtml = `Đơn dịch vụ: #${invoice.id}`;
     }
     $("#invoice-id").html(invoiceIdHtml);
     $("#history-date").text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
@@ -2884,7 +2912,6 @@ $('.images-delete-btn').click(async function () {
         return;
     }
 
-
     const part = target === "pre-service-image" ? "pre-service/" : "post-service/"
     $.ajax({
         type: "DELETE",
@@ -2895,15 +2922,15 @@ $('.images-delete-btn').click(async function () {
             Swal.showLoading();
         },
         success: function (res) {
-            Swal.close();
-            Swal.fire({
-                icon: "success",
-                title: "Đã xóa",
-                text: "Xóa danh sách hình ảnh thành công!",
-                showConfirmButton: false,
-                timer: 2000
-            });
             if (res.code == 1000 && res.data == true) {
+                Swal.close();
+                Swal.fire({
+                    icon: "success",
+                    title: "Đã xóa",
+                    text: "Xóa danh sách hình ảnh thành công!",
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 if (target === "pre-service-image") {
                     preServiceImages = [];
                     loadPreServiceImage(preServiceImages);
@@ -2914,6 +2941,7 @@ $('.images-delete-btn').click(async function () {
                     return;
                 }
             } else {
+                Swal.close();
                 console.error(res);
                 Toast.fire({
                     icon: "error",
@@ -3001,7 +3029,7 @@ async function handleUpload(cardId) {
                 title: "Tải lên thành công",
                 text: "Upload thành công các hình ảnh lên hệ thống",
                 showConfirmButton: false,
-                timer: 2000,
+                timer: 3000,
             });
             cardId === 'pre-service-image' ? loadPreServiceImage(response.data) : loadPostServiceImage(response.data);
         } else {

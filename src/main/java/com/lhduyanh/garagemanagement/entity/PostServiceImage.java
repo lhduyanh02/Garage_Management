@@ -17,6 +17,7 @@ public class PostServiceImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 38)
     String id;
 
     String title;

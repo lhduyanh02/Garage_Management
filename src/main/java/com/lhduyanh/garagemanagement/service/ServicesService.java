@@ -45,10 +45,16 @@ public class ServicesService {
     private final Collator vietnameseCollator;
 
     public ServiceResponse getServiceById(String id) {
-        return serviceMapper.toServiceResponse(
-                serviceRepository.findById(id)
-                        .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
-                        .orElseThrow(() -> new AppException(ErrorCode.SERVICE_NOT_EXISTS)));
+        return serviceRepository.findById(id)
+                .filter(s -> s.getStatus() != ServiceStatus.DELETED.getCode())
+                .map(service -> {
+                    ServiceResponse response = serviceMapper.toServiceResponse(service);
+                    response.setOptionPrices(response.getOptionPrices().stream()
+                            .sorted(Comparator.comparing(OptionPriceResponse::getName, vietnameseCollator))
+                            .toList());
+                    return response;
+                })
+                .orElseThrow(() -> new AppException(ErrorCode.SERVICE_NOT_EXISTS));
     }
 
     public List<ServiceResponse> getAllServicesWithPrice() {

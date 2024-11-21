@@ -163,6 +163,7 @@ public enum ErrorCode {
     NOT_DRAFT_MESSAGE(1132, "This message is not draft, cannot be edited", HttpStatus.BAD_REQUEST),
     NO_RECEIVER(1133, "This message has no receiver", HttpStatus.BAD_REQUEST),
     HISTORY_NO_MONEY(1134, "This order has price equal zero", HttpStatus.BAD_REQUEST),
+    HISTORY_CANNOT_DELETE(1135, "Only orders with the status Completed or Canceled can be deleted", HttpStatus.BAD_REQUEST),
 
     ;
 

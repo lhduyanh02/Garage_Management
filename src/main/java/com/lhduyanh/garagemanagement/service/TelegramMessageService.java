@@ -154,6 +154,8 @@ public class TelegramMessageService {
                 .replaceAll("<p>", "")
                 .replaceAll("</p>", "\n")
                 .replaceAll("<br>", "\n")
+                .replaceAll("<span[^>]*>", "")  // Xóa <span>
+                .replaceAll("</span>", "")     // Xóa </span>
                 .trim();
 
         telegramService.sendNotificationToManyUsers(chatIds, content);

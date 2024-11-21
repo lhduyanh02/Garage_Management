@@ -15,6 +15,7 @@ public class CommonParameter {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 38)
     String id;
 
     @Column(name = "param_key", unique = true, nullable = false)

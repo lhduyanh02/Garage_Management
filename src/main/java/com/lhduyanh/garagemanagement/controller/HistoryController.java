@@ -137,4 +137,13 @@ public class HistoryController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_HISTORY'})")
+    @DeleteMapping("/delete-history/{id}")
+    public ApiResponse<Boolean> deleteHistory(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(historyService.deleteHistory(id))
+                .build();
+    }
+
 }

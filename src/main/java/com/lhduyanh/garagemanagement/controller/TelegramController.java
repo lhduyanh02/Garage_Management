@@ -37,9 +37,6 @@ public class TelegramController {
         String communicationKey = commonParameterRepository.findByKey("TELEGRAM_COMMUNICATION_KEY").get().getValue();
 
         String keyHeader = request.getHeader("Communication-Key");
-        log.info(communicationKey);
-        log.info(keyHeader);
-
         if (keyHeader == null || !keyHeader.equals(communicationKey)) {
             return "This is Telegram host only request!";
         }

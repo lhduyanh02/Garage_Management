@@ -16,9 +16,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,8 +28,17 @@ import java.text.ParseException;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
     AuthenticationService authenticationService;
+
+    @PreAuthorize("@securityExpression.hasPermission({'CLEAN_MEMORY'})")
+    @GetMapping("/count-invalidated-token")
+    public ApiResponse<Long> countInvalidatedToken(@RequestParam("start") LocalDateTime start,
+                                                   @RequestParam("end") LocalDateTime end) {
+        return ApiResponse.<Long>builder()
+                .code(1000)
+                .data(authenticationService.countInvalidatedToken(start, end))
+                .build();
+    }
 
     @PostMapping("/token")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, HttpServletResponse response) {
@@ -84,7 +95,6 @@ public class AuthenticationController {
                 .build();
     }
 
-//    @CrossOrigin(origins = "http://127.0.0.1:5500")
     @PostMapping("/refreshToken")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody RefreshTokenRequest request, HttpServletResponse response)
             throws ParseException, JOSEException {
@@ -113,6 +123,16 @@ public class AuthenticationController {
         return ApiResponse.<AuthenticationResponse>builder()
                 .code(1000)
                 .data(result)
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'CLEAN_MEMORY'})")
+    @DeleteMapping("/delete-invalidated-token")
+    public ApiResponse<Boolean> deleteInvalidatedToken(@RequestParam("start") LocalDateTime start,
+                                                   @RequestParam("end") LocalDateTime end) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(authenticationService.deleteInvalidatedTokenByTimeRange(start, end))
                 .build();
     }
 

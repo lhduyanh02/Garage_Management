@@ -72,6 +72,12 @@ $(document).ready(function () {
             url: "/api/roles/all",
             dataType: "json",
             headers: utils.defaultHeaders(),
+            beforeSend: xhr => {
+                const headers = utils.defaultHeaders(); // Lấy headers từ defaultHeaders()
+                for (const key in headers) {
+                    xhr.setRequestHeader(key, headers[key]); // Thiết lập từng header
+                }
+            },
             dataSrc: function (res) {
                 if (res.code == 1000 && res.data) {
                     var data = [];

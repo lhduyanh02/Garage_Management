@@ -290,4 +290,19 @@ public class HistoryService {
         historyRepository.save(history);
         return historyMapper.toHistoryWithDetailsResponse(history);
     }
+
+    public Boolean deleteHistory(String id) {
+        History history = historyRepository.findById(id)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        if (history.getStatus() != HistoryStatus.PAID.getCode() &&
+            history.getStatus() != HistoryStatus.CANCELED.getCode()) {
+            throw new AppException(ErrorCode.HISTORY_CANNOT_DELETE);
+        }
+
+        history.setStatus(HistoryStatus.DELETED.getCode());
+        historyRepository.save(history);
+        return true;
+    }
 }

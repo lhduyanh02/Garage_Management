@@ -18,6 +18,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ public class VnPayController {
     @Autowired
     HistoryRepository historyRepository;
 
+    @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE'})")
     @GetMapping("/create-payment/{orderId}")
     public ApiResponse<String> newPayment(HttpServletRequest req, @PathVariable("orderId") String orderId) throws UnsupportedEncodingException {
 
@@ -51,9 +53,9 @@ public class VnPayController {
                 .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
                 .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
 
-        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()) {
-            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
-        }
+//        if (history.getStatus() != HistoryStatus.PROCEEDING.getCode()) {
+//            throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
+//        }
 
         if (history.getPayableAmount() == 0) {
             throw new AppException(ErrorCode.HISTORY_NO_MONEY);
@@ -158,7 +160,14 @@ public class VnPayController {
                         .orElse(null);
 
         if (responseCode.equals("00")) {
-            historyService.closeHistory(orderId, true);
+            if (history == null) {
+                if (history.getStatus() == HistoryStatus.PROCEEDING.getCode()) {
+                    historyService.closeHistory(orderId, true);
+                } else {
+                    history.setStatus(HistoryStatus.PAID.getCode());
+                    historyRepository.save(history);
+                }
+            }
         }
         if (history != null) {
             httpResponse.sendRedirect(domainName+"/payment-result#amount="+amount

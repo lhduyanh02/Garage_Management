@@ -131,6 +131,14 @@ const ErrorCode = {
     BLANK_OTP: { code: 1126, message: "OTP không được để trống", status: 400 },
     INCORRECT_OTP: { code: 1127, message: "OTP không chính xác, vui lòng kiểm tra lại", status: 400 },
     TELEGRAM_ID_EXISTED: { code: 1128, message: "Telegram ID này đã được đăng ký bởi một hồ sơ khác", status: 400 },
+    BLANK_TITLE: { code: 1129, message: "Tiêu đề của không được để trống", status: 400 },
+    BLANK_CONTENT: { code: 1130, message: "Nội dung thông báo không được để trống", status: 400 },
+    TELEGRAM_MESSAGE_NOT_EXIST: { code: 1131, message: "Thông báo Telegram này không tồn tại", status: 400 },
+    NOT_DRAFT_MESSAGE: { code: 1132, message: "Chỉ có thể chỉnh sửa thông báo ở trạng thái 'Bản nháp'", status: 400 },
+    NO_RECEIVER: { code: 1133, message: "Thông báo chưa có người nhận", status: 400 },
+    HISTORY_NO_MONEY: { code: 1134, message: "Đơn dịch vụ này có số tiền cần thanh toán bằng 0", status: 400 },
+    HISTORY_CANNOT_DELETE: { code: 1135, message: "Chỉ có thể xóa đơn dịch vụ có trạng thái Đã hoàn thành hoặc Đã hủy", status: 400 },
+
 
 };
 

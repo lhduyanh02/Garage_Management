@@ -16,6 +16,7 @@ import java.util.Set;
 public class Permissions {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 38)
     String id;
 
     @Column(nullable = false)
