@@ -157,8 +157,8 @@
           <!-- /.row -->
 
           <div class="row">
-            <div class="col-md-12">
-              <div class="card collapsed-card">
+            <div class="col-12">
+              <div id="statistics-card" class="card">
                 <div class="card-header">
                   <h5 class="card-title">Biểu đồ kinh doanh tuần</h5>
 
@@ -171,19 +171,21 @@
                 <!-- /.card-header -->
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-12">
                       <p class="text-center">
-                        <strong id="recap-time">Sales: 1 Jan, 2014 - 30 Jul, 2014</strong>
+                        <strong id="recap-time"></strong>
                       </p>
 
                       <div class="chart">
                         <!-- Sales Chart Canvas -->
-                        <canvas id="salesChart" height="180" style="height: 180px;"></canvas>
+                        <canvas id="salesChart" height="300" style="height: 300px;"></canvas>
                       </div>
                       <!-- /.chart-responsive -->
                     </div>
-                    <!-- /.col -->
-                    <div class="col-md-4">
+
+
+                    
+                    <!-- <div class="col-md-4">
                       <p class="text-center">
                         <strong>Goal Completion</strong>
                       </p>
@@ -195,7 +197,7 @@
                           <div class="progress-bar bg-primary" style="width: 80%"></div>
                         </div>
                       </div>
-                      <!-- /.progress-group -->
+                      
 
                       <div class="progress-group">
                         Complete Purchase
@@ -205,7 +207,6 @@
                         </div>
                       </div>
 
-                      <!-- /.progress-group -->
                       <div class="progress-group">
                         <span class="progress-text">Visit Premium Page</span>
                         <span class="float-right"><b>480</b>/800</span>
@@ -214,7 +215,6 @@
                         </div>
                       </div>
 
-                      <!-- /.progress-group -->
                       <div class="progress-group">
                         Send Inquiries
                         <span class="float-right"><b>250</b>/500</span>
@@ -222,47 +222,45 @@
                           <div class="progress-bar bg-warning" style="width: 50%"></div>
                         </div>
                       </div>
-                      <!-- /.progress-group -->
-                    </div>
-                    <!-- /.col -->
-                  </div>
-                  <!-- /.row -->
+                    </div> -->
+
                 </div>
                 <!-- ./card-body -->
                 <div class="card-footer">
                   <div class="row">
                     <div class="col-sm-3 col-6">
                       <div class="description-block border-right">
-                        <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 17%</span>
-                        <h5 class="description-header">$35,210.43</h5>
-                        <span class="description-text">TOTAL REVENUE</span>
+                        <span class="description-percentage text-success" style="opacity: 0;"><i class="fas fa-caret-up"></i>#</span>
+                        <h5 id="total-last-week" class="description-header">#</h5>
+                        <span class="description-text">DOANH THU TUẦN TRƯỚC</span>
                       </div>
                       <!-- /.description-block -->
                     </div>
                     <!-- /.col -->
                     <div class="col-sm-3 col-6">
                       <div class="description-block border-right">
-                        <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span>
-                        <h5 class="description-header">$10,390.90</h5>
-                        <span class="description-text">TOTAL COST</span>
+                        <!-- <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span> -->
+                        <span id="grow-up-percent" class="description-percentage text-success"hidden></span>
+                        <h5 id="total-this-week" class="description-header">#</h5>
+                        <span class="description-text">DOANH THU TUẦN NÀY</span>
                       </div>
                       <!-- /.description-block -->
                     </div>
                     <!-- /.col -->
                     <div class="col-sm-3 col-6">
                       <div class="description-block border-right">
-                        <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 20%</span>
-                        <h5 class="description-header">$24,813.53</h5>
-                        <span class="description-text">TOTAL PROFIT</span>
+                        <span class="description-percentage text-success" style="opacity: 0;"><i class="fas fa-caret-up"></i>#</span>
+                        <h5 id="average-last-week" class="description-header">#</h5>
+                        <span class="description-text">TRUNG BÌNH TUẦN TRƯỚC</span>
                       </div>
                       <!-- /.description-block -->
                     </div>
                     <!-- /.col -->
                     <div class="col-sm-3 col-6">
                       <div class="description-block">
-                        <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i> 18%</span>
-                        <h5 class="description-header">1200</h5>
-                        <span class="description-text">GOAL COMPLETIONS</span>
+                        <span id="avg-percent" class="description-percentage "></span>
+                        <h5 id="average-this-week" class="description-header">#</h5>
+                        <span class="description-text">TRUNG BÌNH TUẦN NÀY</span>
                       </div>
                       <!-- /.description-block -->
                     </div>
@@ -376,6 +374,7 @@
   <script src="plugins/jquery-mapael/maps/usa_states.min.js"></script>
   <!-- ChartJS -->
   <script src="plugins/chart.js/Chart.min.js"></script>
+  <script src="/plugins/moment/moment.min.js"></script>
 
   <script src="/dist/js/services/refreshTokenService.js"></script>
 

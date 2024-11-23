@@ -11,8 +11,9 @@ var Toast = Swal.mixin({
 
 var serviceDataTable;
 var serviceList = [];
+var revenueList = [];
 
-$(function () {
+$(async function () {
     "use strict";
 
     $.ajax({
@@ -213,51 +214,119 @@ $(function () {
         },
     });
 
+    let thisWeekRevenue = Array(7).fill(0); // Doanh thu tuần này
+    let lastWeekRevenue = Array(7).fill(0); // Doanh thu tuần trước
+    let thisWeekDateMap = {}; // Map ngày cho tuần này
+    let lastWeekDateMap = {}; // Map ngày cho tuần trước
+    const weekdays = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]; // Nhãn trục X
+
+    let totalLastWeek = 0;
+    let totalThisWeek = 0;
+
+    let res;
+
+    try {
+        res = await $.ajax({
+            type: "GET",
+            url: "/api/history/daily-revenue" +
+                `?start=${moment().startOf('isoWeek').subtract(7, 'days').format('YYYY-MM-DDTHH:mm:ss')}` +
+                `&end=${moment().endOf('isoWeek').format('YYYY-MM-DDTHH:mm:ss')}`,
+            headers: utils.defaultHeaders(),
+            dataType: "json",
+        });
+    } catch (error) {
+        $('#statistics-card').prop('hidden', true);
+        console.error(error);
+    }
+
+    if (res && res.code === 1000) {
+        let revenueList = res.data;
     
+        // Kiểm tra nếu res.data là một object (Map<LocalDate, Double>)
+        if (revenueList && typeof revenueList === "object") {
+            // Tính thời gian tuần trước và tuần này
+            let startOfLastWeek = moment().startOf('isoWeek').subtract(7, 'days');
+            let endOfLastWeek = moment().endOf('isoWeek').subtract(7, 'days');
+            let startOfThisWeek = moment().startOf('isoWeek');
+            let endOfThisWeek = moment().endOf('isoWeek');
+    
+            // Duyệt qua Map và phân loại doanh thu theo tuần
+            Object.entries(revenueList).forEach(([date, revenue]) => {
+                const dayIndex = moment(date).isoWeekday() - 1; // Chỉ số từ 0 đến 6 (Thứ Hai - Chủ Nhật)
+    
+                // Gán doanh thu vào tuần tương ứng
+                if (moment(date).isBetween(startOfLastWeek, endOfLastWeek, 'day', '[]')) {
+                    lastWeekRevenue[dayIndex] = revenue;
+                    totalLastWeek += revenue;
+                    lastWeekDateMap[dayIndex] = moment(date).format('DD/MM/YYYY');
+                } else if (moment(date).isBetween(startOfThisWeek, endOfThisWeek, 'day', '[]')) {
+                    thisWeekRevenue[dayIndex] = revenue;
+                    totalThisWeek += revenue;
+                    thisWeekDateMap[dayIndex] = moment(date).format('DD/MM/YYYY');
+                }
+            });
+    
+            for (let i = 0; i < 7; i++) {
+                const dayOfWeek = moment(startOfThisWeek).add(i, 'days'); // Ngày tuần này
+                const dayOfLastWeek = moment(startOfLastWeek).add(i, 'days'); // Ngày tuần trước
+            
+                // Gán ngày vào map
+                thisWeekDateMap[i] = dayOfWeek.format('DD/MM/YYYY');
+                lastWeekDateMap[i] = dayOfLastWeek.format('DD/MM/YYYY');
+            
+                // Doanh thu mặc định là 0 nếu không có dữ liệu
+                if (!thisWeekRevenue[i]) {
+                    thisWeekRevenue[i] = 0;
+                }
+                if (!lastWeekRevenue[i]) {
+                    lastWeekRevenue[i] = 0;
+                }
+            }
+        } else {
+            console.error("Dữ liệu trả về không phải là Map<LocalDate, Double>:", revenueList);
+        }
+    } else {
+        $('#statistics-card').prop('hidden', true);
+        console.error(res);
+    }
 
-    var salesChartCanvas = $("#salesChart").get(0).getContext("2d");
+    // Thời gian thống kê
+    let startTime = moment().startOf('isoWeek').subtract(7, 'days');
+    let endTime = moment().endOf('isoWeek');
+    let recapTime = `Thống kê 2 tuần gần nhất (${startTime.format('DD/MM/YYYY')} - ${endTime.format('DD/MM/YYYY')})`;
+    $('#recap-time').text(recapTime);
 
-    var salesChartData = {
-        labels: [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-        ],
+    // Cấu hình dữ liệu cho biểu đồ
+    let salesChartData = {
+        labels: weekdays, // Dùng Thứ Hai - Chủ Nhật làm nhãn
         datasets: [
             {
-                label: "Digital Goods",
-                backgroundColor: "rgba(60,141,188, 0.8)",
+                label: "Doanh thu tuần này (VND)",
+                backgroundColor: "rgba(60,141,188, 0.7)",
                 borderColor: "rgba(60,141,188,0.8)",
-                pointRadius: true,
-                pointColor: "#3b8bba",
-                pointStrokeColor: "rgba(60,141,188,1)",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(60,141,188,1)",
-                data: [28, 48, 40, 19, 86, 27, 90],
+                pointRadius: 6,
+                pointBackgroundColor: "#ffffff",
+                pointBorderColor: "rgba(60,141,188,1)",
+                data: thisWeekRevenue,
             },
             {
-                label: "Electronics",
-                backgroundColor: "rgba(210, 214, 222, 1)",
-                borderColor: "rgba(210, 214, 222, 1)",
-                pointRadius: true,
-                pointColor: "rgba(210, 214, 222, 1)",
-                pointStrokeColor: "#c1c7d1",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(220,220,220,1)",
-                data: [65, 59, 80, 81, 56, 55, 40],
+                label: "Doanh thu tuần trước (VND)",
+                backgroundColor: "rgba(234, 234, 234, 0.59)",
+                borderColor: "rgba(231, 222, 205, 0.91)",
+                pointRadius: 6,
+                pointBackgroundColor: "#ffffff",
+                pointBorderColor: "rgba(210, 214, 222, 1)",
+                data: lastWeekRevenue,
             },
         ],
     };
 
-    var salesChartOptions = {
+    // Cấu hình biểu đồ
+    let salesChartOptions = {
         maintainAspectRatio: false,
         responsive: true,
         legend: {
-            display: false,
+            display: true,
         },
         scales: {
             xAxes: [
@@ -269,27 +338,232 @@ $(function () {
             ],
             yAxes: [
                 {
-                    gridLines: {
-                        display: false,
+                    type: "linear",
+                    position: "left",
+                    ticks: {
+                        beginAtZero: true,
+                        callback: function (value) {
+                            return utils.formatVNDCurrency(value); // Định dạng giá trị theo VND
+                        },
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Doanh thu (VND)",
                     },
                 },
             ],
         },
+        tooltips: {
+            callbacks: {
+                label: function (tooltipItem) {
+                    const dayIndex = tooltipItem.index;
+                    const datasetIndex = tooltipItem.datasetIndex;
+                    const revenue = tooltipItem.yLabel;
+
+                    // Hiển thị ngày từ map tương ứng
+                    const date =
+                        datasetIndex === 0
+                            ? thisWeekDateMap[dayIndex] // Tuần này
+                            : lastWeekDateMap[dayIndex]; // Tuần trước
+
+                    return `Ngày: ${date}, Doanh thu: ${utils.formatVNDCurrency(revenue)}`;
+                },
+            },
+        },
     };
 
-    // This will get the first returned node in the jQuery collection.
-    // eslint-disable-next-line no-unused-vars
-    var salesChart = new Chart(salesChartCanvas, {
+    // Vẽ biểu đồ
+    let salesChartCanvas = $("#salesChart").get(0).getContext("2d");
+    let salesChart = new Chart(salesChartCanvas, {
         type: "line",
         data: salesChartData,
         options: salesChartOptions,
     });
 
+    $('#total-last-week').text(utils.formatVNDCurrency(totalLastWeek));
+    $('#total-this-week').text(utils.formatVNDCurrency(totalThisWeek));
+
+    let percent = totalThisWeek / totalLastWeek * 100;
+
+    if (percent > 100) {
+        $('#grow-up-percent').prop('hidden', false);
+        $('#grow-up-percent').html(`<i class="fas fa-caret-up"></i> ${Math.round(percent-100)}%`)
+    }
+
+    let daysOfThisWeek = moment().isoWeekday() - 1; 
+    const lastWeekAvg = totalLastWeek/7;
+    const thisWeekAvg = totalThisWeek/daysOfThisWeek;
+
+    $('#average-last-week').text(`${utils.formatVNDCurrency(lastWeekAvg)} / ngày`);
+    $('#average-this-week').text(`${utils.formatVNDCurrency(thisWeekAvg)} / ngày`);
+
+    let avgPercent = thisWeekAvg / lastWeekAvg * 100;
+
+    if (avgPercent > 100) {
+        $('#avg-percent').addClass('text-success');
+        $('#avg-percent').html(`<i class="fas fa-caret-up"></i> ${Math.round(avgPercent - 100)}%`)
+    } else if (avgPercent < 100) {
+        $('#avg-percent').addClass('text-danger');
+        $('#avg-percent').html(`<i class="fas fa-caret-down"></i> ${Math.round(100 - avgPercent)}%`)
+    } else {
+        $('#avg-percent').addClass('text-warning');
+        $('#avg-percent').html(`<i class="fas fa-caret-left"></i> ${Math.round(avgPercent-100)}%`)
+    }
+
+//     let dateLabels = [];
+//     let revenues = [];
+
+//     try {
+//         res = await $.ajax({
+//             type: "GET",
+//             url: "/api/history/daily-revenue" + `?start=${moment().subtract(7, 'days').format('YYYY-MM-DDTHH:mm:ss')}&end=${moment().subtract(1, 'days').format('YYYY-MM-DDTHH:mm:ss')}`,
+//             headers: utils.defaultHeaders(),
+//             dataType: "json",
+//         });
+//     } catch (error) {
+//         $('#statistics-card').prop('hidden', true);
+//         console.error(error);
+//     }
+
+//     if (res && res.code == 1000) {
+//         revenueList = [];
+
+//         // Duyệt qua các ngày và doanh thu trong response và lưu vào mảng
+//         for (let date in res.data) {
+//             revenueList.push({ date: date, revenue: res.data[date] });
+//         }
+
+//         // In ra mảng
+//         console.log(revenueList);
+
+//         revenueList.forEach(function(item) {
+//             // Chuyển ngày từ yyyy-mm-dd sang dd/mm/yyyy
+//             const formattedDate = moment(item.date).format('DD/MM/YYYY');
+//             // Thêm vào mảng dateLabels
+//             dateLabels.push(formattedDate);
+    
+//             // Định dạng doanh thu thành VND và thêm vào mảng Revenues
+//             const formattedRevenue = utils.formatVNDCurrency(item.revenue);
+//             revenues.push(item.revenue);
+    
+//             // Hiển thị ra console để kiểm tra
+//             console.log(`Ngày: ${formattedDate}, Doanh thu: ${formattedRevenue}`);
+//         });
+
+//         console.log("Date Labels: ", dateLabels);
+//         console.log("Date Revenues: ", revenues);
+//     }
+
+//     let timeNow = moment();
+//     let endTime = utils.getTimeAsJSON(timeNow.subtract(1, 'days'));
+//     let startTime = utils.getTimeAsJSON(timeNow.subtract(7, 'days'));
+//     let startText = `${startTime.date}/${startTime.mon}/${startTime.year}`;
+//     let endText = `${endTime.date}/${endTime.mon}/${endTime.year}`;    
+
+//     let recapTime = `Thống kê 7 ngày gần nhất (${startText} - ${endText})`
+//     $('#recap-time').text(recapTime);
+
+//     var salesChartCanvas = $("#salesChart").get(0).getContext("2d");
+
+//     var salesChartData = {
+//         labels: dateLabels,
+//         datasets: [
+//             {
+//                 label: "Doanh thu (VND)",
+//                 yAxisID: "y1", // Liên kết với trục Y1
+//                 backgroundColor: "rgba(60,141,188, 0.7)",
+//                 borderColor: "rgba(60,141,188,0.8)",
+//                 pointRadius: 6, // Kích thước điểm
+//                 pointBackgroundColor: "#ffffff", // Màu nền điểm
+//                 pointBorderColor: "rgba(60,141,188,1)", // Màu viền điểm
+//                 data: revenues,
+//             },
+//             {
+//                 label: "Electronics (in millions)",
+//                 yAxisID: "y2", // Liên kết với trục Y2
+//                 backgroundColor: "rgba(234, 234, 234, 0.59)",
+//                 borderColor: "rgba(231, 222, 205, 0.91)",
+//                 pointRadius: 6, // Kích thước điểm
+//                 pointBackgroundColor: "#ffffff", // Màu nền điểm
+//                 pointBorderColor: "rgba(210, 214, 222, 1)", // Màu viền điểm
+//                 data: [65, 59, 80, 81, 56, 55, 40],
+//             },
+//         ],
+//     };
+    
+//     var salesChartOptions = {
+//         maintainAspectRatio: false,
+//         responsive: true,
+//         legend: {
+//             display: true,
+//         },
+//         scales: {
+//             xAxes: [
+//                 {
+//                     gridLines: {
+//                         display: false,
+//                     },
+//                 },
+//             ],
+//             yAxes: [
+//                 {
+//                     id: "y1", // ID của trục Y1
+//                     type: "linear",
+//                     position: "left", // Trục bên trái
+//                     ticks: {
+//                         beginAtZero: true,
+//                         callback: function(value) {
+//                             // Định dạng giá trị trục Y1 (Doanh thu) thành VND
+//                             return utils.formatVNDCurrency(value);
+//                         },
+//                     },
+//                     scaleLabel: {
+//                         display: true,
+//                         labelString: "Doanh thu (VND)",
+//                     },
+//                 },
+//                 {
+//                     id: "y2", // ID của trục Y2
+//                     type: "linear",
+//                     position: "right", // Trục bên phải
+//                     ticks: {
+//                         beginAtZero: true,
+//                     },
+//                     scaleLabel: {
+//                         display: true,
+//                         labelString: "Electronics (in millions)",
+//                     },
+//                 },
+//             ],
+//         },tooltips: {
+//             callbacks: {
+//                 // Định dạng lại giá trị trong tooltip (khi hover vào điểm)
+//                 label: function(tooltipItem) {
+//                     var datasetIndex = tooltipItem.datasetIndex;
+//                     var value = tooltipItem.yLabel;
+                    
+//                     // Nếu là doanh thu, định dạng bằng utils.formatVNDCurrency
+//                     if (datasetIndex === 0) {
+//                         return `Doanh thu ngày: ${utils.formatVNDCurrency(value)}`;
+//                     }
+    
+//                     // Nếu là dữ liệu electronics, bạn có thể định dạng theo kiểu khác nếu cần
+//                     return value;
+//                 }
+//             }
+//         },
+//     };
+    
+//     // Tạo biểu đồ
+//     var salesChart = new Chart(salesChartCanvas, {
+//         type: "line",
+//         data: salesChartData,
+//         options: salesChartOptions,
+//     });
+    
 
 
-
-
-
+return;
     
 
     //---------------------------
@@ -487,4 +761,20 @@ $(function () {
     // })
 });
 
-// lgtm [js/unused-local-variable]
+
+
+function getLastNDays(n) {
+    const labels = [];
+    const today = new Date(); // Ngày hiện tại
+    today.setDate(today.getDate() - 1); // Lấy ngày hôm qua
+
+    for (let i = n - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i); // Lùi lại ngày tương ứng
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(
+            date.getMonth() + 1
+        ).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`; // Định dạng dd/mm/yy
+        labels.push(formattedDate);
+    }
+    return labels;
+}

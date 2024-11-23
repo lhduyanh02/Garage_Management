@@ -15,10 +15,11 @@ let info;
 let responseCode;
 
 $(document).ready(function () {
-    amount = utils.getHashParam("amount");
+    amount = utils.getHashParam("amount").substring(0, utils.getHashParam("amount").length - 2);
     bankCode = utils.getHashParam("bankCode");
     info = utils.getHashParam("info");
     responseCode = utils.getHashParam("responseCode");
+    amount = Number(amount);    
 
     if (responseCode == null || amount == null) {
         Swal.fire({
@@ -39,7 +40,7 @@ $(document).ready(function () {
         $('#detail-message').text(detail);
 
         let infoHtml = "";
-        infoHtml += `<b>Số tiền:</b> ${amount}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
+        infoHtml += `<b>Số tiền:</b> ${utils.formatVNDCurrency(amount)}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
         $('#info').html(infoHtml);
     } 
     else if (responseCode == "07") {
@@ -51,7 +52,7 @@ $(document).ready(function () {
         $("#detail-message").text(detail);
 
         let infoHtml = "";
-        infoHtml += `<b>Số tiền:</b> ${amount}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
+        infoHtml += `<b>Số tiền:</b> ${utils.formatVNDCurrency(amount)}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
         $('#info').html(infoHtml);
     } 
     else {
@@ -63,7 +64,7 @@ $(document).ready(function () {
         $("#detail-message").text(detail);
 
         let infoHtml = "";
-        infoHtml += `<b>Số tiền:</b> ${amount}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
+        infoHtml += `<b>Số tiền:</b> ${utils.formatVNDCurrency(amount)}<br><b>Mã ngân hàng:</b> ${bankCode}<br><b>Nội dung:</b><br><i>${info}</i>`;
         $('#info').html(infoHtml);
     }
 

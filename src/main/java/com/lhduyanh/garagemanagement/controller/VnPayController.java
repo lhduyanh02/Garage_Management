@@ -160,7 +160,10 @@ public class VnPayController {
                         .orElse(null);
 
         if (responseCode.equals("00")) {
-            if (history == null) {
+            log.info("response code == 00");
+            log.info(orderId);
+            log.warn(history.getId());
+            if (history != null) {
                 if (history.getStatus() == HistoryStatus.PROCEEDING.getCode()) {
                     historyService.closeHistory(orderId, true);
                 } else {

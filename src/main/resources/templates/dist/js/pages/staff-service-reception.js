@@ -1429,12 +1429,12 @@ $("#save-btn").click(function () {
                         icon: "success",
                         showConfirmButton: false,
                         timer: 2000,
-                        backdrop: `
-                            rgba(0,0,123,0.4)
-                            url("https://sweetalert2.github.io/images/nyan-cat.gif")
-                            left top
-                            no-repeat
-                        `,
+                        // backdrop: `
+                        //     rgba(0,0,123,0.4)
+                        //     url("https://sweetalert2.github.io/images/nyan-cat.gif")
+                        //     left top
+                        //     no-repeat
+                        // `,
                     });
                     loadCarInfoByCar(response.data);
                 } else {
@@ -1611,6 +1611,20 @@ $("#add-detail-btn").click(async function () {
         });
         return;
     }
+
+    $.ajax({
+        type: "GET",
+        url: "/api/services/enable-with-price",
+        dataType: "json",
+        success: function (response) {
+            if (response.code == 1000 && response.data) {
+                serviceOptionList = response.data;
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(utils.getXHRInfo(xhr));
+        },
+    });
 
     clear_modal();
     $('#modal_id').modal({

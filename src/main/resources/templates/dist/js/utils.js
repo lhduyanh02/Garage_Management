@@ -374,8 +374,12 @@ export function formatCurrent(inputValue) {
 export function formatVNDCurrency(amount) {
     // Kiểm tra giá trị null hoặc không phải là số
     if (amount == null || isNaN(amount)) {
+        console.log("Số tiền không hợp lệ");
         return "Không hợp lệ";
     }
+    
+    // Chuyển đổi amount thành kiểu số (nếu chưa phải là số)
+    amount = Number(amount);
     
     // Định dạng thành tiền tệ Việt Nam (VND)
     return amount.toLocaleString("vi-VN", {

@@ -74,4 +74,12 @@ public interface HistoryRepository extends JpaRepository<History, String> {
             """)
     List<History> getAllHistoryByStatus(@Param("status") Integer status);
 
+    @Query("SELECT FUNCTION('DATE', h.serviceDate) AS serviceDay, SUM(h.payableAmount) AS totalRevenue " +
+            "FROM History h " +
+            "WHERE h.status = 1 AND " +
+            "h.serviceDate BETWEEN :start AND :end " +
+            "GROUP BY FUNCTION('DATE', h.serviceDate) " +
+            "ORDER BY FUNCTION('DATE', h.serviceDate)")
+    List<Object[]> findDailyRevenue(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }

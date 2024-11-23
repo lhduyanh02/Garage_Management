@@ -22,8 +22,12 @@ import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
@@ -113,6 +117,35 @@ public class HistoryService {
                 .map(historyMapper::toHistoryResponse)
                 .sorted(Comparator.comparing(HistoryResponse::getServiceDate).reversed())
                 .toList();
+    }
+
+    // Bieu do 7 ngay gan nhat
+    public Map<LocalDate, Double> getDailyRevenue(LocalDateTime start, LocalDateTime end) {
+        // Lấy giờ bắt đầu của ngày start và giờ kết thúc của ngày end
+        LocalDateTime startOfDay = start.toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = end.toLocalDate().atTime(LocalTime.MAX);
+
+        // Gọi repository để lấy dữ liệu
+        List<Object[]> rawData = historyRepository.findDailyRevenue(startOfDay, endOfDay);
+
+        // Chuyển dữ liệu từ database sang Map
+        Map<LocalDate, Double> revenueMap = rawData.stream()
+                .collect(Collectors.toMap(
+                        row -> ((java.sql.Date) row[0]).toLocalDate(), // Chuyển ngày từ Object
+                        row -> row[1] != null ? (Double) row[1] : 0.0 // Tổng doanh thu
+                ));
+
+        // Tạo danh sách ngày từ start đến end
+        Map<LocalDate, Double> result = new LinkedHashMap<>();
+        LocalDate current = startOfDay.toLocalDate();
+        LocalDate last = endOfDay.toLocalDate();
+
+        while (!current.isAfter(last)) {
+            result.put(current, revenueMap.getOrDefault(current, 0.0));
+            current = current.plusDays(1);
+        }
+
+        return result;
     }
 
     public List<HistoryResponse> getAllProceedingHistory() {
