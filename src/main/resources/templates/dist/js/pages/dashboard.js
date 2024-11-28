@@ -240,6 +240,7 @@ $(async function () {
     }
 
     if (res && res.code === 1000) {
+        $('#statistics-card').prop('hidden', false);
         let revenueList = res.data;
     
         // Kiểm tra nếu res.data là một object (Map<LocalDate, Double>)
@@ -386,11 +387,11 @@ $(async function () {
     let percent = totalThisWeek / totalLastWeek * 100;
 
     if (percent > 100) {
-        $('#grow-up-percent').prop('hidden', false);
+        $('#grow-up-percent').css("opacity", "1");
         $('#grow-up-percent').html(`<i class="fas fa-caret-up"></i> ${Math.round(percent-100)}%`)
     }
 
-    let daysOfThisWeek = moment().isoWeekday() - 1; 
+    let daysOfThisWeek = moment().isoWeekday(); 
     const lastWeekAvg = totalLastWeek/7;
     const thisWeekAvg = totalThisWeek/daysOfThisWeek;
 

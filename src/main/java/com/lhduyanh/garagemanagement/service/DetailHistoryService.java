@@ -1,8 +1,9 @@
 package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.DetailHistoryRequest;
-import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.*;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
 import com.lhduyanh.garagemanagement.enums.HistoryStatus;
 import com.lhduyanh.garagemanagement.enums.OptionStatus;
 import com.lhduyanh.garagemanagement.enums.ServiceStatus;
@@ -15,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @org.springframework.stereotype.Service
@@ -28,8 +31,10 @@ public class DetailHistoryService {
     ServiceRepository serviceRepository;
     OptionRepository optionRepository;
     PriceRepository priceRepository;
+    CommonParameterRepository commonParameterRepository;
 
     HistoryService historyService;
+    TelegramService telegramService;
 
     public List<DetailHistoryRequest> mergeDetails(List<DetailHistoryRequest> request) {
         // Nhóm các detail theo serviceId, optionId và discount
@@ -113,10 +118,6 @@ public class DetailHistoryService {
 
     @Transactional
     public HistoryWithDetailsResponse updateListDetailHistory(String historyId, List<DetailHistoryRequest> request) {
-        if(request == null || request.isEmpty()){
-            throw new AppException(ErrorCode.DETAIL_LIST_EMPTY);
-        }
-
         if (historyId == null || historyId == "") {
             throw new AppException(ErrorCode.BLANK_HISTORY);
         }
@@ -129,6 +130,10 @@ public class DetailHistoryService {
             throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
         }
 
+        if(request == null || request.isEmpty()){
+            throw new AppException(ErrorCode.DETAIL_LIST_EMPTY);
+        }
+
         detailHistoryRepository.deleteAll(history.getDetails());
         history.getDetails().clear();
         historyRepository.save(history);
@@ -139,7 +144,100 @@ public class DetailHistoryService {
             newDetailHistory(history, detail);
         }
 
-        return historyService.updateHistoryById(history.getId());
+        var response = historyService.updateHistoryById(history.getId());
+
+        String body = """
+                        <b>📢 CẬP NHẬT ĐƠN DỊCH VỤ</b>
+
+                        <u>Thông tin xe:</u>
+                        <pre><code><b>Mẫu xe: </b>{0}
+                        <b>BKS: </b>{1}
+                        <b>Màu xe: </b>{2}</code></pre>
+
+                        <u>Đơn dịch vụ:</u> <i>{3}</i>
+                        <b>Tóm tắt vấn đề:</b>
+                        {4}
+
+                        <b>Chẩn đoán, đề xuất:</b>
+                        {5}
+
+                        <u>Cố vấn dịch vụ:</u>
+                        <pre><code><b>Cố vấn: </b>{6}
+                        <b>Liên hệ: </b>{7}</code></pre>
+
+                        <u>Dịch vụ đã chọn:</u>
+                        <pre><code>{8}</code></pre>
+
+                        <i>Đã tạo lúc: {9}.</i>
+                        """;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+        CarResponse carInfo = response.getCar();
+        String model = carInfo.getModel().getBrand().getBrand() + " " + carInfo.getModel().getModel();
+        String numPlate = carInfo.getNumPlate() + " (" + carInfo.getPlateType().getType() +")";
+
+        UserWithAccountsResponse adv = response.getAdvisor();
+        String advContact = "";
+        if (adv.getPhone() != null && !adv.getPhone().isEmpty()) {
+            advContact = adv.getPhone() + " ";
+        }
+        AccountSimpleResponse acc = adv.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).findFirst().orElse(null);
+        if (acc != null) {
+            advContact += acc.getEmail();
+        }
+
+        String serviceList = "";
+        List<DetailHistoryResponse> details = response.getDetails();
+        if (!details.isEmpty()) {
+            int count = 1;
+            for (DetailHistoryResponse detail : details) {
+                String optionHtml = "";
+                if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                    optionHtml = " <i>("+detail.getOptionName()+")</i>";
+                }
+                serviceList += count +". "+detail.getServiceName() + optionHtml+"\n";
+                count++;
+            }
+        } else {
+            serviceList = "Trống\n";
+        }
+
+        String summary = response.getSummary();
+        if (summary == null || summary.isEmpty()) {
+            summary = "<i>Không có tóm tắt</i>";
+        }
+
+        String diagnose = response.getDiagnose();
+        if (diagnose == null || diagnose.isEmpty()) {
+            diagnose = "<i>Không có chẩn đoán</i>";
+        }
+
+        String message = MessageFormat.format(body,
+                model,
+                numPlate,
+                carInfo.getColor(),
+                response.getId(),
+                summary,
+                diagnose,
+                adv.getName(),
+                advContact,
+                serviceList,
+                response.getServiceDate().format(formatter)
+        );
+
+        var chatID = commonParameterRepository.findByKey("ORDER_NOTIFY").orElse(null);
+
+        if (chatID != null) {
+            try {
+                telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi thông báo Telegram");
+                e.printStackTrace();
+            }
+        }
+
+        return response;
     }
 
     @Transactional
@@ -155,9 +253,64 @@ public class DetailHistoryService {
         detailHistoryRepository.deleteAll(history.getDetails());
         history.getDetails().clear();
         historyRepository.save(history);
+        var response = historyService.updateHistoryById(id);
 
+        String body = """   
+                        <b>📢 ĐƠN BỊ XÓA DANH SÁCH DỊCH VỤ ❌</b>
+                       
+                        <u>Thông tin xe:</u>
+                        <pre><code><b>Mẫu xe: </b>{0}
+                        <b>BKS: </b>{1}
+                        <b>Màu xe: </b>{2}
+                        <b>Đơn dịch vụ:</b> {3}</code></pre>
+                        
+                        <u>Cố vấn dịch vụ:</u>
+                        <pre><code><b>Cố vấn: </b>{4}
+                        <b>Liên hệ: </b>{5}</code></pre>
+                        
+                        <b>Đơn dịch vụ này vừa được danh sách dịch vụ đã đăng ký!</b>
+                        
+                        <i>Đơn đã tạo lúc: {6}.</i>
+                        """;
 
-        return historyService.updateHistoryById(id);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+        CarResponse carInfo = response.getCar();
+        String model = carInfo.getModel().getBrand().getBrand() + " " + carInfo.getModel().getModel();
+        String numPlate = carInfo.getNumPlate() + " (" + carInfo.getPlateType().getType() +")";
+
+        UserWithAccountsResponse adv = response.getAdvisor();
+        String advContact = "";
+        if (adv.getPhone() != null && !adv.getPhone().isEmpty()) {
+            advContact = adv.getPhone() + " ";
+        }
+        AccountSimpleResponse acc = adv.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).findFirst().orElse(null);
+        if (acc != null) {
+            advContact += acc.getEmail();
+        }
+
+        String message = MessageFormat.format(body,
+                model,
+                numPlate,
+                carInfo.getColor(),
+                response.getId(),
+                adv.getName(),
+                advContact,
+                response.getServiceDate().format(formatter)
+        );
+
+        var chatID = commonParameterRepository.findByKey("ORDER_NOTIFY").orElse(null);
+
+        if (chatID != null) {
+            try {
+                telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi thông báo Telegram");
+                e.printStackTrace();
+            }
+        }
+
+        return response;
     }
 
     @Transactional
@@ -170,14 +323,106 @@ public class DetailHistoryService {
             throw new AppException(ErrorCode.NOT_PROCEEDING_HISTORY);
         }
 
-        DetailHistory detail = detailHistoryRepository.findById(detailId)
+        DetailHistory selectedDetail = detailHistoryRepository.findById(detailId)
                 .orElseThrow(() -> new AppException(ErrorCode.DETAIL_NOT_EXIST));
 
-        detailHistoryRepository.delete(detail);
-        history.getDetails().remove(detail);
+        detailHistoryRepository.delete(selectedDetail);
+        history.getDetails().remove(selectedDetail);
         historyRepository.save(history);
+        var response =  historyService.updateHistoryById(historyId);
 
-        return historyService.updateHistoryById(historyId);
+        String body = """
+                        <b>📢 XÓA DỊCH VỤ TRONG ĐƠN DỊCH VỤ ❗</b>
+
+                        <u>Thông tin xe:</u>
+                        <pre><code><b>Mẫu xe: </b>{0}
+                        <b>BKS: </b>{1}
+                        <b>Màu xe: </b>{2}</code></pre>
+
+                        <u>Đơn dịch vụ:</u> <i>{3}</i>
+                        <b>Tóm tắt vấn đề:</b>
+                        {4}
+
+                        <b>Chẩn đoán, đề xuất:</b>
+                        {5}
+
+                        <u>Cố vấn dịch vụ:</u>
+                        <pre><code><b>Cố vấn: </b>{6}
+                        <b>Liên hệ: </b>{7}</code></pre>
+
+                        <u>Dịch vụ đã chọn:</u>
+                        <pre><code>{8}</code></pre>
+
+                        <i>Đã tạo lúc: {9}.</i>
+                        """;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+        CarResponse carInfo = response.getCar();
+        String model = carInfo.getModel().getBrand().getBrand() + " " + carInfo.getModel().getModel();
+        String numPlate = carInfo.getNumPlate() + " (" + carInfo.getPlateType().getType() +")";
+
+        UserWithAccountsResponse adv = response.getAdvisor();
+        String advContact = "";
+        if (adv.getPhone() != null && !adv.getPhone().isEmpty()) {
+            advContact = adv.getPhone() + " ";
+        }
+        AccountSimpleResponse acc = adv.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).findFirst().orElse(null);
+        if (acc != null) {
+            advContact += acc.getEmail();
+        }
+
+        String serviceList = "";
+        List<DetailHistoryResponse> details = response.getDetails();
+        if (!details.isEmpty()) {
+            int count = 1;
+            for (DetailHistoryResponse detail : details) {
+                String optionHtml = "";
+                if (detail.getOptionName() != null && !detail.getOptionName().isEmpty()) {
+                    optionHtml = " <i>("+detail.getOptionName()+")</i>";
+                }
+                serviceList += count +". "+detail.getServiceName() + optionHtml+"\n";
+                count++;
+            }
+        } else {
+            serviceList = "Trống\n";
+        }
+
+        String summary = response.getSummary();
+        if (summary == null || summary.isEmpty()) {
+            summary = "<i>Không có tóm tắt</i>";
+        }
+
+        String diagnose = response.getDiagnose();
+        if (diagnose == null || diagnose.isEmpty()) {
+            diagnose = "<i>Không có chẩn đoán</i>";
+        }
+
+        String message = MessageFormat.format(body,
+                model,
+                numPlate,
+                carInfo.getColor(),
+                response.getId(),
+                summary,
+                diagnose,
+                adv.getName(),
+                advContact,
+                serviceList,
+                response.getServiceDate().format(formatter)
+        );
+
+        var chatID = commonParameterRepository.findByKey("ORDER_NOTIFY").orElse(null);
+
+        if (chatID != null) {
+            try {
+                telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi thông báo Telegram");
+                e.printStackTrace();
+            }
+        }
+
+        return response;
     }
 
 }

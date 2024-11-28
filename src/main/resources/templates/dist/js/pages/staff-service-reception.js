@@ -220,54 +220,77 @@ $(document).ready(function () {
         },
     });
 
-    $.ajax({
-        type: "GET",
-        url: "/api/brands/fetch-model",
-        dataType: "json",
-        headers: {
-            Authorization: "",
-        },
-        success: function (res) {
-            if (res.code == 1000 && res.data) {
-                brandModelList = res.data;
+    // Hàm fetch và cập nhật dữ liệu Brand và Model
+    function fetchBrandsAndModels(firstLoad) {
+        const selectedBrand = firstLoad ? "" : $("#brand-select").val();
+        const selectedModel = firstLoad ? "" : $("#model-select").val();
 
-                $("#brand-select").empty();
-                $("#model-select").empty();
-                $.each(res.data, function (idx, val) {
-                    $("#brand-select").append(
-                        `<option value = "${val.id}">${val.brand}</option>`
-                    );
-                });
-                $("#brand-select").val("").trigger("change");
-            }
-        },
-    });
+        $.ajax({
+            type: "GET",
+            url: "/api/brands/fetch-model",
+            dataType: "json",
+            headers: { Authorization: "" },
+            success: function (res) {
+                if (res.code == 1000 && res.data) {
+                    brandModelList = res.data;
 
-    $.ajax({
-        type: "GET",
-        url: "/api/plate-types",
-        dataType: "json",
-        headers: {
-            Authorization: "",
-        },
-        success: function (res) {
-            if (res.code == 1000 && res.data) {
-                plateTypeList = res.data;
+                    // Làm mới danh sách
+                    $("#brand-select").empty();
+                    $("#model-select").empty();
+                    $.each(res.data, function (idx, val) {
+                        $("#brand-select").append(
+                            `<option value="${val.id}">${val.brand}</option>`
+                        );
+                    });
 
-                $("#plate-type-select").empty();
-                $.each(res.data, function (idx, val) {
-                    $("#plate-type-select").append(
-                        `<option value="${val.id}">${val.type}</option>`
-                    );
-                });
+                    // Đặt giá trị
+                    $("#brand-select").val(selectedBrand).trigger("change");
+                    $("#model-select").val(selectedModel).trigger("change");
+                }
+            },
+        });
+    }
 
-                $("#plate-type-select").val("").trigger("change");
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error(utils.getXHRInfo(xhr));
-        },
-    });
+    // Hàm fetch và cập nhật dữ liệu Plate Types
+    function fetchPlateTypes(firstLoad) {
+        const selectedPlateType = firstLoad ? "" : $("#plate-type-select").val();
+
+        $.ajax({
+            type: "GET",
+            url: "/api/plate-types",
+            dataType: "json",
+            headers: { Authorization: "" },
+            success: function (res) {
+                if (res.code == 1000 && res.data) {
+                    plateTypeList = res.data;
+
+                    // Làm mới danh sách
+                    $("#plate-type-select").empty();
+                    $.each(res.data, function (idx, val) {
+                        $("#plate-type-select").append(
+                            `<option value="${val.id}">${val.type}</option>`
+                        );
+                    });
+
+                    // Đặt giá trị
+                    $("#plate-type-select").val(selectedPlateType).trigger("change");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(utils.getXHRInfo(xhr));
+            },
+        });
+    }
+
+    // Gọi fetch lần đầu tiên với firstLoad = true
+    fetchBrandsAndModels(true);
+    fetchPlateTypes(true);
+
+    // Gọi fetch định kỳ mỗi 30 giây với firstLoad = false
+    setInterval(() => {
+        fetchBrandsAndModels(false);
+        fetchPlateTypes(false);
+    }, 10 * 1000);
 
     $.ajax({
         type: "GET",
@@ -1425,7 +1448,7 @@ $("#save-btn").click(function () {
                 if (response.code == 1000) {
                     Swal.fire({
                         title: "Đã thêm mới xe",
-                        html: `Thêm thông tin xe <b>${numPlate}</b> thành công`,
+                        html: `Thêm thông tin xe <b>${numPlate.toUpperCase()}</b> thành công`,
                         icon: "success",
                         showConfirmButton: false,
                         timer: 2000,
@@ -1487,11 +1510,13 @@ $("#save-btn").click(function () {
         }
 
         Swal.fire({
+            icon: "warning",
             title: "Cập nhật thông tin xe?",
             showDenyButton: false,
             showCancelButton: true,
             confirmButtonText: "Đồng ý",
             cancelButtonText: `Hủy`,
+            reverseButtons: true
         }).then((result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
@@ -1521,12 +1546,12 @@ $("#save-btn").click(function () {
                                 icon: "success",
                                 showConfirmButton: false,
                                 timer: 2000,
-                                backdrop: `
-                                    rgba(0,0,123,0.4)
-                                    url("https://sweetalert2.github.io/images/nyan-cat.gif")
-                                    left top
-                                    no-repeat
-                                `,
+                                // backdrop: `
+                                //     rgba(0,0,123,0.4)
+                                //     url("https://sweetalert2.github.io/images/nyan-cat.gif")
+                                //     left top
+                                //     no-repeat
+                                // `,
                             });
                         } else {
                             Toast.fire({

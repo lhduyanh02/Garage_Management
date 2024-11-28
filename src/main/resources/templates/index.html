@@ -14,7 +14,7 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" />
   <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css"/>
+  <link rel="stylesheet" href="/plugins/fontawesome-free/css/all.min.css" />
   <!-- overlayScrollbars -->
   <link rel="stylesheet" href="/plugins/overlayScrollbars/css/OverlayScrollbars.min.css" />
   <!-- DataTables -->
@@ -23,13 +23,10 @@
   <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- Select2 CSS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-  <link
-    rel="stylesheet"
+  <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css"
     integrity="sha512-kq3FES+RuuGoBW3a9R2ELYKRywUEQv0wvPTItv3DSGqjpbNtGWVdvT8qwdKkqvPzT93jp8tSF4+oN4IeTEIlQA=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- Theme style -->
   <link rel="stylesheet" href="/dist/css/adminlte.min.css" />
   <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -55,9 +52,9 @@
 
     <!-- sidebar -->
     <!-- Main Sidebar Container -->
-    <aside id="sidebar"  class="main-sidebar sidebar-dark-primary elevation-4">
-        <!-- AdminLTE App -->
-        <script src="dist/js/adminlte.js" defer></script>
+    <aside id="sidebar" class="main-sidebar sidebar-dark-primary elevation-4">
+      <!-- AdminLTE App -->
+      <script src="dist/js/adminlte.js" defer></script>
     </aside>
     <!-- Font Awesome --><!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -142,7 +139,8 @@
             <!-- /.col -->
             <div class="col-12 col-sm-6 col-md-3">
               <div class="info-box mb-3">
-                <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-solid fa-file-invoice-dollar"></i></span>
+                <span class="info-box-icon bg-warning elevation-1"><i
+                    class="fas fa-solid fa-file-invoice-dollar"></i></span>
 
                 <div class="info-box-content">
                   <span id="history_quantity" class="info-box-number">#</span>
@@ -158,7 +156,7 @@
 
           <div class="row">
             <div class="col-12">
-              <div id="statistics-card" class="card">
+              <div id="statistics-card" class="card" hidden>
                 <div class="card-header">
                   <h5 class="card-title">Biểu đồ kinh doanh tuần</h5>
 
@@ -183,8 +181,6 @@
                       <!-- /.chart-responsive -->
                     </div>
 
-
-                    
                     <!-- <div class="col-md-4">
                       <p class="text-center">
                         <strong>Goal Completion</strong>
@@ -224,59 +220,60 @@
                       </div>
                     </div> -->
 
-                </div>
-                <!-- ./card-body -->
-                <div class="card-footer">
-                  <div class="row">
-                    <div class="col-sm-3 col-6">
-                      <div class="description-block border-right">
-                        <span class="description-percentage text-success" style="opacity: 0;"><i class="fas fa-caret-up"></i>#</span>
-                        <h5 id="total-last-week" class="description-header">#</h5>
-                        <span class="description-text">DOANH THU TUẦN TRƯỚC</span>
-                      </div>
-                      <!-- /.description-block -->
-                    </div>
-                    <!-- /.col -->
-                    <div class="col-sm-3 col-6">
-                      <div class="description-block border-right">
-                        <!-- <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span> -->
-                        <span id="grow-up-percent" class="description-percentage text-success"hidden></span>
-                        <h5 id="total-this-week" class="description-header">#</h5>
-                        <span class="description-text">DOANH THU TUẦN NÀY</span>
-                      </div>
-                      <!-- /.description-block -->
-                    </div>
-                    <!-- /.col -->
-                    <div class="col-sm-3 col-6">
-                      <div class="description-block border-right">
-                        <span class="description-percentage text-success" style="opacity: 0;"><i class="fas fa-caret-up"></i>#</span>
-                        <h5 id="average-last-week" class="description-header">#</h5>
-                        <span class="description-text">TRUNG BÌNH TUẦN TRƯỚC</span>
-                      </div>
-                      <!-- /.description-block -->
-                    </div>
-                    <!-- /.col -->
-                    <div class="col-sm-3 col-6">
-                      <div class="description-block">
-                        <span id="avg-percent" class="description-percentage "></span>
-                        <h5 id="average-this-week" class="description-header">#</h5>
-                        <span class="description-text">TRUNG BÌNH TUẦN NÀY</span>
-                      </div>
-                      <!-- /.description-block -->
-                    </div>
                   </div>
-                  <!-- /.row -->
+                  <!-- ./card-body -->
+                  <div class="card-footer">
+                    <div class="row">
+                      <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                          <span class="description-percentage text-success" style="opacity: 0;"><i
+                              class="fas fa-caret-up"></i>#</span>
+                          <h5 id="total-last-week" class="description-header">#</h5>
+                          <span class="description-text">DOANH THU TUẦN TRƯỚC</span>
+                        </div>
+                        <!-- /.description-block -->
+                      </div>
+                      <!-- /.col -->
+                      <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                          <!-- <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span> -->
+                          <span id="grow-up-percent" class="description-percentage text-success" style="opacity: 0;">#</span>
+                          <h5 id="total-this-week" class="description-header">#</h5>
+                          <span class="description-text">DOANH THU TUẦN NÀY</span>
+                        </div>
+                        <!-- /.description-block -->
+                      </div>
+                      <!-- /.col -->
+                      <div class="col-sm-3 col-6">
+                        <div class="description-block border-right">
+                          <span class="description-percentage text-success" style="opacity: 0;"><i
+                              class="fas fa-caret-up"></i>#</span>
+                          <h5 id="average-last-week" class="description-header">#</h5>
+                          <span class="description-text">TRUNG BÌNH TUẦN TRƯỚC</span>
+                        </div>
+                        <!-- /.description-block -->
+                      </div>
+                      <!-- /.col -->
+                      <div class="col-sm-3 col-6">
+                        <div class="description-block">
+                          <span id="avg-percent" class="description-percentage "></span>
+                          <h5 id="average-this-week" class="description-header">#</h5>
+                          <span class="description-text">TRUNG BÌNH TUẦN NÀY</span>
+                        </div>
+                        <!-- /.description-block -->
+                      </div>
+                    </div>
+                    <!-- /.row -->
+                  </div>
+                  <!-- /.card-footer -->
                 </div>
-                <!-- /.card-footer -->
+                <!-- /.card -->
               </div>
-              <!-- /.card -->
+              <!-- /.col -->
             </div>
-            <!-- /.col -->
-          </div>
-          <!-- /.row -->
+            <!-- /.row -->
 
-          <div class="row">
-            <div class="col-md-12">
+            <div class="col-12">
               <div class="card">
                 <div class="card-header border-transparent">
                   <h3 class="card-title">Danh sách dịch vụ</h3>
@@ -292,8 +289,8 @@
                 </div>
                 <!-- /.card-header -->
                 <div class="card-body">
-                  <div class="table-responsive">
-                    <table id="services-table" class="table table-striped">
+                  <div class="table-responsive w-100">
+                    <table id="services-table" class="table table-striped w-100">
                       <thead>
                         <tr>
                           <th class="text-center">#</th>
@@ -311,16 +308,15 @@
                 </div>
                 <!-- /.card-body -->
                 <!-- <div class="card-footer clearfix">
-                  <a href="javascript:void(0)" class="btn btn-sm btn-info float-left">Place New Order</a>
-                  <a href="javascript:void(0)" class="btn btn-sm btn-secondary float-right">View All Orders</a>
-                </div> -->
+                <a href="javascript:void(0)" class="btn btn-sm btn-info float-left">Place New Order</a>
+                <a href="javascript:void(0)" class="btn btn-sm btn-secondary float-right">View All Orders</a>
+              </div> -->
                 <!-- /.card-footer -->
               </div>
               <!-- /.card -->
             </div>
-          </div>
 
-        </div><!--/. container-fluid -->
+          </div><!--/. container-fluid -->
       </section>
       <!-- /.content -->
     </div>
@@ -348,7 +344,7 @@
   <!-- Bootstrap 4 -->
   <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
   <!-- Custom Input -->
-    <script src="/plugins/bs-custom-file-input/bs-custom-file-input.js"></script>
+  <script src="/plugins/bs-custom-file-input/bs-custom-file-input.js"></script>
   <!-- DataTables  & Plugins -->
   <script src="/plugins/datatables/jquery.dataTables.min.js"></script>
   <script src="/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
@@ -362,7 +358,7 @@
   <script src="/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.print.min.js"></script>
   <script src="/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
-  
+
   <!-- overlayScrollbars -->
   <script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
 

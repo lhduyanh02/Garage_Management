@@ -67,6 +67,7 @@ public class CommonParameterController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'NEW_PARAM'})")
     @PostMapping
     public ApiResponse<List<CommonParameterResponse>> newParam(@RequestBody @Valid CommonParameterCreationRequest request) {
         return ApiResponse.<List<CommonParameterResponse>>builder()

@@ -372,10 +372,14 @@ export function formatCurrent(inputValue) {
 
 // Định dạng số tiền VNĐ với ký tự đồng
 export function formatVNDCurrency(amount) {
+    if (amount == null) {
+        return "0"
+    }
+
     // Kiểm tra giá trị null hoặc không phải là số
-    if (amount == null || isNaN(amount)) {
+    if (isNaN(amount)) {
         console.log("Số tiền không hợp lệ");
-        return "Không hợp lệ";
+        return amount;
     }
     
     // Chuyển đổi amount thành kiểu số (nếu chưa phải là số)
