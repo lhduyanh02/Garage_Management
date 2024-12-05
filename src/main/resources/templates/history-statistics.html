@@ -157,9 +157,21 @@
             </div>
 
             <div class="card-footer">
-              <button id="card-submit-btn" class="btn btn-primary">Lấy danh sách đơn dịch vụ</button>
-              <!-- <button id="new-appointment-btn" class="btn btn-outline-success ml-1">Tạo cuộc hẹn</button> -->
-            </div>
+              <div class="row w-100">
+                <!-- Button 1 -->
+                <div class="col-12 col-md-auto">
+                  <button id="card-submit-btn" class="btn btn-primary w-100">
+                    Lấy danh sách đơn dịch vụ
+                  </button>
+                </div>
+                <!-- Button 2 -->
+                <div class="col-12 col-md-auto ml-md-auto mt-2 mt-md-0 px-md-0">
+                  <a href="https://sandbox.vnpayment.vn/merchantv2/" target="_blank" class="btn btn-outline-success w-100"><img id="vnpay-pay" role="button" src="/dist/img/VNPay.png" alt="VN Pay" style="height: 26px;" class="mr-md-2 mr-auto rounded img-thumbnail">
+                    Thống kê VNPAY
+                  </a>
+                </div>
+              </div>
+            </div>            
             <!-- /.card-footer-->
           </div>
           <!-- /.card -->
@@ -171,9 +183,8 @@
               <div id="data-table-card" class="card">
                 <div class="card-header d-flex align-items-center">
                   <h3 class="card-title">Bảng danh sách đơn dịch vụ</h3>
-                  <!-- <button class="btn btn-info btn-sm ms-auto ml-2" id="newModel_btn">
-                    <i class="fa-solid fa-car-side mr-1"></i> Thêm mẫu
-                  </button> -->
+                  <span class="font-weight-light font-italic ml-2">*Double-click để xem chi tiết</span>
+                  
                   <div class="ml-auto card-tools">
                     <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
                       title="Collapse">
@@ -273,7 +284,9 @@
   <!-- ChartJS -->
   <script src="plugins/chart.js/Chart.min.js"></script>
   <!-- ekko-lightbox -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js" integrity="sha512-Y2IiVZeaBwXG1wSV7f13plqlmFOx8MdjuHyYFVoYzhyRr3nH/NMDjTBSswijzADdNzMyWNetbLMfOpIPl6Cv9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ekko-lightbox/5.3.0/ekko-lightbox.min.js" 
+  integrity="sha512-Y2IiVZeaBwXG1wSV7f13plqlmFOx8MdjuHyYFVoYzhyRr3nH/NMDjTBSswijzADdNzMyWNetbLMfOpIPl6Cv9g==" 
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- date-range-picker -->
   <script src="/plugins/daterangepicker/daterangepicker.js"></script>
 

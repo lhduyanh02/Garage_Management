@@ -15,4 +15,6 @@ public interface PlateTypeRepository extends JpaRepository<PlateType, Integer> {
 
     List<PlateType> findAllByStatus(int status);
 
+    List<PlateType> findAllByType(String type);
+
 }

@@ -4,10 +4,9 @@ import com.lhduyanh.garagemanagement.configuration.SecurityExpression;
 import com.lhduyanh.garagemanagement.dto.request.HistoryCreationRequest;
 import com.lhduyanh.garagemanagement.dto.request.HistoryInfoUpdateRequest;
 import com.lhduyanh.garagemanagement.dto.request.HistoryUserUpdate;
-import com.lhduyanh.garagemanagement.dto.response.HistoryResponse;
-import com.lhduyanh.garagemanagement.dto.response.HistoryWithDetailsResponse;
+import com.lhduyanh.garagemanagement.dto.response.*;
 import com.lhduyanh.garagemanagement.entity.*;
-import com.lhduyanh.garagemanagement.enums.CarStatus;
+import com.lhduyanh.garagemanagement.enums.AccountStatus;
 import com.lhduyanh.garagemanagement.enums.HistoryStatus;
 import com.lhduyanh.garagemanagement.enums.UserStatus;
 import com.lhduyanh.garagemanagement.exception.AppException;
@@ -18,12 +17,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import static com.lhduyanh.garagemanagement.configuration.SecurityExpression.getUUIDFromJwt;
 
 @Service
@@ -39,6 +43,8 @@ public class HistoryService {
     UserRepository userRepository;
     PriceRepository priceRepository;
     CommonParameterRepository commonParameterRepository;
+
+    TelegramService telegramService;
 
     HistoryMapper historyMapper;
 
@@ -115,6 +121,35 @@ public class HistoryService {
                 .toList();
     }
 
+    // Bieu do 7 ngay gan nhat
+    public Map<LocalDate, Double> getDailyRevenue(LocalDateTime start, LocalDateTime end) {
+        // Lấy giờ bắt đầu của ngày start và giờ kết thúc của ngày end
+        LocalDateTime startOfDay = start.toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = end.toLocalDate().atTime(LocalTime.MAX);
+
+        // Gọi repository để lấy dữ liệu
+        List<Object[]> rawData = historyRepository.findDailyRevenue(startOfDay, endOfDay);
+
+        // Chuyển dữ liệu từ database sang Map
+        Map<LocalDate, Double> revenueMap = rawData.stream()
+                .collect(Collectors.toMap(
+                        row -> ((java.sql.Date) row[0]).toLocalDate(), // Chuyển ngày từ Object
+                        row -> row[1] != null ? (Double) row[1] : 0.0 // Tổng doanh thu
+                ));
+
+        // Tạo danh sách ngày từ start đến end
+        Map<LocalDate, Double> result = new LinkedHashMap<>();
+        LocalDate current = startOfDay.toLocalDate();
+        LocalDate last = endOfDay.toLocalDate();
+
+        while (!current.isAfter(last)) {
+            result.put(current, revenueMap.getOrDefault(current, 0.0));
+            current = current.plusDays(1);
+        }
+
+        return result;
+    }
+
     public List<HistoryResponse> getAllProceedingHistory() {
         List<HistoryResponse> response = historyRepository.getAllHistoryByStatus(HistoryStatus.PROCEEDING.getCode())
                 .stream()
@@ -157,8 +192,62 @@ public class HistoryService {
         history.setTax(Float.parseFloat(tax.getValue()));
         history.setPayableAmount(0.0);
         history.setStatus(HistoryStatus.PROCEEDING.getCode());
+        var response = historyMapper.toHistoryResponse(historyRepository.save(history));
 
-        return historyMapper.toHistoryResponse(historyRepository.save(history));
+        String body = """   
+                        <b>📢 ĐƠN DỊCH VỤ MỚI</b>
+                       
+                        <u>Thông tin xe:</u>
+                        <pre><code><b>Mẫu xe: </b>{0}
+                        <b>BKS: </b>{1}
+                        <b>Màu xe: </b>{2}
+                        <b>Đơn dịch vụ:</b> {3}</code></pre>
+                        
+                        <u>Cố vấn dịch vụ:</u>
+                        <pre><code><b>Cố vấn: </b>{4}
+                        <b>Liên hệ: </b>{5}</code></pre>
+                        
+                        <i>Đã tạo lúc: {6}.</i>
+                        """;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+        CarResponse carInfo = response.getCar();
+        String model = carInfo.getModel().getBrand().getBrand() + " " + carInfo.getModel().getModel();
+        String numPlate = carInfo.getNumPlate() + " (" + carInfo.getPlateType().getType() +")";
+
+        UserWithAccountsResponse adv = response.getAdvisor();
+        String advContact = "";
+        if (adv.getPhone() != null && !adv.getPhone().isEmpty()) {
+            advContact = adv.getPhone() + " ";
+        }
+        AccountSimpleResponse acc = adv.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).findFirst().orElse(null);
+        if (acc != null) {
+            advContact += acc.getEmail();
+        }
+
+        String message = MessageFormat.format(body,
+                model,
+                numPlate,
+                carInfo.getColor(),
+                response.getId(),
+                adv.getName(),
+                advContact,
+                response.getServiceDate().format(formatter)
+        );
+
+        var chatID = commonParameterRepository.findByKey("ORDER_NOTIFY").orElse(null);
+
+        if (chatID != null) {
+            try {
+                telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+            } catch (Exception e) {
+                log.error("Lỗi khi gửi thông báo Telegram");
+                e.printStackTrace();
+            }
+        }
+
+        return response;
     }
 
     @Transactional
@@ -242,7 +331,8 @@ public class HistoryService {
         Double payableAmount = totalAmount + (totalAmount * (history.getTax() / 100)) - (totalAmount * (history.getDiscount() / 100));
         history.setPayableAmount(payableAmount);
         historyRepository.save(history);
-        return historyMapper.toHistoryWithDetailsResponse(history);
+        HistoryWithDetailsResponse response = historyMapper.toHistoryWithDetailsResponse(history);
+        return response;
     }
 
     @Transactional
@@ -288,6 +378,80 @@ public class HistoryService {
         updateHistoryById(history.getId());
         history.setStatus(isPaid ? HistoryStatus.PAID.getCode() : HistoryStatus.CANCELED.getCode());
         historyRepository.save(history);
-        return historyMapper.toHistoryWithDetailsResponse(history);
+        var response = historyMapper.toHistoryWithDetailsResponse(history);
+
+        if (response.getStatus() == HistoryStatus.CANCELED.getCode()) {
+            String body = """   
+                        <b>📢 ĐƠN DỊCH VỤ BỊ HỦY ⛔</b>
+                       
+                        <u>Thông tin xe:</u>
+                        <pre><code><b>Mẫu xe: </b>{0}
+                        <b>BKS: </b>{1}
+                        <b>Màu xe: </b>{2}
+                        <b>Đơn dịch vụ:</b> {3}</code></pre>
+                        
+                        <u>Cố vấn dịch vụ:</u>
+                        <pre><code><b>Cố vấn: </b>{4}
+                        <b>Liên hệ: </b>{5}</code></pre>
+                        
+                        <b>Đơn dịch vụ này đã bị hủy!</b>
+                        
+                        <i>Đã tạo lúc: {6}.</i>
+                        """;
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, 'ngày' dd/MM/yyyy");
+
+            CarResponse carInfo = response.getCar();
+            String model = carInfo.getModel().getBrand().getBrand() + " " + carInfo.getModel().getModel();
+            String numPlate = carInfo.getNumPlate() + " (" + carInfo.getPlateType().getType() +")";
+
+            UserWithAccountsResponse adv = response.getAdvisor();
+            String advContact = "";
+            if (adv.getPhone() != null && !adv.getPhone().isEmpty()) {
+                advContact = adv.getPhone() + " ";
+            }
+            AccountSimpleResponse acc = adv.getAccounts().stream().filter(a -> a.getStatus() == AccountStatus.CONFIRMED.getCode()).findFirst().orElse(null);
+            if (acc != null) {
+                advContact += acc.getEmail();
+            }
+
+            String message = MessageFormat.format(body,
+                    model,
+                    numPlate,
+                    carInfo.getColor(),
+                    response.getId(),
+                    adv.getName(),
+                    advContact,
+                    response.getServiceDate().format(formatter)
+            );
+
+            var chatID = commonParameterRepository.findByKey("ORDER_NOTIFY").orElse(null);
+
+            if (chatID != null) {
+                try {
+                    telegramService.sendNotificationToAnUser(chatID.getValue(), message);
+                } catch (Exception e) {
+                    log.error("Lỗi khi gửi thông báo Telegram");
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return response;
+    }
+
+    public Boolean deleteHistory(String id) {
+        History history = historyRepository.findById(id)
+                .filter(h -> h.getStatus() != HistoryStatus.DELETED.getCode())
+                .orElseThrow(() -> new AppException(ErrorCode.HISTORY_NOT_EXISTS));
+
+        if (history.getStatus() != HistoryStatus.PAID.getCode() &&
+            history.getStatus() != HistoryStatus.CANCELED.getCode()) {
+            throw new AppException(ErrorCode.HISTORY_CANNOT_DELETE);
+        }
+
+        history.setStatus(HistoryStatus.DELETED.getCode());
+        historyRepository.save(history);
+        return true;
     }
 }

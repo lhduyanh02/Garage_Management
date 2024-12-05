@@ -220,54 +220,77 @@ $(document).ready(function () {
         },
     });
 
-    $.ajax({
-        type: "GET",
-        url: "/api/brands/fetch-model",
-        dataType: "json",
-        headers: {
-            Authorization: "",
-        },
-        success: function (res) {
-            if (res.code == 1000 && res.data) {
-                brandModelList = res.data;
+    // Hàm fetch và cập nhật dữ liệu Brand và Model
+    function fetchBrandsAndModels(firstLoad) {
+        const selectedBrand = firstLoad ? "" : $("#brand-select").val();
+        const selectedModel = firstLoad ? "" : $("#model-select").val();
 
-                $("#brand-select").empty();
-                $("#model-select").empty();
-                $.each(res.data, function (idx, val) {
-                    $("#brand-select").append(
-                        `<option value = "${val.id}">${val.brand}</option>`
-                    );
-                });
-                $("#brand-select").val("").trigger("change");
-            }
-        },
-    });
+        $.ajax({
+            type: "GET",
+            url: "/api/brands/fetch-model",
+            dataType: "json",
+            headers: { Authorization: "" },
+            success: function (res) {
+                if (res.code == 1000 && res.data) {
+                    brandModelList = res.data;
 
-    $.ajax({
-        type: "GET",
-        url: "/api/plate-types",
-        dataType: "json",
-        headers: {
-            Authorization: "",
-        },
-        success: function (res) {
-            if (res.code == 1000 && res.data) {
-                plateTypeList = res.data;
+                    // Làm mới danh sách
+                    $("#brand-select").empty();
+                    $("#model-select").empty();
+                    $.each(res.data, function (idx, val) {
+                        $("#brand-select").append(
+                            `<option value="${val.id}">${val.brand}</option>`
+                        );
+                    });
 
-                $("#plate-type-select").empty();
-                $.each(res.data, function (idx, val) {
-                    $("#plate-type-select").append(
-                        `<option value="${val.id}">${val.type}</option>`
-                    );
-                });
+                    // Đặt giá trị
+                    $("#brand-select").val(selectedBrand).trigger("change");
+                    $("#model-select").val(selectedModel).trigger("change");
+                }
+            },
+        });
+    }
 
-                $("#plate-type-select").val("").trigger("change");
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error(utils.getXHRInfo(xhr));
-        },
-    });
+    // Hàm fetch và cập nhật dữ liệu Plate Types
+    function fetchPlateTypes(firstLoad) {
+        const selectedPlateType = firstLoad ? "" : $("#plate-type-select").val();
+
+        $.ajax({
+            type: "GET",
+            url: "/api/plate-types",
+            dataType: "json",
+            headers: { Authorization: "" },
+            success: function (res) {
+                if (res.code == 1000 && res.data) {
+                    plateTypeList = res.data;
+
+                    // Làm mới danh sách
+                    $("#plate-type-select").empty();
+                    $.each(res.data, function (idx, val) {
+                        $("#plate-type-select").append(
+                            `<option value="${val.id}">${val.type}</option>`
+                        );
+                    });
+
+                    // Đặt giá trị
+                    $("#plate-type-select").val(selectedPlateType).trigger("change");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(utils.getXHRInfo(xhr));
+            },
+        });
+    }
+
+    // Gọi fetch lần đầu tiên với firstLoad = true
+    fetchBrandsAndModels(true);
+    fetchPlateTypes(true);
+
+    // Gọi fetch định kỳ mỗi 30 giây với firstLoad = false
+    setInterval(() => {
+        fetchBrandsAndModels(false);
+        fetchPlateTypes(false);
+    }, 10 * 1000);
 
     $.ajax({
         type: "GET",
@@ -450,6 +473,35 @@ $("#discount-info").on("paste", function (e) {
         }
         if (!/^\d*\.?\d*$/.test(input)) {
             $(this).val("0");
+            calculateAmountDue();
+        } else {
+            const parsedValue = parseFloat(input);
+            if (parsedValue > 100) {
+                $(this).val(input.slice(0, -1));
+            } else if (!input.includes(".") && parsedValue == 0) {
+                $(this).val("0");
+            } else {
+                calculateAmountDue();
+            }
+        }
+
+        $(".dropdown-menu").removeClass("show");
+    }, 0);
+});
+
+$("#tax-info").on("paste", function (e) {
+    if (selectedInvoice.status != 0) {
+        e.preventDefault();
+        return;
+    }
+    setTimeout(() => {
+        const input = $(this).val();
+
+        if (input.startsWith(".")) {
+            $(this).val("0" + input);
+        }
+        if (!/^\d*\.?\d*$/.test(input)) {
+            $(this).val("10");
             calculateAmountDue();
         } else {
             const parsedValue = parseFloat(input);
@@ -1246,7 +1298,7 @@ function clearInvoiceCard() {
 
     $("#advisor-invoice-info").html(`
         <b><span id="invoice-id"></span></b><br>
-        <b>Service Date: </b><span id="history-date"></span><br>
+        <b>Ngày đăng ký: </b><span id="history-date"></span><br>
 
         <div class=" hover-underline-animation left" role="button">
             <b style="display: inline-block; margin-right: 3px;">Odo:</b>
@@ -1396,16 +1448,16 @@ $("#save-btn").click(function () {
                 if (response.code == 1000) {
                     Swal.fire({
                         title: "Đã thêm mới xe",
-                        html: `Thêm thông tin xe <b>${numPlate}</b> thành công`,
+                        html: `Thêm thông tin xe <b>${numPlate.toUpperCase()}</b> thành công`,
                         icon: "success",
                         showConfirmButton: false,
                         timer: 2000,
-                        backdrop: `
-                            rgba(0,0,123,0.4)
-                            url("https://sweetalert2.github.io/images/nyan-cat.gif")
-                            left top
-                            no-repeat
-                        `,
+                        // backdrop: `
+                        //     rgba(0,0,123,0.4)
+                        //     url("https://sweetalert2.github.io/images/nyan-cat.gif")
+                        //     left top
+                        //     no-repeat
+                        // `,
                     });
                     loadCarInfoByCar(response.data);
                 } else {
@@ -1458,11 +1510,13 @@ $("#save-btn").click(function () {
         }
 
         Swal.fire({
+            icon: "warning",
             title: "Cập nhật thông tin xe?",
             showDenyButton: false,
             showCancelButton: true,
             confirmButtonText: "Đồng ý",
             cancelButtonText: `Hủy`,
+            reverseButtons: true
         }).then((result) => {
             /* Read more about isConfirmed, isDenied below */
             if (result.isConfirmed) {
@@ -1492,12 +1546,12 @@ $("#save-btn").click(function () {
                                 icon: "success",
                                 showConfirmButton: false,
                                 timer: 2000,
-                                backdrop: `
-                                    rgba(0,0,123,0.4)
-                                    url("https://sweetalert2.github.io/images/nyan-cat.gif")
-                                    left top
-                                    no-repeat
-                                `,
+                                // backdrop: `
+                                //     rgba(0,0,123,0.4)
+                                //     url("https://sweetalert2.github.io/images/nyan-cat.gif")
+                                //     left top
+                                //     no-repeat
+                                // `,
                             });
                         } else {
                             Toast.fire({
@@ -1583,6 +1637,20 @@ $("#add-detail-btn").click(async function () {
         return;
     }
 
+    $.ajax({
+        type: "GET",
+        url: "/api/services/enable-with-price",
+        dataType: "json",
+        success: function (response) {
+            if (response.code == 1000 && response.data) {
+                serviceOptionList = response.data;
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(utils.getXHRInfo(xhr));
+        },
+    });
+
     clear_modal();
     $('#modal_id').modal({
         backdrop: 'static', // Ngăn đóng khi click bên ngoài
@@ -1590,6 +1658,10 @@ $("#add-detail-btn").click(async function () {
     });
     $(".modal-dialog").addClass("modal-lg");
     $("#modal_title").text("Danh sách đăng ký dịch vụ");
+    $('#modal_id').modal({
+        backdrop: 'static', // Ngăn đóng khi click bên ngoài
+        keyboard: true      // Cho phép đóng khi nhấn Escape
+    });
     $("#modal_body").append(`
         <form id="modal-form">
             <div class="input_wrap form-group">
@@ -2597,7 +2669,6 @@ function loadInvoiceInfo(invoice) {
         $('#invoice-status-info').html('');
     } else {
         $('#confirm-order-btn').prop('hidden', true);
-        $('#vnpay-pay').prop('hidden', true);
         $('#cancel-order-btn').prop('hidden', true);
         $('#add-detail-btn').prop('hidden', true);
         $('#save-invoice-info-btn').prop('hidden', true);
@@ -2649,9 +2720,9 @@ function loadInvoiceInfo(invoice) {
     let t = utils.getTimeAsJSON(invoice.serviceDate);
     let invoiceIdHtml = "";
     if (invoice.status == 1) {
-        invoiceIdHtml = `Invoice #${invoice.id}`;
+        invoiceIdHtml = `Hóa đơn: #${invoice.id}`;
     } else {
-        invoiceIdHtml = `Order #${invoice.id}`;
+        invoiceIdHtml = `Đơn dịch vụ: #${invoice.id}`;
     }
     $("#invoice-id").html(invoiceIdHtml);
     $("#history-date").text(`${t.hour}:${t.min}, ${t.date}/${t.mon}/${t.year}`);
@@ -2884,7 +2955,6 @@ $('.images-delete-btn').click(async function () {
         return;
     }
 
-
     const part = target === "pre-service-image" ? "pre-service/" : "post-service/"
     $.ajax({
         type: "DELETE",
@@ -2895,15 +2965,15 @@ $('.images-delete-btn').click(async function () {
             Swal.showLoading();
         },
         success: function (res) {
-            Swal.close();
-            Swal.fire({
-                icon: "success",
-                title: "Đã xóa",
-                text: "Xóa danh sách hình ảnh thành công!",
-                showConfirmButton: false,
-                timer: 2000
-            });
             if (res.code == 1000 && res.data == true) {
+                Swal.close();
+                Swal.fire({
+                    icon: "success",
+                    title: "Đã xóa",
+                    text: "Xóa danh sách hình ảnh thành công!",
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 if (target === "pre-service-image") {
                     preServiceImages = [];
                     loadPreServiceImage(preServiceImages);
@@ -2914,6 +2984,7 @@ $('.images-delete-btn').click(async function () {
                     return;
                 }
             } else {
+                Swal.close();
                 console.error(res);
                 Toast.fire({
                     icon: "error",
@@ -3001,7 +3072,7 @@ async function handleUpload(cardId) {
                 title: "Tải lên thành công",
                 text: "Upload thành công các hình ảnh lên hệ thống",
                 showConfirmButton: false,
-                timer: 2000,
+                timer: 3000,
             });
             cardId === 'pre-service-image' ? loadPreServiceImage(response.data) : loadPostServiceImage(response.data);
         } else {

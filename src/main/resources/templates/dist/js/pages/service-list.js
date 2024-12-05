@@ -12,6 +12,13 @@ var Toast = Swal.mixin({
 
 // Clear modal
 function clear_modal() {
+    if ($(".modal-dialog").hasClass("modal-lg")) {
+        $(".modal-dialog").removeClass("modal-lg");
+    }
+
+    if ($(".modal-dialog").hasClass("modal-xl")) {
+        $(".modal-dialog").removeClass("modal-xl");
+    }
     $("#modal_title").empty();
     $("#modal_body").empty();
     $("#modal_footer").empty();
@@ -65,6 +72,12 @@ $(document).ready(function () {
             url: "/api/services/all-with-price",
             dataType: "json",
             headers: utils.defaultHeaders(),
+            beforeSend: xhr => {
+                const headers = utils.defaultHeaders(); // Lấy headers từ defaultHeaders()
+                for (const key in headers) {
+                    xhr.setRequestHeader(key, headers[key]); // Thiết lập từng header
+                }
+            },
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     var data = [];
@@ -242,6 +255,7 @@ $("#data-table").on("click", "#editBtn", function () {
             var data = res.data;
             clear_modal();
             $("#modal_title").text("Cập nhật dịch vụ");
+            $(".modal-dialog").addClass("modal-lg");
             $("#modal_body").append(`
                 <form id="modal-form">
                     <div class="form-group">
@@ -839,6 +853,7 @@ $("#data-table").on("click", "#enableBtn", function () {
 $("#new-service-btn").click(function () {
     clear_modal();
     $("#modal_title").text("Thêm dịch vụ");
+    $(".modal-dialog").addClass("modal-lg");
     $("#modal_body").append(`
         <form id="modal-form">
             <div class="form-group">
@@ -1237,6 +1252,7 @@ $("#copy-service-btn").click(function () {
                     var data = res.data;
                     clear_modal();
                     $("#modal_title").text("Thêm dịch vụ");
+                    $(".modal-dialog").addClass("modal-lg");
                     $("#modal_body").append(`
                         <form id="modal-form">
                             <div class="form-group">

@@ -2,12 +2,15 @@ package com.lhduyanh.garagemanagement.controller;
 
 import com.lhduyanh.garagemanagement.dto.request.PlateTypeRequest;
 import com.lhduyanh.garagemanagement.dto.response.ApiResponse;
+import com.lhduyanh.garagemanagement.dto.response.PlateTypeFullResponse;
 import com.lhduyanh.garagemanagement.dto.response.PlateTypeResponse;
 import com.lhduyanh.garagemanagement.service.PlateTypeService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,9 +31,11 @@ public class PlateTypeController {
                 .build();
     }
 
+    @Transactional
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     @GetMapping("/all")
-    public ApiResponse<List<PlateTypeResponse>> getAllPlateTypes(){
-        return ApiResponse.<List<PlateTypeResponse>>builder()
+    public ApiResponse<List<PlateTypeFullResponse>> getAllPlateTypes(){
+        return ApiResponse.<List<PlateTypeFullResponse>>builder()
                 .code(1000)
                 .data(plateTypeService.getAllPlateTypes())
                 .build();
@@ -44,16 +49,8 @@ public class PlateTypeController {
                 .build();
     }
 
-    @PutMapping
-    public ApiResponse<PlateTypeResponse> updatePlateType(@RequestParam int id,
-                        @RequestBody @Valid PlateTypeRequest request) {
-        return ApiResponse.<PlateTypeResponse>builder()
-                .code(1000)
-                .data(plateTypeService.updatePlateType(id, request))
-                .build();
-    }
-
     @PostMapping
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
     public ApiResponse<PlateTypeResponse> newPlateType(@RequestBody @Valid PlateTypeRequest request) {
         return ApiResponse.<PlateTypeResponse>builder()
                 .code(1000)
@@ -61,16 +58,27 @@ public class PlateTypeController {
                 .build();
     }
 
-    @PutMapping("/unable")
-    public ApiResponse<Void> unablePlateType(@RequestParam int id) {
-        plateTypeService.unablePlateType(id);
+    @PutMapping("/{id}")
+    public ApiResponse<PlateTypeResponse> updatePlateType(@PathVariable int id,
+                                                          @RequestBody @Valid PlateTypeRequest request) {
+        return ApiResponse.<PlateTypeResponse>builder()
+                .code(1000)
+                .data(plateTypeService.updatePlateType(id, request))
+                .build();
+    }
+
+    @PutMapping("/disable/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
+    public ApiResponse<Void> disablePlateType(@PathVariable int id) {
+        plateTypeService.disablePlateType(id);
         return ApiResponse.<Void>builder()
                 .code(1000)
                 .build();
     }
 
-    @PutMapping("/enable")
-    public ApiResponse<Void> enablePlateType(@RequestParam int id) {
+    @PutMapping("/enable/{id}")
+    @PreAuthorize("@securityExpression.hasPermission({'EDIT_MODEL_LIST'})")
+    public ApiResponse<Void> enablePlateType(@PathVariable int id) {
         plateTypeService.enablePlateType(id);
         return ApiResponse.<Void>builder()
                 .code(1000)

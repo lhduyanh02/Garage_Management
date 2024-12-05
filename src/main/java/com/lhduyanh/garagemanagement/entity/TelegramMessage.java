@@ -18,6 +18,7 @@ public class TelegramMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 38)
     String id;
 
     @Column(nullable = false)

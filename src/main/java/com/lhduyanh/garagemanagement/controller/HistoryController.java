@@ -14,8 +14,10 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/history")
@@ -88,9 +90,18 @@ public class HistoryController {
                 .build();
     }
 
+    @PreAuthorize("@securityExpression.hasPermission({'STATISTICS'})")
+    @GetMapping("/daily-revenue")
+    public ApiResponse<Map<LocalDate, Double>> getDailyRevenue(@RequestParam("start") LocalDateTime start,
+                                                               @RequestParam("end") LocalDateTime end) {
+        return ApiResponse.<Map<LocalDate, Double>>builder()
+                .code(1000)
+                .data(historyService.getDailyRevenue(start, end))
+                .build();
+    }
+
 
     // POST REQUEST
-
     @PreAuthorize("@securityExpression.hasPermission({'SIGN_SERVICE'})")
     @PostMapping("/new-history")
     public ApiResponse<HistoryResponse> newHistory(@RequestBody @Valid HistoryCreationRequest request) {
@@ -134,6 +145,15 @@ public class HistoryController {
         return ApiResponse.<HistoryWithDetailsResponse>builder()
                 .code(1000)
                 .data(historyService.closeHistory(id, false))
+                .build();
+    }
+
+    @PreAuthorize("@securityExpression.hasPermission({'DELETE_HISTORY'})")
+    @DeleteMapping("/delete-history/{id}")
+    public ApiResponse<Boolean> deleteHistory(@PathVariable String id) {
+        return ApiResponse.<Boolean>builder()
+                .code(1000)
+                .data(historyService.deleteHistory(id))
                 .build();
     }
 

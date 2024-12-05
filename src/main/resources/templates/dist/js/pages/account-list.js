@@ -12,6 +12,13 @@ var Toast = Swal.mixin({
 
 // Clear modal
 function clear_modal() {
+    if ($(".modal-dialog").hasClass("modal-lg")) {
+        $(".modal-dialog").removeClass("modal-lg");
+    }
+
+    if ($(".modal-dialog").hasClass("modal-xl")) {
+        $(".modal-dialog").removeClass("modal-xl");
+    }
     $("#modal_title").empty();
     $("#modal_body").empty();
     $("#modal_footer").empty();
@@ -68,6 +75,12 @@ $(document).ready(function () {
             url: "/api/accounts/all",
             dataType: "json",
             headers: utils.defaultHeaders(),
+            beforeSend: xhr => {
+                const headers = utils.defaultHeaders(); // Lấy headers từ defaultHeaders()
+                for (const key in headers) {
+                    xhr.setRequestHeader(key, headers[key]); // Thiết lập từng header
+                }
+            },
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     var data = [];
@@ -956,7 +969,7 @@ $("#new-account-btn").click(function () {
                         if (result.isConfirmed) {
                             $.ajax({
                                 type: "POST",
-                                url: "/api/accounts/new-account/confirm/",
+                                url: "/api/accounts/new-account/confirm",
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
                                     email: email,

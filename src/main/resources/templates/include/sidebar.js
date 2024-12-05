@@ -45,6 +45,8 @@ $(document).ready(async function () {
     active_nav_link();
     $('[data-toggle="tooltip"]').tooltip();
 
+    await utils.setLocalStorageObject('userInfo', null);
+
     let userInfo = await utils.getUserInfo();
     if (userInfo) {
         $("#user-name-sidebar").text(userInfo.name);

@@ -51,6 +51,7 @@ public class OptionService {
 
     public List<OptionFullResponse> getAllOptionWithPrice() {
         return optionRepository.findAll().stream()
+                .filter(o -> o.getStatus() != OptionStatus.DELETED.getCode())
                 .map(optionMapper::toOptionFullResponse)
                 .sorted(Comparator.comparing(OptionFullResponse::getName, vietnameseCollator))
                 .toList();

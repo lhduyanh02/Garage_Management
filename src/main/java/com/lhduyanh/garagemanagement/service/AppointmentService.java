@@ -987,12 +987,14 @@ public class AppointmentService {
                         <b>SĐT: </b>{1}
                         <b>Địa chỉ: </b>{2}
                         <b>Email: </b>{3}
+                        
                         <u>Thông tin chi tiết yêu cầu:</u>
                         <b>Thời gian: </b>{4}
                         <b>Liên hệ: </b>{5}
                         <b>Ghi chú: </b>{6}
                         <u>Dịch vụ đã chọn:</u>
                         {7}
+                        Trạng thái: {10}
                         <i>Đã tạo lúc: {8}.</i></code></pre>
                         """;
 
@@ -1017,6 +1019,19 @@ public class AppointmentService {
                 }
                 UserWithAccountsResponse customer = appointment.getCustomer();
 
+                String statusText = "Không xác định";
+                if (appointment.getStatus() == AppointmentStatus.PENDING_CONFIRM.getCode()) {
+                    statusText = "Chưa xác nhận";
+                } else if (appointment.getStatus() == AppointmentStatus.UPCOMING.getCode()) {
+                    statusText = "Sắp tới";
+                } else if (appointment.getStatus() == AppointmentStatus.COMPLETED.getCode()) {
+                    statusText = "Hoàn thành";
+                } else if (appointment.getStatus() == AppointmentStatus.MISSED.getCode()) {
+                    statusText = "Bỏ lỡ";
+                } else if (appointment.getStatus() == AppointmentStatus.CANCELLED.getCode()) {
+                    statusText = "Đã hủy";
+                }
+
                 String appointmentText = MessageFormat.format(body,
                         customer.getName(),
                         customer.getPhone()!=null ? customer.getPhone() : "Không có",
@@ -1027,7 +1042,8 @@ public class AppointmentService {
                         appointment.getDescription(),
                         serviceList,
                         appointment.getCreateAt().format(formatter),
-                        index++
+                        index++,
+                        statusText
                 );
 //
 //                log.info(appointmentText);

@@ -12,6 +12,13 @@ var Toast = Swal.mixin({
 
 // Clear modal
 function clear_modal() {
+    if ($(".modal-dialog").hasClass("modal-lg")) {
+        $(".modal-dialog").removeClass("modal-lg");
+    }
+
+    if ($(".modal-dialog").hasClass("modal-xl")) {
+        $(".modal-dialog").removeClass("modal-xl");
+    }
     $("#modal_title").empty();
     $("#modal_body").empty();
     $("#modal_footer").empty();
@@ -87,6 +94,12 @@ $(document).ready(async function () {
             url: "/api/users",
             dataType: "json",
             headers: utils.defaultHeaders(),
+            beforeSend: xhr => {
+                const headers = utils.defaultHeaders(); // Lấy headers từ defaultHeaders()
+                for (const key in headers) {
+                    xhr.setRequestHeader(key, headers[key]); // Thiết lập từng header
+                }
+            },
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     userList = res.data;

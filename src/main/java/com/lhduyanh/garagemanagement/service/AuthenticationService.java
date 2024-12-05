@@ -28,6 +28,7 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -62,6 +64,17 @@ public class AuthenticationService {
     @NonFinal
     @Value("${app.token-valid-duration}")
     Long VALID_DURATION;
+
+    public Long countInvalidatedToken(LocalDateTime start, LocalDateTime end) {
+        return invalidatedTokenRepository.countByExpiryTime(start, end);
+    }
+
+    @Transactional
+    @Modifying
+    public boolean deleteInvalidatedTokenByTimeRange(LocalDateTime start, LocalDateTime end) {
+        invalidatedTokenRepository.deleteAllByExpiryTimeBetween(start, end);
+        return true;
+    }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         var account = accountRepository.findByEmail(request.getEmail())

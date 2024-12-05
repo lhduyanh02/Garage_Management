@@ -2,6 +2,7 @@ package com.lhduyanh.garagemanagement.service;
 
 import com.lhduyanh.garagemanagement.dto.request.ImageUploadRequest;
 import com.lhduyanh.garagemanagement.dto.response.ImageResponse;
+import com.lhduyanh.garagemanagement.dto.response.ImageStatisticsResponse;
 import com.lhduyanh.garagemanagement.entity.History;
 import com.lhduyanh.garagemanagement.entity.PostServiceImage;
 import com.lhduyanh.garagemanagement.entity.PreServiceImage;
@@ -15,15 +16,20 @@ import com.lhduyanh.garagemanagement.repository.PreServiceImageRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class ImageService {
 
     PreServiceImageRepository preImgRepository;
@@ -184,6 +190,43 @@ public class ImageService {
             postImgRepository.deleteAll(images);
         }
 
+        return true;
+    }
+
+    public ImageStatisticsResponse getImageStatisticsByTimeRange(LocalDateTime start, LocalDateTime end, boolean isPreService) {
+        Object[] result;
+        if (isPreService) {
+            result = preImgRepository.getImageStatisticsByDateRange(start, end);
+        }
+        else {
+            result = postImgRepository.getImageStatisticsByDateRange(start, end);
+        }
+
+        Object[] row = (Object[]) result[0]; // lấy dòng dữ liệu đầu tiên
+        long totalImages = Optional.ofNullable(row[0])
+                .filter(Number.class::isInstance)
+                .map(Number.class::cast)
+                .map(Number::longValue)
+                .orElse(0L);
+        double totalBlobSizeMB = Optional.ofNullable(row[1])
+                .filter(Number.class::isInstance)
+                .map(Number.class::cast)
+                .map(Number::doubleValue)
+                .orElse(0.0);
+
+
+        return new ImageStatisticsResponse(totalImages, totalBlobSizeMB);
+    }
+
+    @Transactional
+    @Modifying
+    public Boolean clearImageByTimeRange(LocalDateTime start, LocalDateTime end, boolean isPreService) {
+        if (isPreService) {
+            log.info(start.toString() + " " + end.toString());
+            preImgRepository.deleteAllByUploadTimeBetween(start, end);
+        } else {
+            postImgRepository.deleteAllByUploadTimeBetween(start, end);
+        }
         return true;
     }
 

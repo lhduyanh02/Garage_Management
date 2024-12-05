@@ -76,6 +76,12 @@ $(document).ready(async function () {
             url: "/api/telegram-message",
             dataType: "json",
             headers: utils.defaultHeaders(),
+            beforeSend: xhr => {
+                const headers = utils.defaultHeaders(); // Lấy headers từ defaultHeaders()
+                for (const key in headers) {
+                    xhr.setRequestHeader(key, headers[key]); // Thiết lập từng header
+                }
+            },
             dataSrc: function (res) {
                 if (res.code == 1000) {
                     var data = [];
@@ -463,7 +469,7 @@ $("#data-table").on("click", "#receiverBtn", async function () {
     }
 
     clear_modal();
-    $("#modal_title").text("Chọn hồ sơ khách hàng");
+    $("#modal_title").text("Danh sách người nhận");
     $(".modal-dialog").addClass("modal-xl");
     $("#modal_body").append(`
         <div class="row">

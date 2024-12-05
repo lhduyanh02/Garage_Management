@@ -102,7 +102,9 @@ $(document).ready(function () {
         }
     });
 
-    loadListAppointment();
+    setTimeout(() => {
+        loadListAppointment();        
+    }, 500);
 });
 
 $('#card-reload-btn').click( async function () { 
