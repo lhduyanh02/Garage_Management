@@ -969,7 +969,7 @@ $("#new-account-btn").click(function () {
                         if (result.isConfirmed) {
                             $.ajax({
                                 type: "POST",
-                                url: "/api/accounts/new-account/confirm/",
+                                url: "/api/accounts/new-account/confirm",
                                 headers: utils.defaultHeaders(),
                                 data: JSON.stringify({
                                     email: email,

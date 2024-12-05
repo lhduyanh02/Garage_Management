@@ -1658,6 +1658,10 @@ $("#add-detail-btn").click(async function () {
     });
     $(".modal-dialog").addClass("modal-lg");
     $("#modal_title").text("Danh sách đăng ký dịch vụ");
+    $('#modal_id').modal({
+        backdrop: 'static', // Ngăn đóng khi click bên ngoài
+        keyboard: true      // Cho phép đóng khi nhấn Escape
+    });
     $("#modal_body").append(`
         <form id="modal-form">
             <div class="input_wrap form-group">

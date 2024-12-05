@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Danh mục hãng - xe | Spring Detailing</title>
+  <title>Danh mục mẫu xe | Spring Detailing</title>
 
   <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -77,12 +77,12 @@
         <div class="container-fluid">
           <div class="row mb-2">
             <div class="col-sm-6">
-              <h1>Danh mục hãng - xe</h1>
+              <h1>Danh mục mẫu xe - loại biển số</h1>
             </div>
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#" class="text-dark">Quản lý danh mục</a></li>
-                <li class="breadcrumb-item active">Danh mục hãng - xe</li>
+                <li class="breadcrumb-item active">Danh mục mẫu xe</li>
               </ol>
             </div>
           </div>
@@ -91,33 +91,6 @@
 
       <!-- Main content -->
       <section class="content">
-
-        <!-- Default box -->
-        <div class="card" hidden>
-          <div class="card-header">
-            <h3 class="card-title">Danh sách hãng</h3>
-
-            <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                <i class="fas fa-minus"></i>
-              </button>
-
-              <!-- Remove card button -->
-              <!-- <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-              <i class="fas fa-times"></i>
-            </button> -->
-            </div>
-          </div>
-          <div class="card-body">
-            Copy this page and start creating your interface!
-          </div>
-          <!-- /.card-body -->
-          <div class="card-footer">
-            Footer
-          </div>
-          <!-- /.card-footer-->
-        </div>
-        <!-- /.card -->
 
         <div class="container-fluid"></div>
         <div class="row">
@@ -153,7 +126,7 @@
               </div>
               <!-- /.card-header -->
               <div class="card-body">
-                <table id="data-table" class="table table-bordered table-striped">
+                <table id="data-table" class="table table-bordered table-striped table-hover">
                   <thead>
                     <tr>
                       <th scope="col" style="text-align: center" width="10%">#</th>
@@ -161,47 +134,50 @@
                       <th scope="col" style="text-align: center">Mẫu xe</th>
                       <th scope="col" style="text-align: center" width="10%">Thao tác</th>
 
-                      <!-- <th>Rendering engine</th>
-                    <th>Browser</th>
-                    <th>Platform(s)</th>
-                    <th>Engine version</th>
-                    <th>CSS grade</th> -->
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 4.0
-                    </td>
-                    <td>Win 95+</td>
-                    <td> 4</td>
-                    <td>X</td>
-                  </tr>
-                  <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 5.0
-                    </td>
-                    <td>Win 95+</td>
-                    <td>5</td>
-                    <td>C</td>
-                  </tr>
-                  <tr>
-                    <td>Trident</td>
-                    <td>Internet
-                      Explorer 5.5
-                    </td>
-                    <td>Win 95+</td>
-                    <td>5.5</td>
-                    <td>A</td>
-                  </tr> -->
                   </tbody>
                 </table>
               </div>
               <!-- /.card-body -->
             </div>
             <!-- /.card -->
+
+
+            <div id="plate-card" class="card">
+              <div class="card-header d-flex align-items-center">
+                <h3 class="card-title">Danh sách loại biển số</h3>
+                <button class="btn btn-info btn-sm ms-auto ml-2" id="new-plate-type-btn">
+                  <i class="fa-solid fa-car-side mr-1"></i> Thêm loại
+                </button>
+                <div class="ml-auto card-tools">
+                  <button id="tableCollapseBtn" type="button" class="btn btn-tool" data-card-widget="collapse"
+                    title="Collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <table id="plate-type-table" class="table table-bordered table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th scope="col" style="text-align: center" width="10%">#</th>
+                      <th scope="col" style="text-align: center" width="40%">Loại biển số</th>
+                      <th scope="col" style="text-align: center">Số lượng xe</th>
+                      <th scope="col" style="text-align: center" width="17%">Trạng thái</th>
+                      <th scope="col" style="text-align: center" width="10%">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
           </div>
           <!-- /.col -->
         </div>

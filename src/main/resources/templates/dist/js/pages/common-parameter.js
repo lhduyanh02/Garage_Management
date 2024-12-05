@@ -268,7 +268,6 @@ $("#data-table").on("click", "#editBtn", async function () {
                             console.warn(response);
                             console.log(response.responseJSON.code);
                             
-                            
                             Swal.showValidationMessage(`Lỗi trả về: ${utils.getErrorMessage(response.code)}`);
                             return false;
                         }

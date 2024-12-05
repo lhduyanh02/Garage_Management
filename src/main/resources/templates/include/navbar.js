@@ -12,7 +12,7 @@ $(document).ready(function(){
     if (isValid) {
       $("#login-out-btn").html(`
           <a id="logoutBtn" class="nav-link" href="javascript:void(0)" role="button" data-toggle="tooltip" data-placement="top" title="Đăng xuất">
-            <i class="fa-solid fa-person-through-window"></i>
+            <i class="fa-solid fa-right-from-bracket"></i>
           </a>
       `);
       $('[data-toggle="tooltip"]').tooltip();
